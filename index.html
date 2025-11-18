@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+<title>Financeiro • Grupo DV</title>
+
+<!-- ============================
+       PWA MANIFEST
+============================= -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="https://i.imgur.com/9M1IR7Z.png">
+
+<!-- ============================
+       FONTE / ESTILO
+============================= -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --azul:#0b1e39;
+  --azul2:#12294c;
+  --card:#ffffff;
+  --gold:#d4af37;
+  --bg:#f2f4f7;
+  --radius:20px;
+  --shadow:0 8px 22px rgba(0,0,0,0.1);
+}
+
+body {
+  margin:0;
+  font-family:'Inter', sans-serif;
+  background:var(--bg);
+  color:#111;
+}
+
+header {
+  background:var(--azul);
+  padding:22px;
+  text-align:center;
+  color:white;
+  font-size:22px;
+  font-weight:700;
+  box-shadow:var(--shadow);
+  border-bottom-left-radius:22px;
+  border-bottom-right-radius:22px;
+}
+
+/* Dashboard Cards */
+.dashboard {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  padding:20px;
+}
+
+.card {
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:20px;
+  text-align:center;
+  box-shadow:var(--shadow);
+}
+
+.card h3 {
+  margin:0;
+  font-size:16px;
+  color:var(--azul);
+}
+
+.card p {
+  margin:10px 0 0;
+  font-size:22px;
+  font-weight:700;
+  color:var(--gold);
+}
+
+/* Formulário */
+.form-area {
+  background:white;
+  margin:20px;
+  padding:20px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+
+label {
+  font-weight:600;
+  margin-top:15px;
+  display:block;
+}
+
+input, select {
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  margin-top:6px;
+  font-size:15px;
+}
+
+button {
+  width:100%;
+  background:var(--azul);
+  padding:14px;
+  color:white;
+  border:0;
+  border-radius:12px;
+  margin-top:20px;
+  font-size:16px;
+  font-weight:600;
+  box-shadow:var(--shadow);
+}
+
+button:hover {
+  background:var(--azul2);
+  transition:.2s;
+}
+
+/* Lista de lançamentos */
+#lista {
+  margin:20px;
+}
+
+.item {
+  background:white;
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+
+.item h4 {
+  margin:0;
+  color:var(--azul);
+  font-size:16px;
+}
+
+.item span {
+  display:block;
+  margin-top:6px;
+  font-size:14px;
+}
+
+/* Loader */
+#overlay {
+  position:fixed;
+  inset:0;
+  background:white;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:700;
+  color:var(--azul);
+}
+
+</style>
+</head>
+<body>
+
+<div id="overlay">Carregando...</div>
+
+<header>Financeiro • Contas a Pagar e Receber</header>
+
+<!-- ============================
+        DASHBOARD
+============================= -->
+<section class="dashboard">
+  <div class="card">
+    <h3>Receitas (Mês)</h3>
+    <p id="receitasMes">R$ 0,00</p>
+  </div>
+  <div class="card">
+    <h3>Despesas (Mês)</h3>
+    <p id="despesasMes">R$ 0,00</p>
+  </div>
+  <div class="card">
+    <h3>Saldo</h3>
+    <p id="saldoMes">R$ 0,00</p>
+  </div>
+  <div class="card">
+    <h3>Lançamentos</h3>
+    <p id="totalLanc">0</p>
+  </div>
+</section>
+
+<!-- ============================
+        CADASTRO
+============================= -->
+<div class="form-area">
+  <h2 style="margin:0 0 10px;color:var(--azul);">Novo Lançamento</h2>
+
+  <label>Tipo</label>
+  <select id="tipo">
+    <option value="receita">Receita</option>
+    <option value="despesa">Despesa</option>
+  </select>
+
+  <label>Descrição</label>
+  <input type="text" id="descricao" placeholder="Ex: Venda, Luz, Água">
+
+  <label>Valor</label>
+  <input type="number" id="valor" step="0.01">
+
+  <label>Data</label>
+  <input type="date" id="data">
+
+  <button onclick="salvar()">Salvar Lançamento</button>
+</div>
+
+<!-- ============================
+        LISTA
+============================= -->
+<h2 style="margin-left:20px;color:var(--azul);">Lançamentos</h2>
+<div id="lista"></div>
+
+<!-- ============================
+        SCRIPT
+============================= -->
+<script>
+const API_URL = "URL_DO_SEU_WEBAPP"; // 🔗 coloque seu Apps Script publicado
+
+window.onload = async () => {
+  await carregarLancamentos();
+  document.getElementById("overlay").style.display = "none";
+};
+
+/* =====================================================
+   SALVAR NO GOOGLE SHEETS
+===================================================== */
+async function salvar() {
+  const tipo = document.getElementById("tipo").value;
+  const descricao = document.getElementById("descricao").value.trim();
+  const valor = parseFloat(document.getElementById("valor").value);
+  const data = document.getElementById("data").value;
+
+  if (!descricao || !valor || !data) {
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  const payload = {
+    action: "add",
+    tipo, descricao, valor, data
+  };
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  await carregarLancamentos();
+  alert("Lançamento salvo!");
+}
+
+/* =====================================================
+   CARREGAR DO SHEETS
+===================================================== */
+async function carregarLancamentos() {
+  const res = await fetch(API_URL + "?action=list");
+  const dados = await res.json();
+
+  let html = "";
+  let receitas = 0;
+  let despesas = 0;
+
+  dados.forEach(l => {
+    html += `
+      <div class="item">
+        <h4>${l.descricao}</h4>
+        <span><b>Tipo:</b> ${l.tipo}</span>
+        <span><b>Valor:</b> R$ ${parseFloat(l.valor).toFixed(2)}</span>
+        <span><b>Data:</b> ${l.data}</span>
+      </div>
+    `;
+
+    if (l.tipo === "receita") receitas += Number(l.valor);
+    else despesas += Number(l.valor);
+  });
+
+  document.getElementById("lista").innerHTML = html;
+  document.getElementById("totalLanc").innerText = dados.length;
+  document.getElementById("receitasMes").innerText = "R$ " + receitas.toFixed(2);
+  document.getElementById("despesasMes").innerText = "R$ " + despesas.toFixed(2);
+  document.getElementById("saldoMes").innerText = "R$ " + (receitas - despesas).toFixed(2);
+}
+</script>
+
+</body>
+</html>
