@@ -4,34 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+
 <title>Financeiro • Grupo DV</title>
 
-<!-- ============================
-       PWA MANIFEST
-============================= -->
+<!-- ========= PWA ======== -->
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="apple-touch-icon" href="https://i.imgur.com/9M1IR7Z.png">
 
-<!-- ============================
-       FONTE / ESTILO
-============================= -->
+<!-- ========= FONTE ======== -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- ========= ESTILO ======== -->
 <style>
 :root {
   --azul:#0b1e39;
-  --azul2:#12294c;
-  --card:#ffffff;
+  --azul2:#152b4e;
   --gold:#d4af37;
-  --bg:#f2f4f7;
+  --bg:#f3f5f7;
   --radius:20px;
-  --shadow:0 8px 22px rgba(0,0,0,0.1);
+  --shadow:0 8px 25px rgba(0,0,0,0.18);
 }
 
 body {
-  margin:0;
   font-family:'Inter', sans-serif;
+  margin:0;
   background:var(--bg);
   color:#111;
 }
@@ -44,11 +42,33 @@ header {
   font-size:22px;
   font-weight:700;
   box-shadow:var(--shadow);
-  border-bottom-left-radius:22px;
-  border-bottom-right-radius:22px;
+  border-bottom-left-radius:25px;
+  border-bottom-right-radius:25px;
 }
 
-/* Dashboard Cards */
+/* Carregamento */
+#overlay {
+  position:fixed;
+  inset:0;
+  background:white;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:700;
+  color:var(--azul);
+}
+
+/* Dashboard */
+.section-title {
+  margin:20px;
+  margin-bottom:10px;
+  font-size:20px;
+  font-weight:700;
+  color:var(--azul);
+}
+
 .dashboard {
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -57,30 +77,56 @@ header {
 }
 
 .card {
-  background:var(--card);
-  border-radius:var(--radius);
+  background:white;
   padding:20px;
-  text-align:center;
+  border-radius:var(--radius);
   box-shadow:var(--shadow);
+  text-align:center;
 }
 
 .card h3 {
+  font-size:15px;
   margin:0;
-  font-size:16px;
   color:var(--azul);
 }
 
 .card p {
-  margin:10px 0 0;
+  margin-top:10px;
   font-size:22px;
   font-weight:700;
   color:var(--gold);
 }
 
-/* Formulário */
-.form-area {
-  background:white;
+/* Botões flutuantes */
+.menu-floating {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.action-btn {
+  padding:16px;
+  background:var(--azul);
+  color:white;
+  font-size:16px;
+  border-radius:50px;
+  box-shadow:var(--shadow);
+  text-align:center;
+  width:58px;
+  height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+/* Seções */
+.section {
   margin:20px;
+  background:white;
   padding:20px;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
@@ -95,7 +141,7 @@ label {
 input, select {
   width:100%;
   padding:12px;
-  border-radius:10px;
+  border-radius:12px;
   border:1px solid #ccc;
   margin-top:6px;
   font-size:15px;
@@ -103,27 +149,23 @@ input, select {
 
 button {
   width:100%;
-  background:var(--azul);
-  padding:14px;
-  color:white;
-  border:0;
-  border-radius:12px;
   margin-top:20px;
+  padding:14px;
+  background:var(--azul);
+  color:white;
   font-size:16px;
   font-weight:600;
+  border:0;
+  border-radius:12px;
+  cursor:pointer;
   box-shadow:var(--shadow);
 }
 
 button:hover {
   background:var(--azul2);
-  transition:.2s;
 }
 
-/* Lista de lançamentos */
-#lista {
-  margin:20px;
-}
-
+/* Lista */
 .item {
   background:white;
   padding:16px;
@@ -134,49 +176,37 @@ button:hover {
 
 .item h4 {
   margin:0;
-  color:var(--azul);
   font-size:16px;
-}
-
-.item span {
-  display:block;
-  margin-top:6px;
-  font-size:14px;
-}
-
-/* Loader */
-#overlay {
-  position:fixed;
-  inset:0;
-  background:white;
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  font-weight:700;
   color:var(--azul);
+}
+
+.item span { display:block; margin-top:6px; }
+
+/* Gráficos */
+canvas {
+  width:100% !important;
+  max-height:260px;
 }
 
 </style>
 </head>
+
 <body>
 
 <div id="overlay">Carregando...</div>
 
-<header>Financeiro • Contas a Pagar e Receber</header>
+<header>Financeiro • Grupo DV</header>
 
-<!-- ============================
-        DASHBOARD
-============================= -->
+<!-- DASHBOARD -->
+<div class="section-title">Dashboard Geral</div>
 <section class="dashboard">
   <div class="card">
     <h3>Receitas (Mês)</h3>
-    <p id="receitasMes">R$ 0,00</p>
+    <p id="receitaMes">R$ 0,00</p>
   </div>
   <div class="card">
     <h3>Despesas (Mês)</h3>
-    <p id="despesasMes">R$ 0,00</p>
+    <p id="despesaMes">R$ 0,00</p>
   </div>
   <div class="card">
     <h3>Saldo</h3>
@@ -188,11 +218,24 @@ button:hover {
   </div>
 </section>
 
-<!-- ============================
-        CADASTRO
-============================= -->
-<div class="form-area">
-  <h2 style="margin:0 0 10px;color:var(--azul);">Novo Lançamento</h2>
+<!-- GRÁFICO DE BARRAS -->
+<div class="section">
+  <h3 style="color:var(--azul); margin-top:0;">Gráfico Mensal</h3>
+  <canvas id="graficoMes"></canvas>
+</div>
+
+<!-- GRÁFICO DE PIZZA -->
+<div class="section">
+  <h3 style="color:var(--azul); margin-top:0;">Categorias (Pizza)</h3>
+  <canvas id="graficoPizza"></canvas>
+</div>
+
+<!-- FORMULÁRIO -->
+<div class="section">
+  <h2 style="margin-top:0; color:var(--azul);">Novo Lançamento</h2>
+
+  <label>Categoria</label>
+  <select id="categoria"></select>
 
   <label>Tipo</label>
   <select id="tipo">
@@ -201,7 +244,7 @@ button:hover {
   </select>
 
   <label>Descrição</label>
-  <input type="text" id="descricao" placeholder="Ex: Venda, Luz, Água">
+  <input type="text" id="descricao">
 
   <label>Valor</label>
   <input type="number" id="valor" step="0.01">
@@ -209,85 +252,211 @@ button:hover {
   <label>Data</label>
   <input type="date" id="data">
 
-  <button onclick="salvar()">Salvar Lançamento</button>
+  <button onclick="salvarLancamento()">Salvar</button>
 </div>
 
-<!-- ============================
-        LISTA
-============================= -->
-<h2 style="margin-left:20px;color:var(--azul);">Lançamentos</h2>
-<div id="lista"></div>
+<!-- EDITOR DE CATEGORIAS -->
+<div class="section">
+  <h2 style="margin-top:0; color:var(--azul);">Categorias</h2>
 
-<!-- ============================
-        SCRIPT
-============================= -->
+  <label>Nova categoria</label>
+  <input id="novaCategoria" type="text">
+
+  <select id="novoTipo">
+    <option value="receita">Receita</option>
+    <option value="despesa">Despesa</option>
+  </select>
+
+  <button onclick="addCategoria()">Adicionar Categoria</button>
+
+  <div id="listaCategorias" style="margin-top:20px;"></div>
+</div>
+
+<!-- LISTA -->
+<div class="section">
+  <h2 style="margin-top:0; color:var(--azul);">Lançamentos</h2>
+  <div id="lista"></div>
+</div>
+
+<!-- BOTÕES FLUTUANTES -->
+<div class="menu-floating">
+  <div class="action-btn" onclick="window.scrollTo({top:0,behavior:'smooth'});">↑</div>
+  <div class="action-btn" onclick="gerarTabelaAnual()">📊</div>
+</div>
+
+<!-- ========== SCRIPTS ========== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyhNvW8YE5w_BNHu1wn06W5-vhTWiWsoidh3pJUJaSYBn2s_lv0axggooITuV991SM3/exec"; // 🔗 coloque seu Apps Script publicado
+const API = "URL_DO_SEU_WEBAPP"; // coloque sua URL AQUI
 
+/* INICIALIZAÇÃO */
 window.onload = async () => {
+  await carregarCategorias();
   await carregarLancamentos();
   document.getElementById("overlay").style.display = "none";
 };
 
-/* =====================================================
-   SALVAR NO GOOGLE SHEETS
-===================================================== */
-async function salvar() {
-  const tipo = document.getElementById("tipo").value;
-  const descricao = document.getElementById("descricao").value.trim();
-  const valor = parseFloat(document.getElementById("valor").value);
-  const data = document.getElementById("data").value;
+/* CATEGORIAS */
+async function carregarCategorias() {
+  const r = await fetch(API + "?action=listaCategorias");
+  const dados = await r.json();
 
-  if (!descricao || !valor || !data) {
-    alert("Preencha todos os campos!");
+  const sel = document.getElementById("categoria");
+  sel.innerHTML = "";
+
+  const lista = document.getElementById("listaCategorias");
+  lista.innerHTML = "";
+
+  dados.forEach(c => {
+    let opt = document.createElement("option");
+    opt.value = c.categoria;
+    opt.textContent = c.categoria;
+    sel.appendChild(opt);
+
+    lista.innerHTML += `
+      <div class='item'>
+        <h4>${c.categoria}</h4>
+        <span>Tipo: ${c.tipo}</span>
+      </div>
+    `;
+  });
+}
+
+async function addCategoria() {
+  const categoria = document.getElementById("novaCategoria").value;
+  const tipo = document.getElementById("novoTipo").value;
+
+  if (!categoria.trim()) {
+    alert("Nome inválido");
     return;
   }
 
-  const payload = {
-    action: "add",
-    tipo, descricao, valor, data
-  };
-
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify(payload)
+  await fetch(API, {
+    method:"POST",
+    body:JSON.stringify({
+      action:"addCategoria",
+      categoria,
+      tipo
+    })
   });
 
-  await carregarLancamentos();
-  alert("Lançamento salvo!");
+  document.getElementById("novaCategoria").value = "";
+  carregarCategorias();
 }
 
-/* =====================================================
-   CARREGAR DO SHEETS
-===================================================== */
+/* LANÇAMENTOS */
+async function salvarLancamento() {
+  const payload = {
+    action: "addLancamento",
+    categoria: document.getElementById("categoria").value,
+    tipo: document.getElementById("tipo").value,
+    descricao: document.getElementById("descricao").value,
+    valor: parseFloat(document.getElementById("valor").value),
+    data: document.getElementById("data").value
+  };
+
+  await fetch(API, { method: "POST", body: JSON.stringify(payload) });
+
+  document.getElementById("descricao").value = "";
+  document.getElementById("valor").value = "";
+  document.getElementById("data").value = "";
+  carregarLancamentos();
+}
+
+let graficoMes, graficoPizza;
+
+/* CARREGAR LANÇAMENTOS */
 async function carregarLancamentos() {
-  const res = await fetch(API_URL + "?action=list");
-  const dados = await res.json();
+  const r = await fetch(API + "?action=listaLancamentos");
+  const dados = await r.json();
 
   let html = "";
   let receitas = 0;
   let despesas = 0;
 
+  let mes = new Array(12).fill(0);
+  let categoriasPizza = {};
+
   dados.forEach(l => {
     html += `
       <div class="item">
         <h4>${l.descricao}</h4>
+        <span><b>Categoria:</b> ${l.categoria}</span>
         <span><b>Tipo:</b> ${l.tipo}</span>
-        <span><b>Valor:</b> R$ ${parseFloat(l.valor).toFixed(2)}</span>
+        <span><b>Valor:</b> R$ ${Number(l.valor).toFixed(2)}</span>
         <span><b>Data:</b> ${l.data}</span>
       </div>
     `;
 
-    if (l.tipo === "receita") receitas += Number(l.valor);
-    else despesas += Number(l.valor);
+    const valor = Number(l.valor);
+    const dt = new Date(l.data);
+    const m = dt.getMonth();
+
+    if (l.tipo === "receita") receitas += valor;
+    else despesas += valor;
+
+    mes[m] += valor;
+
+    if (!categoriasPizza[l.categoria]) categoriasPizza[l.categoria] = 0;
+    categoriasPizza[l.categoria] += valor;
   });
 
   document.getElementById("lista").innerHTML = html;
-  document.getElementById("totalLanc").innerText = dados.length;
-  document.getElementById("receitasMes").innerText = "R$ " + receitas.toFixed(2);
-  document.getElementById("despesasMes").innerText = "R$ " + despesas.toFixed(2);
+
+  document.getElementById("receitaMes").innerText = "R$ " + receitas.toFixed(2);
+  document.getElementById("despesaMes").innerText = "R$ " + despesas.toFixed(2);
   document.getElementById("saldoMes").innerText = "R$ " + (receitas - despesas).toFixed(2);
+  document.getElementById("totalLanc").innerText = dados.length;
+
+  montarGraficoMes(mes);
+  montarGraficoPizza(categoriasPizza);
 }
+
+/* GRÁFICOS */
+function montarGraficoMes(mes) {
+  const ctx = document.getElementById("graficoMes");
+
+  if (graficoMes) graficoMes.destroy();
+
+  graficoMes = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"],
+      datasets: [{
+        label:"Valores",
+        data: mes,
+        backgroundColor:"#0b1e39"
+      }]
+    }
+  });
+}
+
+function montarGraficoPizza(cat) {
+  const ctx = document.getElementById("graficoPizza");
+
+  if (graficoPizza) graficoPizza.destroy();
+
+  graficoPizza = new Chart(ctx, {
+    type:"pie",
+    data:{
+      labels: Object.keys(cat),
+      datasets:[{
+        data:Object.values(cat),
+        backgroundColor:[
+          "#0b1e39","#152b4e","#d4af37","#567","#999","#c2a","#829","#665","#baa"
+        ]
+      }]
+    }
+  });
+}
+
+/* GERAR TABELA ANUAL */
+async function gerarTabelaAnual() {
+  await fetch(API + "?action=gerarTabelaAnual");
+  alert("Tabela anual atualizada!");
+}
+
 </script>
 
 </body>
