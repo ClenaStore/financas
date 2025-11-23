@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Cadastros • Financeiro</title>
+<title>Financeiro • Cadastros</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -20,350 +20,267 @@ body{
   margin:0;
   font-family: Arial, sans-serif;
   background:var(--bg);
-  display:flex;
 }
 
-/* SIDEBAR */
-#sidebar{
-  width:270px;
-  height:100vh;
-  background:var(--azul);
-  color:white;
-  padding-top:30px;
-  position:relative;
-  transition:0.3s;
-  overflow:hidden;
+/* ======== LAYOUT ======== */
+.container{
+  padding:30px;
+  max-width:1200px;
+  margin:auto;
 }
 
-#sidebar.recolhido{ width:70px; }
-
-#toggleSidebar{
-  position:absolute;
-  top:15px;
-  right:-20px;
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:white;
-  border:none;
+h2{
   color:var(--azul);
-  font-size:20px;
-  cursor:pointer;
-  box-shadow:0 5px 15px rgba(0,0,0,0.3);
+  font-size:32px;
 }
 
-/* Menu lateral */
-#sidebar h1{
-  text-align:center;
-  margin:0;
-  margin-bottom:35px;
-  font-size:24px;
-  transition:0.3s;
-}
-#sidebar.recolhido h1{ opacity:0; }
-
-.menu-btn{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:18px 22px;
+.btn{
+  background:#28a745;
+  padding:12px 18px;
+  border-radius:8px;
   color:white;
   text-decoration:none;
-  font-size:17px;
-  border-bottom:1px solid rgba(255,255,255,0.10);
+  font-size:16px;
+  cursor:pointer;
+  display:inline-block;
+  margin-bottom:20px;
 }
-.menu-btn:hover{ background:var(--azul-escuro); padding-left:30px; }
 
-/* Ícones */
-.menu-icon{
-  width:22px;
-  height:22px;
+.alert{
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:20px;
+  color:white;
+  font-size:16px;
+}
+
+.alert-erro{ background:#c62828; }
+.alert-ok{ background:#2e7d32; }
+
+table{
+  width:100%;
   background:white;
-  border-radius:4px;
-}
-#sidebar.recolhido .menu-text{ opacity:0; width:0; overflow:hidden; }
-
-/* Conteúdo */
-#conteudo{
-  flex:1;
-  padding:40px;
-  overflow-y:auto;
-}
-
-.card{
-  background:white;
-  padding:25px;
-  border-radius:var(--radius);
+  border-collapse:collapse;
+  border-radius:12px;
+  overflow:hidden;
   box-shadow:var(--shadow);
 }
 
-/* Tabela */
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:25px;
-}
 th{
-  background:var(--azul);
+  background:var(--azul-escuro);
   color:white;
-  padding:12px;
+  padding:14px;
+  text-align:left;
 }
+
 td{
-  padding:12px;
+  padding:14px;
   border-bottom:1px solid #ddd;
-  background:white;
 }
 
-/* Botões */
-.btn{ padding:10px 16px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
-.btn-green{ background:#4CAF50; color:white; }
-.btn-blue{ background:var(--azul); color:white; }
-.btn-red{ background:#C62828; color:white; }
-
-/* Modal */
-#modal{
-  position:fixed; inset:0; background:#0007;
-  display:none; align-items:center; justify-content:center; z-index:999;
-}
-.modal-box{
-  background:white; padding:25px; width:95%; max-width:420px;
-  border-radius:12px; box-shadow:var(--shadow);
-}
-.modal-box h2{ color:var(--azul); }
-
-/* Inputs */
-input, select{
-  width:100%; padding:12px;
-  border-radius:8px; border:1px solid #ccc;
-  margin-top:10px;
+tr:hover{
+  background:#eef5ff;
 }
 
-/* Loading */
-#overlay{
-  position:fixed; inset:0; background:#0007;
-  display:none; align-items:center; justify-content:center;
-  color:white; font-size:22px; z-index:9999;
-}
-
-/* Mensagem de erro */
-#errorBox{
-  padding:15px;
-  background:#C62828;
+.acoes button{
+  padding:6px 12px;
+  border:0;
+  border-radius:6px;
+  cursor:pointer;
   color:white;
-  border-radius:8px;
+}
+
+.btn-editar{ background:#0277bd; }
+.btn-excluir{ background:#c62828; }
+
+#loading{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  background:rgba(0,0,0,0.55);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:white;
+  font-size:30px;
+  z-index:9999;
   display:none;
-  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-<div id="sidebar">
-  <button id="toggleSidebar" onclick="toggleSidebar()">☰</button>
+<div id="loading">Carregando...</div>
 
-  <h1>FINANCEIRO</h1>
+<div class="container">
+  <h2>Cadastros</h2>
 
-  <a class="menu-btn" href="index.html"><div class="menu-icon"></div><span class="menu-text">Início</span></a>
-  <a class="menu-btn" href="cadastros.html"><div class="menu-icon"></div><span class="menu-text">Cadastros</span></a>
-  <a class="menu-btn" href="lancamentos.html"><div class="menu-icon"></div><span class="menu-text">Lançamentos</span></a>
-  <a class="menu-btn" href="fluxo.html"><div class="menu-icon"></div><span class="menu-text">Fluxo de Caixa</span></a>
-  <a class="menu-btn" href="dashboard.html"><div class="menu-icon"></div><span class="menu-text">Dashboard</span></a>
-  <a class="menu-btn" href="historico.html"><div class="menu-icon"></div><span class="menu-text">Histórico</span></a>
+  <div id="msg"></div>
+
+  <button class="btn" onclick="novoCadastro()">+ Novo Cadastro</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Categoria</th>
+        <th>Subcategoria</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
 </div>
-
-<!-- CONTEÚDO -->
-<div id="conteudo">
-  <div class="card">
-    <h1>Cadastros</h1>
-
-    <div id="errorBox"></div>
-
-    <button class="btn btn-green" onclick="abrirModal()">+ Novo Cadastro</button>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Tipo</th>
-          <th>Categoria</th>
-          <th>Subcategoria</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaCadastros"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- MODAL -->
-<div id="modal">
-  <div class="modal-box">
-    <h2 id="modalTitulo">Novo Cadastro</h2>
-
-    <input type="hidden" id="editId">
-
-    <label>Tipo</label>
-    <select id="tipo">
-      <option value="Receita">Receita</option>
-      <option value="Despesa">Despesa</option>
-    </select>
-
-    <label>Categoria</label>
-    <input type="text" id="categoria">
-
-    <label>Subcategoria</label>
-    <input type="text" id="subcategoria">
-
-    <br><br>
-    <button class="btn btn-blue" onclick="salvarCadastro()">Salvar</button>
-    <button class="btn btn-red" onclick="fecharModal()">Cancelar</button>
-  </div>
-</div>
-
-<div id="overlay">Carregando...</div>
 
 <script>
-/* CONFIG */
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
-/* SIDEBAR */
-function toggleSidebar(){
-  document.getElementById("sidebar").classList.toggle("recolhido");
-}
-
-/* LOADING */
-function overlay(v){
-  document.getElementById("overlay").style.display = v ? "flex" : "none";
-}
-
-/* ERRO */
-function mostrarErro(msg){
-  let box = document.getElementById("errorBox");
-  box.innerHTML = msg;
-  box.style.display = "block";
-}
-
-/* LISTAR COM TRATAMENTO DE ERROS */
+/* ======================== CARREGAR CADASTROS ======================== */
 async function carregarCadastros(){
-  overlay(true);
-  mostrarErro(""); // limpa erros
-
+  mostrarLoading(true);
   try{
+    let r = await fetch(API + "?action=listCadastros");
+    let json = await r.json();
 
-    const controller = new AbortController();
-    setTimeout(()=>controller.abort(), 15000); // TIMEOUT 15s
+    console.log("RETORNO GAS:", json);
 
-    const r = await fetch(API+"?action=listCadastros", {
-      signal: controller.signal
-    });
-
-    if(!r.ok) throw new Error("Erro ao conectar com o servidor");
-
-    const dados = await r.json();
-
-    if(!dados || dados.length === 0){
-      document.getElementById("tabelaCadastros").innerHTML = `
-        <tr><td colspan='4'>Nenhum cadastro encontrado</td></tr>
-      `;
-      overlay(false);
-      return;
+    if(!Array.isArray(json)){
+      throw new Error("Retorno inesperado do servidor");
     }
 
-    let html = "";
+    renderTabela(json);
 
-    dados.forEach(l => {
-      html += `
-        <tr>
-          <td>${l[1]}</td>
-          <td>${l[2]}</td>
-          <td>${l[3]}</td>
-          <td>
-            <button class="btn btn-blue" onclick="editarCadastro('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
-            <button class="btn btn-red" onclick="excluirCadastro('${l[0]}')">Excluir</button>
-          </td>
-        </tr>`;
-    });
-
-    document.getElementById("tabelaCadastros").innerHTML = html;
-
-  } catch(err){
-    console.error("ERRO:", err);
-    mostrarErro("❌ Falha ao carregar cadastros:<br>" + err.message);
+  }catch(err){
+    erro("Falha ao carregar cadastros: " + err.message);
   }
-
-  overlay(false);
+  mostrarLoading(false);
 }
 
-/* MODAL */
-function abrirModal(){
-  document.getElementById("modalTitulo").innerText = "Novo Cadastro";
-  document.getElementById("editId").value = "";
-  document.getElementById("tipo").value = "Receita";
-  document.getElementById("categoria").value = "";
-  document.getElementById("subcategoria").value = "";
-  document.getElementById("modal").style.display = "flex";
+/* ======================== RENDERIZAR ======================== */
+function renderTabela(lista){
+  const tbody = document.getElementById("lista");
+  tbody.innerHTML = "";
+
+  lista.forEach(item => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${item[1]}</td>
+      <td>${item[2]}</td>
+      <td>${item[3]}</td>
+      <td class="acoes">
+        <button class="btn-editar" onclick="editar('${item[0]}')">Editar</button>
+        <button class="btn-excluir" onclick="excluir('${item[0]}')">Excluir</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
 }
 
-function fecharModal(){
-  document.getElementById("modal").style.display = "none";
-}
+/* ======================== NOVO CADASTRO ======================== */
+async function novoCadastro(){
+  let tipo = prompt("Tipo (Receita / Despesa):");
+  if(!tipo) return;
 
-/* EDITAR */
-function editarCadastro(id, tipo, categoria, sub){
-  document.getElementById("modalTitulo").innerText = "Editar Cadastro";
-  document.getElementById("editId").value = id;
-  document.getElementById("tipo").value = tipo;
-  document.getElementById("categoria").value = categoria;
-  document.getElementById("subcategoria").value = sub;
-  document.getElementById("modal").style.display = "flex";
-}
+  let categoria = prompt("Categoria:");
+  if(!categoria) return;
 
-/* SALVAR */
-async function salvarCadastro(){
-  overlay(true);
+  let sub = prompt("Subcategoria:");
+  if(!sub) return;
 
-  const id = document.getElementById("editId").value;
-  const tipo = document.getElementById("tipo").value;
-  const categoria = document.getElementById("categoria").value;
-  const sub = document.getElementById("subcategoria").value;
+  mostrarLoading(true);
 
   try{
-    let url = API + (id
-      ? `?action=editCadastro&id=${id}&tipo=${tipo}&categoria=${categoria}&subcategoria=${sub}`
-      : `?action=createCadastro&tipo=${tipo}&categoria=${categoria}&subcategoria=${sub}`
-    );
+    let url = API + `?action=createCadastro&tipo=${encodeURIComponent(tipo)}&categoria=${encodeURIComponent(categoria)}&subcategoria=${encodeURIComponent(sub)}`;
+    let r = await fetch(url);
+    let json = await r.json();
 
-    const r = await fetch(url);
-    if(!r.ok) throw new Error("Erro ao salvar no servidor");
+    if(json.erro) throw new Error(json.erro);
 
-  }catch(e){
-    mostrarErro("❌ Erro ao salvar: " + e.message);
+    ok("Cadastro criado!");
+    carregarCadastros();
+
+  }catch(err){
+    erro("Erro ao criar cadastro: " + err.message);
   }
 
-  fecharModal();
-  carregarCadastros();
-  overlay(false);
+  mostrarLoading(false);
 }
 
-/* EXCLUIR */
-async function excluirCadastro(id){
+/* ======================== EDITAR ======================== */
+async function editar(id){
+  let tipo = prompt("Novo tipo:");
+  if(!tipo) return;
+
+  let categoria = prompt("Nova categoria:");
+  if(!categoria) return;
+
+  let sub = prompt("Nova subcategoria:");
+  if(!sub) return;
+
+  mostrarLoading(true);
+
+  try{
+    let url = API + `?action=editCadastro&id=${id}&tipo=${encodeURIComponent(tipo)}&categoria=${encodeURIComponent(categoria)}&subcategoria=${encodeURIComponent(sub)}`;
+    let r = await fetch(url);
+    let json = await r.json();
+
+    if(json.erro) throw new Error(json.erro);
+
+    ok("Cadastro atualizado!");
+    carregarCadastros();
+
+  }catch(err){
+    erro("Erro ao editar: " + err.message);
+  }
+
+  mostrarLoading(false);
+}
+
+/* ======================== EXCLUIR ======================== */
+async function excluir(id){
   if(!confirm("Excluir cadastro?")) return;
 
-  overlay(true);
+  mostrarLoading(true);
 
   try{
-    const r = await fetch(API+`?action=deleteCadastro&id=${id}`);
-    if(!r.ok) throw new Error("Erro ao excluir");
-  }catch(e){
-    mostrarErro("❌ Erro ao excluir: " + e.message);
+    let url = API + `?action=deleteCadastro&id=${id}`;
+    let r = await fetch(url);
+    let json = await r.json();
+
+    if(json.erro) throw new Error(json.erro);
+
+    ok("Cadastro excluído!");
+    carregarCadastros();
+
+  }catch(err){
+    erro("Erro ao excluir: " + err.message);
   }
 
-  carregarCadastros();
-  overlay(false);
+  mostrarLoading(false);
 }
 
-/* INICIAR */
+/* ======================== MENSAGENS ======================== */
+function erro(msg){
+  document.getElementById("msg").innerHTML =
+    `<div class='alert alert-erro'>❌ ${msg}</div>`;
+}
+
+function ok(msg){
+  document.getElementById("msg").innerHTML =
+    `<div class='alert alert-ok'>✔ ${msg}</div>`;
+}
+
+/* ======================== LOADING ======================== */
+function mostrarLoading(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
+}
+
+/* ======================== INICIAR ======================== */
 carregarCadastros();
 </script>
 
