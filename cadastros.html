@@ -9,97 +9,91 @@
 :root{
   --azul:#1F4E78;
   --verde:#2ECC71;
-  --verde-claro:#d9f6e6;
   --vermelho:#E74C3C;
-  --vermelho-claro:#fde2e2;
+  --green-soft:#eafaf1;
+  --red-soft:#fdecea;
   --bg:#f4f6f9;
-  --radius:14px;
   --shadow:0 6px 22px rgba(0,0,0,0.15);
+  --radius:12px;
 }
 
-/* ===== GERAL ===== */
+/* GERAL */
 body{
   margin:0;
   padding:25px;
   background:var(--bg);
   font-family:Arial, sans-serif;
-  color:#222;
 }
 
 h1{
-  font-size:32px;
-  color:var(--azul);
   margin-bottom:18px;
+  color:var(--azul);
+  font-size:32px;
 }
 
-/* ===== BOTÃO NOVO ===== */
+/* BOTÕES */
 .btn{
-  padding:10px 16px;
-  border-radius:8px;
+  padding:10px 18px;
   border:none;
-  cursor:pointer;
-  font-size:15px;
+  border-radius:10px;
   color:white;
+  font-size:15px;
+  cursor:pointer;
+  transition:.2s;
 }
+.btn-gray{ background:#999; }
 .btn-green{ background:var(--verde); }
 .btn-red{ background:var(--vermelho); }
 .btn-blue{ background:var(--azul); }
 
-/* ===== TABELA ===== */
+/* TABELA */
 table{
   width:100%;
-  margin-top:20px;
-  border-collapse:collapse;
-  border-radius:var(--radius);
-  overflow:hidden;
   background:white;
+  border-collapse:collapse;
+  border-radius:12px;
+  margin-top:15px;
+  overflow:hidden;
   box-shadow:var(--shadow);
 }
-
-thead{
+th{
   background:var(--azul);
   color:white;
-}
-
-th,td{
-  padding:16px;
-  font-size:16px;
   text-align:left;
+  padding:13px;
+  font-size:16px;
 }
-
-/* LINHA RECEITA */
-.receita-row{
-  background:var(--verde-claro) !important;
+td{
+  padding:12px;
+  border-bottom:1px solid #e4e4e4;
+  font-size:15px;
 }
+tr.receita-row { background:var(--green-soft); }
+tr.despesa-row { background:var(--red-soft); }
 
-/* LINHA DESPESA */
-.despesa-row{
-  background:var(--vermelho-claro) !important;
-}
-
-/* ===== MODAL ===== */
+/* MODAL */
 #modal-bg{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(3px);
   display:none;
   align-items:center;
   justify-content:center;
-  backdrop-filter:blur(3px);
-  z-index:2000;
+  z-index:1000;
 }
 
 #modal{
-  width:380px;
-  padding:25px;
+  width:400px;
   background:white;
+  padding:25px;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   animation:pop .25s ease;
 }
 
 @keyframes pop{
-  from{ transform:scale(.85); opacity:0; }
+  from{ transform:scale(0.85); opacity:0; }
   to{ transform:scale(1); opacity:1; }
 }
 
@@ -111,25 +105,33 @@ input{
   border:1px solid #ccc;
 }
 
-/* LOADING */
+/* Loading */
 #loading{
   position:fixed;
   bottom:20px;
   left:20px;
   background:var(--azul);
-  padding:12px 22px;
-  border-radius:14px;
+  padding:12px 20px;
+  border-radius:10px;
   color:white;
   font-size:16px;
   display:none;
   animation:pulse 1.2s infinite;
-  z-index:999;
+  z-index:2000;
 }
-
 @keyframes pulse{
   0%{opacity:.5; transform:scale(.95);}
   50%{opacity:1; transform:scale(1);}
   100%{opacity:.5; transform:scale(.95);}
+}
+
+/* TIPO BOTÕES MODAL */
+#btnReceita, #btnDespesa{
+  opacity:.4;
+}
+.selTipo{
+  opacity:1 !important;
+  box-shadow:0 0 8px #0003;
 }
 </style>
 </head>
@@ -140,7 +142,7 @@ input{
 
 <h1>Cadastros</h1>
 
-<button class="btn btn-green" onclick="abrirModal()">+ Novo Cadastro</button>
+<button class="btn btn-gray" onclick="abrirModal()">+ Novo Cadastro</button>
 
 <table>
   <thead>
@@ -154,24 +156,24 @@ input{
   <tbody id="tabela"></tbody>
 </table>
 
-<!-- ========== MODAL ========== -->
+<!-- MODAL -->
 <div id="modal-bg">
   <div id="modal">
     <h2 id="tituloModal" style="margin-top:0;color:var(--azul)">Novo Cadastro</h2>
 
     <div style="display:flex; gap:10px; margin-bottom:12px;">
-      <button class="btn" id="btnReceita" style="flex:1;background:var(--verde);" onclick="setTipo('Receita')">Receita</button>
-      <button class="btn" id="btnDespesa" style="flex:1;background:var(--vermelho);" onclick="setTipo('Despesa')">Despesa</button>
+      <button class="btn btn-gray" id="btnReceita" style="flex:1" onclick="setTipo('Receita')">Receita</button>
+      <button class="btn btn-gray" id="btnDespesa" style="flex:1" onclick="setTipo('Despesa')">Despesa</button>
     </div>
 
-    <input id="categoria" list="listaCategorias" placeholder="Categoria">
-    <datalist id="listaCategorias"></datalist>
+    <input id="categoria" list="listCats" placeholder="Categoria" autocomplete="off">
+    <datalist id="listCats"></datalist>
 
-    <input id="subcategoria" list="listaSub" placeholder="Subcategoria">
-    <datalist id="listaSub"></datalist>
+    <input id="subcategoria" list="listSubs" placeholder="Subcategoria" autocomplete="off">
+    <datalist id="listSubs"></datalist>
 
-    <button class="btn btn-green" onclick="salvar()" style="width:100%">Salvar</button>
-    <button class="btn btn-red" onclick="fecharModal()" style="width:100%;margin-top:8px">Cancelar</button>
+    <button class="btn btn-gray" onclick="salvar()" style="width:100%">Salvar</button>
+    <button class="btn btn-gray" onclick="fecharModal()" style="width:100%;margin-top:8px;">Cancelar</button>
   </div>
 </div>
 
@@ -181,83 +183,93 @@ const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0
 let tipoAtual = "";
 let editID = null;
 
-/* LOADING */
+/* ====== LOADING ====== */
 function load(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* MODAL */
+/* ====== TIPO ====== */
+function setTipo(t){
+  tipoAtual = t;
+
+  btnReceita.classList.remove("selTipo");
+  btnDespesa.classList.remove("selTipo");
+
+  if(t === "Receita") btnReceita.classList.add("selTipo");
+  else btnDespesa.classList.add("selTipo");
+}
+
+/* ====== ABRIR MODAL ====== */
 function abrirModal(id=null,t="",c="",s=""){
   editID = id;
   tipoAtual = t;
 
-  categoria.value = c || "";
-  subcategoria.value = s || "";
+  categoria.value = c;
+  subcategoria.value = s;
+
+  btnReceita.classList.remove("selTipo");
+  btnDespesa.classList.remove("selTipo");
+
+  if(t==="Receita") btnReceita.classList.add("selTipo");
+  if(t==="Despesa") btnDespesa.classList.add("selTipo");
+
   tituloModal.innerText = id ? "Editar Cadastro" : "Novo Cadastro";
 
-  highlightTipo();
   document.getElementById("modal-bg").style.display="flex";
 }
+
+/* ====== FECHAR MODAL ====== */
 function fecharModal(){
   document.getElementById("modal-bg").style.display="none";
 }
 
-function setTipo(t){
-  tipoAtual = t;
-  highlightTipo();
-}
-
-function highlightTipo(){
-  btnReceita.style.opacity = tipoAtual==="Receita" ? "1" : ".4";
-  btnDespesa.style.opacity = tipoAtual==="Despesa" ? "1" : ".4";
-}
-
-/* ===== LISTAR ===== */
+/* ====== CARREGAR TABELA ====== */
 async function carregar(){
   load(true);
-  try{
-    let r = await fetch(API+"?action=listCadastros");
-    let dados = await r.json();
 
-    let html="";
-    dados.forEach(l=>{
-      let classe = l[1] === "Receita" ? "receita-row" : "despesa-row";
+  let r = await fetch(API+"?action=listCadastros");
+  let dados = await r.json();
 
-      html+=`
+  let html = "";
+
+  dados.forEach(l=>{
+    const tipo = l[1];
+    const classe = tipo === "Receita" ? "receita-row" : "despesa-row";
+
+    html += `
       <tr class="${classe}">
         <td>${l[1]}</td>
         <td>${l[2]}</td>
         <td>${l[3]}</td>
         <td>
-          <button class="btn btn-blue" onclick="abrirModal('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
-          <button class="btn btn-red" onclick="excluir('${l[0]}')">Excluir</button>
+          <button class="btn btn-gray" onclick="abrirModal('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
+          <button class="btn btn-gray" onclick="excluir('${l[0]}')">Excluir</button>
         </td>
-      </tr>`;
-    });
+      </tr>
+    `;
+  });
 
-    tabela.innerHTML = html;
-    preencherAuto(dados);
+  document.getElementById("tabela").innerHTML = html;
 
-  }catch(e){
-    alert("Erro ao carregar cadastros");
-  }
+  preencherListas(dados);
   load(false);
 }
 
-/* AUTOCOMPLETE */
-function preencherAuto(dados){
-  let cats=new Set(), subs=new Set();
+/* ====== AUTO LISTS ====== */
+function preencherListas(dados){
+  let cats = new Set();
+  let subs = new Set();
 
   dados.forEach(l=>{
     if(l[2]) cats.add(l[2]);
     if(l[3]) subs.add(l[3]);
   });
 
-  listaCategorias.innerHTML = [...cats].map(c=>`<option value="${c}">`).join("");
-  listaSub.innerHTML = [...subs].map(s=>`<option value="${s}">`).join("");
+  listCats.innerHTML = [...cats].map(v=>`<option value="${v}">`).join("");
+  listSubs.innerHTML = [...subs].map(v=>`<option value="${v}">`).join("");
 }
 
-/* SALVAR */
+/* ====== SALVAR ====== */
 async function salvar(){
   if(!tipoAtual){ alert("Escolha Receita ou Despesa."); return; }
 
@@ -273,19 +285,20 @@ async function salvar(){
     : `${API}?action=createCadastro&tipo=${tipoAtual}&categoria=${cat}&subcategoria=${sub}`;
 
   await fetch(url);
+
   fecharModal();
   carregar();
 }
 
-/* EXCLUIR */
+/* ====== EXCLUIR ====== */
 async function excluir(id){
-  if(!confirm("Excluir cadastro?")) return;
+  if(!confirm("Excluir este cadastro?")) return;
   load(true);
   await fetch(API+"?action=deleteCadastro&id="+id);
   carregar();
 }
 
-/* INICIAR */
+/* START */
 carregar();
 </script>
 
