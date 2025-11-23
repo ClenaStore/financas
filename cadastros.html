@@ -18,33 +18,34 @@
   --red:#d62828;
 }
 
-/* AREA GERAL */
+/* GERAL */
 body{
   margin:0;
-  font-family: Arial;
+  padding:25px;
   background:var(--bg);
-  padding:30px;
+  font-family:Arial;
   color:var(--texto);
 }
 
 h2{
-  font-size:32px;
-  margin-bottom:20px;
+  margin:0 0 20px 0;
   color:var(--azul);
+  font-size:32px;
 }
 
+/* BOTÕES */
 .btn{
-  padding:12px 22px;
+  padding:12px 20px;
   border-radius:8px;
   border:none;
   color:white;
   cursor:pointer;
   font-size:17px;
 }
-
 .btn-green{ background:var(--green); }
 .btn-red{ background:var(--red); }
 
+/* TABLE */
 table{
   width:100%;
   border-collapse:collapse;
@@ -53,49 +54,64 @@ table{
   overflow:hidden;
   box-shadow:var(--shadow);
 }
-
 th{
-  background:var(--azul-escuro);
-  color:white;
   padding:12px;
   text-align:left;
+  background:var(--azul-escuro);
+  color:white;
 }
 td{
   padding:12px;
   border-bottom:1px solid #ddd;
 }
 
+/* AÇÕES */
+.btn-edit{
+  background:#0277bd;
+  border:none;
+  padding:6px 10px;
+  border-radius:6px;
+  color:white;
+  cursor:pointer;
+}
+.btn-del{
+  background:#c62828;
+  border:none;
+  padding:6px 10px;
+  border-radius:6px;
+  color:white;
+  cursor:pointer;
+}
+
+/* ALERT BOX */
+.alert{
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:20px;
+}
+.alert-erro{ background:#c62828; color:white; }
+.alert-ok{ background:#2e7d32; color:white; }
+
 /* LOADING */
 #loading{
   position:fixed;
   top:0; left:0;
   width:100%; height:100%;
-  background:rgba(0,0,0,0.55);
+  background:rgba(0,0,0,0.4);
   display:none;
   justify-content:center;
   align-items:center;
   color:white;
-  font-size:30px;
-  z-index:9999;
+  font-size:28px;
+  z-index:999;
 }
-
-/* ALERTAS */
-.alert{
-  padding:15px;
-  border-radius:8px;
-  margin-bottom:20px;
-  font-size:17px;
-  color:white;
-}
-.alert-erro{ background:#c62828; }
-.alert-ok{ background:#2e7d32; }
 
 /* MODAL */
 .modal-bg{
   position:fixed;
   top:0; left:0;
   width:100%; height:100%;
-  background:rgba(0,0,0,0.55);
+  background:rgba(0,0,0,0.5);
   display:none;
   justify-content:center;
   align-items:center;
@@ -115,9 +131,9 @@ td{
 input, select{
   width:100%;
   padding:12px;
+  margin-bottom:12px;
   border-radius:8px;
   border:1px solid #ccc;
-  margin-bottom:15px;
 }
 
 .btn-full{
@@ -129,17 +145,13 @@ input, select{
   cursor:pointer;
   font-size:17px;
 }
-
-.btn-cancel{
-  background:#7d7d7d;
-}
+.btn-cancel{ background:#777; }
 </style>
 </head>
 
 <body>
 
 <h2>Cadastros</h2>
-
 <div id="msg"></div>
 
 <button class="btn btn-green" onclick="abrirModal()">+ Novo Cadastro</button>
@@ -150,7 +162,7 @@ input, select{
       <th>Tipo</th>
       <th>Categoria</th>
       <th>Subcategoria</th>
-      <th>Ações</th>
+      <th style="width:160px;">Ações</th>
     </tr>
   </thead>
   <tbody id="lista"></tbody>
@@ -161,14 +173,14 @@ input, select{
 <!-- MODAL -->
 <div class="modal-bg" id="modal">
   <div class="modal">
-    <h3 id="modal-titulo">Novo Cadastro</h3>
+    <h3 id="titulo-modal">Novo Cadastro</h3>
 
-    <div style="display:flex; gap:10px; margin-bottom:15px;">
+    <div style="display:flex; gap:10px;">
       <button class="btn btn-green" style="flex:1;" onclick="setTipo('Receita')">Receita</button>
       <button class="btn btn-red" style="flex:1;" onclick="setTipo('Despesa')">Despesa</button>
     </div>
 
-    <input id="m-tipo" type="hidden">
+    <input type="hidden" id="m-tipo">
 
     <select id="m-cat"></select>
     <input id="m-cat-novo" placeholder="Ou digite nova categoria">
@@ -182,95 +194,69 @@ input, select{
 </div>
 
 <script>
+// ======================== CONFIG ========================
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
 let editandoID = null;
 
-/* ================= LOADING ================= */
-function loading(v){
-  document.getElementById("loading").style.display = v ? "flex" : "none";
-}
+// ======================== UTIL ========================
+function loading(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
+function erro(msg){ document.getElementById("msg").innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`; }
+function ok(msg){ document.getElementById("msg").innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`; }
 
-/* ================= ALERTAS ================= */
-function erro(msg){
-  document.getElementById("msg").innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`;
-}
-function ok(msg){
-  document.getElementById("msg").innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`;
-}
-
-/* ================= MODAL ================= */
-function abrirModal(id=null, t="", c="", s=""){
+// ======================== MODAL ========================
+function abrirModal(id=null, tipo="", cat="", sub=""){
   editandoID = id;
-
-  document.getElementById("m-tipo").value = t;
+  document.getElementById("m-tipo").value = tipo;
   document.getElementById("m-cat-novo").value = "";
   document.getElementById("m-sub-novo").value = "";
-
-  document.getElementById("modal-titulo").innerText = id ? "Editar Cadastro" : "Novo Cadastro";
-
+  document.getElementById("titulo-modal").innerText = id ? "Editar Cadastro" : "Novo Cadastro";
   document.getElementById("modal").style.display = "flex";
 }
-function fecharModal(){
-  document.getElementById("modal").style.display = "none";
-}
 
-/* ================= SETAR TIPO ================= */
-function setTipo(t){
-  document.getElementById("m-tipo").value = t;
-}
+function fecharModal(){ document.getElementById("modal").style.display = "none"; }
 
-/* ================= LISTAR ================= */
+function setTipo(t){ document.getElementById("m-tipo").value = t; }
+
+// ======================== LISTAR ========================
 async function listar(){
   loading(true);
   try{
     let r = await fetch(`${API}?action=listCadastros`);
     let dados = await r.json();
 
-    if(!Array.isArray(dados)){
-      dados = [];
-    }
+    if(!Array.isArray(dados)) dados = [];
 
     renderizar(dados);
-
     carregarCategorias(dados);
     carregarSubcategorias(dados);
 
   }catch(e){
-    erro("Erro ao carregar: " + e.message);
+    erro("Falha ao carregar: " + e.message);
   }
   loading(false);
 }
 
-/* ================= CARREGAR CATEGORIAS ================= */
-function carregarCategorias(dados){
-  let select = document.getElementById("m-cat");
-  select.innerHTML = "";
+// ======================== COMBOS ========================
+function carregarCategorias(lista){
+  let el = document.getElementById("m-cat");
+  el.innerHTML = `<option value="">Selecione ou digite abaixo</option>`;
 
-  let cats = [...new Set(dados.map(a=>a[2]))];
-
-  cats.forEach(c=>{
-    if(c) select.innerHTML += `<option value="${c}">${c}</option>`;
+  [...new Set(lista.map(l=>l[2]))].forEach(c=>{
+    if(c) el.innerHTML += `<option value="${c}">${c}</option>`;
   });
-
-  select.innerHTML = `<option value="">Selecione ou digite abaixo</option>` + select.innerHTML;
 }
 
-/* ================= CARREGAR SUBCATEGORIAS ================= */
-function carregarSubcategorias(dados){
-  let select = document.getElementById("m-sub");
-  select.innerHTML = "";
+function carregarSubcategorias(lista){
+  let el = document.getElementById("m-sub");
+  el.innerHTML = `<option value="">Selecione ou digite abaixo</option>`;
 
-  let subs = [...new Set(dados.map(a=>a[3]))];
-
-  subs.forEach(s=>{
-    if(s) select.innerHTML += `<option value="${s}">${s}</option>`;
+  [...new Set(lista.map(l=>l[3]))].forEach(s=>{
+    if(s) el.innerHTML += `<option value="${s}">${s}</option>`;
   });
-
-  select.innerHTML = `<option value="">Selecione ou digite abaixo</option>` + select.innerHTML;
 }
 
-/* ================= RENDERIZAR TABELA ================= */
+// ======================== RENDER ========================
 function renderizar(lista){
   let tbody = document.getElementById("lista");
   tbody.innerHTML = "";
@@ -282,53 +268,46 @@ function renderizar(lista){
         <td>${l[2]}</td>
         <td>${l[3]}</td>
         <td>
-          <button class="btn btn-green" onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
-          <button class="btn btn-red" onclick="excluir('${l[0]}')">Excluir</button>
+          <button class="btn-edit" onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
+          <button class="btn-del" onclick="excluir('${l[0]}')">Excluir</button>
         </td>
-      </tr>`;
+      </tr>
+    `;
   });
 }
 
-/* ================= EDITAR ================= */
-function editar(id,t,c,s){
-  abrirModal(id,t,c,s);
-
-  document.getElementById("m-tipo").value = t;
-  document.getElementById("m-cat-novo").value = "";
-  document.getElementById("m-sub-novo").value = "";
-
-  document.getElementById("m-cat").value = c;
-  document.getElementById("m-sub").value = s;
+// ======================== EDITAR ========================
+function editar(id,tipo,cat,sub){
+  abrirModal(id,tipo,cat,sub);
+  document.getElementById("m-tipo").value = tipo;
+  document.getElementById("m-cat").value = cat;
+  document.getElementById("m-sub").value = sub;
 }
 
-/* ================= SALVAR ================= */
+// ======================== SALVAR ========================
 async function salvarCadastro(){
-  let tipo = document.getElementById("m-tipo").value;
-  let cat = document.getElementById("m-cat-novo").value || document.getElementById("m-cat").value;
-  let sub = document.getElementById("m-sub-novo").value || document.getElementById("m-sub").value;
+  let tipo  = document.getElementById("m-tipo").value;
+  let cat   = document.getElementById("m-cat-novo").value || document.getElementById("m-cat").value;
+  let sub   = document.getElementById("m-sub-novo").value || document.getElementById("m-sub").value;
 
   if(!tipo || !cat || !sub){
-    erro("Preencha todos os campos!");
+    erro("Preencha todos os campos.");
     return;
   }
 
   loading(true);
 
   try{
-    let url;
-
-    if(editandoID){
-      url = `${API}?action=editCadastro&id=${editandoID}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}`;
-    }else{
-      url = `${API}?action=createCadastro&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}`;
-    }
+    let url = editandoID
+      ? `${API}?action=editCadastro&id=${editandoID}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}`
+      : `${API}?action=createCadastro&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}`;
 
     let r = await fetch(url);
     let j = await r.json();
 
     if(j.erro) throw new Error(j.erro);
 
-    ok("Salvo com sucesso!");
+    ok("Cadastro salvo com sucesso!");
     fecharModal();
     listar();
 
@@ -337,9 +316,9 @@ async function salvarCadastro(){
   loading(false);
 }
 
-/* ================= EXCLUIR ================= */
+// ======================== EXCLUIR ========================
 async function excluir(id){
-  if(!confirm("Deseja excluir este cadastro?")) return;
+  if(!confirm("Excluir este cadastro?")) return;
 
   loading(true);
   try{
@@ -348,16 +327,15 @@ async function excluir(id){
 
     if(j.erro) throw new Error(j.erro);
 
-    ok("Excluído!");
+    ok("Cadastro excluído!");
     listar();
 
-  }catch(e){
-    erro(e.message);
-  }
+  }catch(e){ erro(e.message); }
+
   loading(false);
 }
 
-/* INIT */
+// ======================== START ========================
 listar();
 </script>
 
