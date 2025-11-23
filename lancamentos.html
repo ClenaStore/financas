@@ -218,8 +218,14 @@ let editandoID = null;
 function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
 
 /* ALERTAS */
-function erro(msg){ msgBox.innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`; }
-function ok(msg){ msgBox.innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`; }
+function erro(msg){
+  document.getElementById("msg").innerHTML =
+    `<div class='alert alert-erro'>❌ ${msg}</div>`;
+}
+function ok(msg){
+  document.getElementById("msg").innerHTML =
+    `<div class='alert alert-ok'>✔ ${msg}</div>`;
+}
 
 /* MASCARA */
 function mascaraValor(el){
@@ -237,7 +243,6 @@ async function listar(){
 
     if(!Array.isArray(dados)){
       erro("Erro no retorno do servidor.");
-      console.log("RETORNO:", dados);
       load(false);
       return;
     }
@@ -251,7 +256,7 @@ async function listar(){
 }
 
 function renderizar(lista){
-  tabela.innerHTML = lista.map(l=>`
+  document.getElementById("lista").innerHTML = lista.map(l=>`
     <tr>
       <td>${l[1]}</td>
       <td>${l[2]}</td>
@@ -274,83 +279,89 @@ async function carregarCombos(){
 
   if(!Array.isArray(dados)) return;
 
-  listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(c=>`<option value="${c}">`).join("");
-  listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
+  document.getElementById("listaCat").innerHTML =
+    [...new Set(dados.map(l=>l[2]))].map(c=>`<option value="${c}">`).join("");
+
+  document.getElementById("listaSub").innerHTML =
+    [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
 }
 
 /* ====== MODAL ====== */
 function abrirModal(id=null){
   editandoID = id;
 
-  modalBg.style.display="flex";
+  document.getElementById("modal-bg").style.display="flex";
 
   if(id){
-    titulo-modal.innerText = "Editar Lançamento";
+    document.getElementById("titulo-modal").innerText = "Editar Lançamento";
   }else{
-    titulo-modal.innerText = "Novo Lançamento";
-    mData.value = new Date().toISOString().split("T")[0];
-    mDescricao.value = "";
-    mValor.value = "";
-    mCat.value = "";
-    mSub.value = "";
-    mTipo.value = "";
+    document.getElementById("titulo-modal").innerText = "Novo Lançamento";
+    document.getElementById("m-data").value = new Date().toISOString().split("T")[0];
+    document.getElementById("m-descricao").value = "";
+    document.getElementById("m-valor").value = "";
+    document.getElementById("m-cat").value = "";
+    document.getElementById("m-sub").value = "";
+    document.getElementById("m-tipo").value = "";
     limparSelecao();
   }
 }
 
-function fecharModal(){ modalBg.style.display="none"; }
+function fecharModal(){
+  document.getElementById("modal-bg").style.display="none";
+}
 
 /* ====== TIPO ====== */
-btnReceita.onclick = ()=>{
+document.getElementById("btnReceita").onclick = ()=>{
   limparSelecao();
-  btnReceita.classList.add("activeSel");
-  btnReceita.style.background = "var(--green)";
-  mTipo.value="Receita";
+  document.getElementById("btnReceita").classList.add("activeSel");
+  document.getElementById("btnReceita").style.background = "var(--green)";
+  document.getElementById("m-tipo").value="Receita";
 };
 
-btnDespesa.onclick = ()=>{
+document.getElementById("btnDespesa").onclick = ()=>{
   limparSelecao();
-  btnDespesa.classList.add("activeSel");
-  btnDespesa.style.background = "var(--red)";
-  mTipo.value="Despesa";
+  document.getElementById("btnDespesa").classList.add("activeSel");
+  document.getElementById("btnDespesa").style.background = "var(--red)";
+  document.getElementById("m-tipo").value="Despesa";
 };
 
 function limparSelecao(){
-  btnReceita.classList.remove("activeSel");
-  btnDespesa.classList.remove("activeSel");
-  btnReceita.style.background = "var(--gray)";
-  btnDespesa.style.background = "var(--gray)";
+  document.getElementById("btnReceita").classList.remove("activeSel");
+  document.getElementById("btnDespesa").classList.remove("activeSel");
+
+  document.getElementById("btnReceita").style.background = "var(--gray)";
+  document.getElementById("btnDespesa").style.background = "var(--gray)";
 }
 
 /* ====== EDITAR ====== */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
-  mData.value = data;
-  mTipo.value = tipo;
-  mCat.value = cat;
-  mSub.value = sub;
-  mDescricao.value = desc;
-  mValor.value = "R$ "+Number(val).toFixed(2).replace(".",",");
+  document.getElementById("m-data").value = data;
+  document.getElementById("m-tipo").value = tipo;
+  document.getElementById("m-cat").value = cat;
+  document.getElementById("m-sub").value = sub;
+  document.getElementById("m-descricao").value = desc;
+  document.getElementById("m-valor").value = "R$ "+Number(val).toFixed(2).replace(".",",");
 
   limparSelecao();
   if(tipo==="Receita"){
-    btnReceita.classList.add("activeSel");
-    btnReceita.style.background="var(--green)";
+    document.getElementById("btnReceita").classList.add("activeSel");
+    document.getElementById("btnReceita").style.background="var(--green)";
   }else{
-    btnDespesa.classList.add("activeSel");
-    btnDespesa.style.background="var(--red)";
+    document.getElementById("btnDespesa").classList.add("activeSel");
+    document.getElementById("btnDespesa").style.background="var(--red)";
   }
 }
 
 /* ====== SALVAR ====== */
 async function salvar(){
-  let data = mData.value;
-  let tipo = mTipo.value;
-  let cat = mCat.value;
-  let sub = mSub.value;
-  let desc = mDescricao.value;
-  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
+  let data = document.getElementById("m-data").value;
+  let tipo = document.getElementById("m-tipo").value;
+  let cat = document.getElementById("m-cat").value;
+  let sub = document.getElementById("m-sub").value;
+  let desc = document.getElementById("m-descricao").value;
+  let val = document.getElementById("m-valor").value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
     erro("Preencha todos os campos!");
@@ -406,7 +417,8 @@ async function excluir(id){
   load(false);
 }
 
-mValor.addEventListener("input", ()=>mascaraValor(mValor));
+document.getElementById("m-valor")
+  .addEventListener("input", ()=>mascaraValor(document.getElementById("m-valor")));
 
 /* ====== INICIAR ====== */
 listar();
