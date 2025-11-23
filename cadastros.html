@@ -8,12 +8,9 @@
 <style>
 :root{
   --azul:#1F4E78;
+  --verde:#2ECC71;
   --bg:#f4f6f9;
-  --green:#2ecc71;
-  --red:#e74c3c;
-  --gray:#999;
   --shadow:0 6px 22px rgba(0,0,0,0.15);
-  --radius:12px;
 }
 
 /* ===== GERAL ===== */
@@ -22,74 +19,64 @@ body{
   padding:25px;
   background:var(--bg);
   font-family:Arial, sans-serif;
-  color:#222;
 }
 
 h1{
-  font-size:32px;
+  font-size:38px;
   color:var(--azul);
-  margin-bottom:18px;
+  margin-bottom:25px;
 }
 
-/* ===== BOTÕES — IGUAIS AO LANÇAMENTOS ===== */
-.btn{
-  padding:12px 18px;
+/* ===== BOTÃO PRINCIPAL IGUAL AO DA IMAGEM ===== */
+.btn-green{
+  background:#2ECC71;
+  padding:12px 22px;
   border:none;
-  border-radius:10px;
   color:white;
-  font-size:16px;
+  font-size:17px;
+  border-radius:10px;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  margin-bottom:20px;
+}
+.btn-gray{
+  background:#ddd;
+  padding:7px 14px;
+  border:1px solid #bbb;
+  font-size:14px;
+  border-radius:6px;
   cursor:pointer;
 }
-.btn-gray{ background:var(--gray); }
-.btn-green{ background:var(--green); }
-.btn-red{ background:var(--red); }
-.btn-blue{ background:var(--azul); }
 
-/* ===== LOADING — IDÊNTICO ===== */
-#loading{
-  position:fixed;
-  bottom:20px;
-  left:20px;
-  background:var(--azul);
-  padding:12px 20px;
-  border-radius:10px;
-  color:white;
-  display:none;
-  animation:pulse 1.2s infinite;
-  z-index:900;
-}
-@keyframes pulse{
-  0%{opacity:.5; transform:scale(.95);}
-  50%{opacity:1; transform:scale(1);}
-  100%{opacity:.5; transform:scale(.95);}
-}
-
-/* ===== TABELA — IGUAL AO LANÇAMENTOS ===== */
+/* ===== TABELA NO ESTILO DA IMAGEM ===== */
 table{
   width:100%;
-  background:white;
   border-collapse:collapse;
-  border-radius:12px;
+  background:white;
+  border-radius:18px;
   overflow:hidden;
-  margin-top:20px;
   box-shadow:var(--shadow);
 }
-th{
-  padding:13px;
+
+thead{
   background:var(--azul);
   color:white;
-  text-align:left;
 }
+
+th{
+  padding:14px;
+  font-size:16px;
+  text-align:left;
+  font-weight:600;
+}
+
 td{
-  padding:12px;
+  padding:14px;
+  font-size:15px;
   border-bottom:1px solid #e4e4e4;
 }
 
-/* ===== LINHAS COLORIDAS ===== */
-.receita-row{ background:#d9f6e6 !important; }
-.despesa-row{ background:#fde2e2 !important; }
-
-/* ===== MODAL — IGUAL AO LANÇAMENTOS ===== */
+/* ===== MODAL IGUAL DO LANÇAMENTOS ===== */
 #modal-bg{
   position:fixed;
   inset:0;
@@ -110,8 +97,8 @@ td{
   box-shadow:0 12px 35px rgba(0,0,0,0.25);
 }
 @keyframes pop{
-  from{transform:scale(.85); opacity:.3;}
-  to{transform:scale(1); opacity:1;}
+  from{transform:scale(.85);opacity:.3;}
+  to{transform:scale(1);opacity:1;}
 }
 
 .modal input{
@@ -122,7 +109,26 @@ td{
   margin-bottom:12px;
 }
 
-/* ==== TIPO RECEITA / DESPESA ==== */
+/* ===== LOADING ===== */
+#loading{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  background:var(--azul);
+  padding:12px 20px;
+  border-radius:10px;
+  color:white;
+  display:none;
+  animation:pulse 1.2s infinite;
+  z-index:999;
+}
+@keyframes pulse{
+  0%{opacity:.5; transform:scale(.95);}
+  50%{opacity:1; transform:scale(1);}
+  100%{opacity:.5; transform:scale(.95);}
+}
+
+/* ===== TIPO RECEITA / DESPESA ===== */
 #tipoBtns button{
   flex:1;
   opacity:.4;
@@ -140,7 +146,7 @@ td{
 
 <h1>Cadastros</h1>
 
-<button class="btn btn-green" onclick="abrirModal()">+ Novo Cadastro</button>
+<button class="btn-green" onclick="abrirModal()">+ Novo Cadastro</button>
 
 <table>
   <thead>
@@ -161,8 +167,8 @@ td{
     <h3 id="tituloModal" style="margin-top:0;color:var(--azul)">Novo Cadastro</h3>
 
     <div id="tipoBtns" style="display:flex; gap:10px; margin-bottom:12px;">
-      <button id="btnReceita" class="btn btn-gray">Receita</button>
-      <button id="btnDespesa" class="btn btn-gray">Despesa</button>
+      <button id="btnReceita" class="btn-gray">Receita</button>
+      <button id="btnDespesa" class="btn-gray">Despesa</button>
     </div>
 
     <input id="categoria" list="listaCategorias" placeholder="Categoria" autocomplete="off">
@@ -171,8 +177,8 @@ td{
     <input id="subcategoria" list="listaSub" placeholder="Subcategoria" autocomplete="off">
     <datalist id="listaSub"></datalist>
 
-    <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
-    <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
+    <button class="btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
+    <button class="btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
 
   </div>
 </div>
@@ -188,7 +194,7 @@ function load(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* BOTÕES RECEITA/DESPESA IGUAIS AO LANÇAMENTOS */
+/* BOTÕES RECEITA/DESPESA */
 btnReceita.onclick = ()=>{
   tipoAtual="Receita";
   btnReceita.classList.add("activeSel");
@@ -196,8 +202,8 @@ btnReceita.onclick = ()=>{
 };
 btnDespesa.onclick = ()=>{
   tipoAtual="Despesa";
-  btnDespesa.classList.add("activeSel");
   btnReceita.classList.remove("activeSel");
+  btnDespesa.classList.add("activeSel");
 };
 
 /* MODAL */
@@ -208,7 +214,6 @@ function abrirModal(id=null,t="",c="",s=""){
   subcategoria.value = s || "";
   tituloModal.innerText = id ? "Editar Cadastro" : "Novo Cadastro";
 
-  // Reset seleção
   btnReceita.classList.remove("activeSel");
   btnDespesa.classList.remove("activeSel");
 
@@ -217,39 +222,35 @@ function abrirModal(id=null,t="",c="",s=""){
 
   document.getElementById("modal-bg").style.display="flex";
 }
+
 function fecharModal(){
   document.getElementById("modal-bg").style.display="none";
 }
 
-/* ===== LISTAR ===== */
+/* LISTAR */
 async function carregar(){
   load(true);
-  try{
-    let r = await fetch(API+"?action=listCadastros");
-    let dados = await r.json();
 
-    let html="";
-    dados.forEach(l=>{
-      let classe = l[1] === "Receita" ? "receita-row" : "despesa-row";
+  let r = await fetch(API+"?action=listCadastros");
+  let dados = await r.json();
 
-      html+=`
-      <tr class="${classe}">
-        <td>${l[1]}</td>
-        <td>${l[2]}</td>
-        <td>${l[3]}</td>
-        <td>
-          <button class="btn btn-gray" onclick="abrirModal('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
-          <button class="btn btn-red" onclick="excluir('${l[0]}')">Excluir</button>
-        </td>
-      </tr>`;
-    });
+  let html="";
+  dados.forEach(l=>{
+    html+=`
+    <tr>
+      <td>${l[1]}</td>
+      <td>${l[2]}</td>
+      <td>${l[3]}</td>
+      <td>
+        <button class="btn-gray" onclick="abrirModal('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
+        <button class="btn-gray" onclick="excluir('${l[0]}')">Excluir</button>
+      </td>
+    </tr>`;
+  });
 
-    tabela.innerHTML = html;
-    preencherAuto(dados);
+  tabela.innerHTML = html;
+  preencherAuto(dados);
 
-  }catch(e){
-    alert("Erro ao carregar cadastros");
-  }
   load(false);
 }
 
@@ -294,7 +295,7 @@ async function excluir(id){
   carregar();
 }
 
-/* INICIAR */
+/* START */
 carregar();
 </script>
 
