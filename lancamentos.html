@@ -170,10 +170,12 @@ td{
 
     <input type="hidden" id="m-tipo">
 
-    <input list="listaCat" id="m-cat" placeholder="Categoria">
+    <!-- CATEGORIA (bloqueada para digitação errada) -->
+    <input list="listaCat" id="m-cat" placeholder="Categoria" autocomplete="off">
     <datalist id="listaCat"></datalist>
 
-    <input list="listaSub" id="m-sub" placeholder="Subcategoria">
+    <!-- SUBCATEGORIA (bloqueada também) -->
+    <input list="listaSub" id="m-sub" placeholder="Subcategoria" autocomplete="off">
     <datalist id="listaSub"></datalist>
 
     <input id="m-descricao" placeholder="Descrição">
@@ -206,23 +208,23 @@ const tituloModal = document.getElementById("titulo-modal");
 
 let editandoID = null;
 
-/* LOADING */
+/* ===== LOADING ===== */
 function load(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* ALERTAS */
+/* ===== ALERTAS ===== */
 function erro(msg){ msgBox.innerHTML = `<div class='alert alert-erro'>${msg}</div>`; }
 function ok(msg){ msgBox.innerHTML = `<div class='alert alert-ok'>${msg}</div>`; }
 
-/* MASCARA DE MOEDA */
+/* ===== MÁSCARA DE MOEDA ===== */
 mValor.addEventListener("input",()=>{
   let v = mValor.value.replace(/\D/g,"");
   if(!v) v = "0";
   mValor.value = "R$ " + (v/100).toFixed(2).replace(".",",");
 });
 
-/* LISTAR */
+/* ===== LISTAR ===== */
 async function listar(){
   load(true);
   try{
@@ -254,16 +256,37 @@ async function listar(){
   load(false);
 }
 
-/* CARREGAR CATEGORIAS */
+/* ===== CARREGAR CATEGORIAS ===== */
 async function carregarCategorias(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
 
   listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(c=>`<option value="${c}">`).join("");
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
+
+  aplicarBloqueioCampos();
 }
 
-/* ABRIR MODAL */
+/* ===== BLOQUEAR DIGITAÇÃO INVÁLIDA ===== */
+
+function aplicarBloqueioCampos(){
+  bloquearInputLista(mCat, listaCat);
+  bloquearInputLista(mSub, listaSub);
+}
+
+function bloquearInputLista(input, datalist){
+  const valores = [...datalist.options].map(o => o.value);
+
+  input.addEventListener("input", () => {
+    if (!valores.includes(input.value)) input.value = "";
+  });
+
+  input.addEventListener("blur", () => {
+    if (!valores.includes(input.value)) input.value = "";
+  });
+}
+
+/* ===== ABRIR MODAL ===== */
 function abrirModal(id=null){
   editandoID = id;
   modalBg.style.display="flex";
@@ -279,12 +302,12 @@ function abrirModal(id=null){
   tituloModal.innerText = "Novo Lançamento";
 }
 
-/* FECHAR MODAL */
+/* ===== FECHAR MODAL ===== */
 function fecharModal(){
   modalBg.style.display="none";
 }
 
-/* SELETOR TIPO */
+/* ===== SELETOR TIPO ===== */
 btnReceita.onclick=()=>{
   limparSelecao();
   btnReceita.classList.add("activeSel");
@@ -304,7 +327,7 @@ function limparSelecao(){
   btnDespesa.style.background="var(--gray)";
 }
 
-/* EDITAR */
+/* ===== EDITAR ===== */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
@@ -317,14 +340,11 @@ function editar(id,data,tipo,cat,sub,desc,val){
   mDesc.value=desc;
   mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
 
-  if(tipo==="Receita"){
-    btnReceita.click();
-  } else {
-    btnDespesa.click();
-  }
+  if(tipo==="Receita") btnReceita.click();
+  else btnDespesa.click();
 }
 
-/* SALVAR */
+/* ===== SALVAR ===== */
 async function salvar(){
   let data = mData.value;
   let tipo = mTipo.value;
@@ -338,19 +358,17 @@ async function salvar(){
     return;
   }
 
-  // 🔥 PEGAR LISTA DE CATEGORIAS E SUBCATEGORIAS PERMITIDAS
-  const categoriasPermitidas = [...listaCat.querySelectorAll("option")].map(o=>o.value);
-  const subPermitidas = [...listaSub.querySelectorAll("option")].map(o=>o.value);
+  // Verificação final (backup)
+  const cats = [...listaCat.options].map(o=>o.value);
+  const subs = [...listaSub.options].map(o=>o.value);
 
-  // 🔥 BLOQUEAR CATEGORIA NÃO CADASTRADA
-  if(!categoriasPermitidas.includes(cat)){
-    erro("❌ Categoria não cadastrada! Escolha uma da lista.");
+  if(!cats.includes(cat)){
+    erro("❌ Categoria não cadastrada!");
     return;
   }
 
-  // 🔥 BLOQUEAR SUBCATEGORIA NÃO CADASTRADA
-  if(!subPermitidas.includes(sub)){
-    erro("❌ Subcategoria não cadastrada! Escolha uma da lista.");
+  if(!subs.includes(sub)){
+    erro("❌ Subcategoria não cadastrada!");
     return;
   }
 
@@ -385,8 +403,7 @@ async function salvar(){
   load(false);
 }
 
-
-/* EXCLUIR */
+/* ===== EXCLUIR ===== */
 async function excluir(id){
   if(!confirm("Excluir lançamento?")) return;
 
