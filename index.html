@@ -2,227 +2,98 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Financeiro • Menu Inicial</title>
+<title>Financeiro • Sistema Completo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- =================== ESTILO GLOBAL (SEBRAE PREMIUM 2025) =================== -->
 <style>
 :root{
   --azul:#1F4E78;
   --azul-escuro:#12375A;
   --bg:#f4f6f9;
   --card:#ffffff;
-  --texto:#222;
-  --radius:12px;
+  --radius:14px;
   --shadow:0 6px 20px rgba(0,0,0,0.15);
+  --texto:#222;
 }
 
-/* GERAL */
+/* ========================= GERAL ========================= */
 body{
   margin:0;
   font-family: Arial, sans-serif;
   background:var(--bg);
   display:flex;
+  height:100vh;
   overflow:hidden;
 }
 
-/* ================= SIDEBAR ================= */
+/* ========================= SIDEBAR ========================= */
 #sidebar{
-  width:270px;
-  height:100vh;
+  width:260px;
   background:var(--azul);
   color:white;
-  padding-top:30px;
-  position:relative;
-  transition:0.3s;
-  overflow:hidden;
+  padding-top:35px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 0 20px rgba(0,0,0,0.3);
 }
 
-#sidebar.recolhido{
-  width:70px;
-}
-
-#toggleSidebar{
-  position:absolute;
-  top:15px;
-  right:-20px;
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:white;
-  border:none;
-  color:var(--azul);
-  font-size:20px;
-  cursor:pointer;
-  box-shadow:0 5px 15px rgba(0,0,0,0.3);
-}
-
-/* Título da Sidebar */
 #sidebar h1{
   text-align:center;
-  margin:0;
   margin-bottom:35px;
-  font-size:24px;
-  transition:0.3s;
 }
 
-#sidebar.recolhido h1{
-  opacity:0;
-}
-
-/* Botões do menu */
 .menu-btn{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:18px 22px;
-  font-size:17px;
-  text-decoration:none;
+  padding:18px 25px;
   color:white;
-  border-bottom:1px solid rgba(255,255,255,0.10);
+  text-decoration:none;
+  font-size:18px;
+  border-bottom:1px solid rgba(255,255,255,0.15);
   transition:0.2s;
 }
-
 .menu-btn:hover{
   background:var(--azul-escuro);
-  padding-left:30px;
+  padding-left:35px;
 }
 
-.menu-icon{
-  width:22px;
-  height:22px;
-  background:white;
-  border-radius:4px;
-}
-
-#sidebar.recolhido .menu-text{
-  opacity:0;
-  width:0;
-  overflow:hidden;
-}
-
-/* ================= CONTEÚDO ================= */
+/* ========================= CONTEÚDO ========================= */
 #conteudo{
   flex:1;
-  padding:40px;
   overflow-y:auto;
-  height:100vh;
-  transition:0.3s;
+  background:var(--bg);
+  padding:0;
 }
 
-h2{
-  font-size:32px;
-  color:var(--azul);
-  margin-top:0;
-}
-
-/* Cards da Home */
-.card-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:30px;
-  margin-top:30px;
-}
-
-.card{
-  background:white;
-  padding:25px;
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  transition:0.2s;
-  cursor:pointer;
-  text-align:center;
-}
-
-.card:hover{
-  transform:scale(1.03);
-  box-shadow:0 10px 25px rgba(0,0,0,0.25);
-}
-
-.card-title{
-  font-weight:bold;
-  font-size:22px;
-  color:var(--azul);
-  margin-bottom:10px;
+/* FRAME QUE RECEBE AS TELAS */
+#frame{
+  width:100%;
+  height:100%;
+  border:0;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<!-- ================= SIDEBAR ================= -->
+<!-- SIDEBAR LATERAL -->
 <div id="sidebar">
-  
-  <button id="toggleSidebar" onclick="toggleSidebar()">☰</button>
-
   <h1>FINANCEIRO</h1>
 
-  <a class="menu-btn" href="cadastros.html">
-    <div class="menu-icon"></div>
-    <span class="menu-text">Cadastros</span>
-  </a>
-
-  <a class="menu-btn" href="lancamentos.html">
-    <div class="menu-icon"></div>
-    <span class="menu-text">Lançamentos</span>
-  </a>
-
-  <a class="menu-btn" href="fluxo.html">
-    <div class="menu-icon"></div>
-    <span class="menu-text">Fluxo de Caixa</span>
-  </a>
-
-  <a class="menu-btn" href="dashboard.html">
-    <div class="menu-icon"></div>
-    <span class="menu-text">Dashboard</span>
-  </a>
-
-  <a class="menu-btn" href="historico.html">
-    <div class="menu-icon"></div>
-    <span class="menu-text">Histórico</span>
-  </a>
-
+  <a class="menu-btn" onclick="carregar('home.html')">🏠 Início</a>
+  <a class="menu-btn" onclick="carregar('cadastros.html')">📋 Cadastros</a>
+  <a class="menu-btn" onclick="carregar('lancamentos.html')">💸 Lançamentos</a>
+  <a class="menu-btn" onclick="carregar('fluxo.html')">📈 Fluxo de Caixa</a>
+  <a class="menu-btn" onclick="carregar('dashboard.html')">📊 Dashboard</a>
+  <a class="menu-btn" onclick="carregar('historico.html')">📜 Histórico</a>
 </div>
 
-<!-- ================= CONTEÚDO ================= -->
+<!-- ÁREA QUE VAI CARREGAR AS PÁGINAS -->
 <div id="conteudo">
-
-  <h2>Menu Principal</h2>
-
-  <div class="card-grid">
-
-    <a href="cadastros.html" class="card">
-      <div class="card-title">Cadastros</div>
-      <div>Gerencie categorias e subcategorias</div>
-    </a>
-
-    <a href="lancamentos.html" class="card">
-      <div class="card-title">Lançamentos</div>
-      <div>Registre entradas e saídas</div>
-    </a>
-
-    <a href="fluxo.html" class="card">
-      <div class="card-title">Fluxo de Caixa</div>
-      <div>Controle financeiro mensal</div>
-    </a>
-
-    <a href="dashboard.html" class="card">
-      <div class="card-title">Dashboard</div>
-      <div>Análises e gráficos</div>
-    </a>
-
-    <a href="historico.html" class="card">
-      <div class="card-title">Histórico</div>
-      <div>Acompanhe todas as ações</div>
-    </a>
-
-  </div>
+  <iframe id="frame" src="home.html"></iframe>
 </div>
 
-<!-- ================= SCRIPT ================= -->
 <script>
-function toggleSidebar(){
-  document.getElementById("sidebar").classList.toggle("recolhido");
+function carregar(pagina){
+  document.getElementById("frame").src = pagina;
 }
 </script>
 
