@@ -28,7 +28,6 @@ body{
   font-family:Arial;
 }
 
-/* TÍTULO */
 h2{
   font-size:32px;
   margin-bottom:20px;
@@ -61,7 +60,7 @@ h2{
   font-weight:bold;
 }
 
-/* GRÁFICO */
+/* GRAFICOS */
 .grafico-box{
   background:white;
   margin-top:20px;
@@ -70,9 +69,8 @@ h2{
   box-shadow:var(--shadow);
 }
 
-/* DIMINUIR TAMANHO DOS GRÁFICOS */
 canvas{
-  max-height:280px !important;
+  max-height:260px !important;
 }
 
 /* LOADING */
@@ -116,7 +114,7 @@ canvas{
 </div>
 
 <div class="grafico-box">
-  <h3>Receita × Despesa (12 meses)</h3>
+  <h3>Receita × Despesa (Últimos 12 meses)</h3>
   <canvas id="graficoLinha"></canvas>
 </div>
 
@@ -135,46 +133,53 @@ function fmt(v){
   return Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
-/* =======================
-    LOADING
-======================= */
 function loading(v){
   document.getElementById("loading").style.display = v ? "block" : "none";
 }
 
-/* =======================
-    PRÉ CARREGAMENTO
-======================= */
+/* PRÉ CARREGAMENTO */
 async function preload(){
-  cache.dashboard = await fetch(API+"?action=dashboard").then(r=>r.json());
-  cache.fluxo     = await fetch(API+"?action=fluxo").then(r=>r.json());
-  cache.lanc      = await fetch(API+"?action=listLancamentos").then(r=>r.json());
+  try{
+    cache.dashboard = await fetch(API+"?action=dashboard").then(r=>r.json());
+    cache.fluxo     = await fetch(API+"?action=fluxo").then(r=>r.json());
+    cache.lanc      = await fetch(API+"?action=listLancamentos").then(r=>r.json());
+  }catch(e){
+    console.log("Erro no preload:", e);
+  }
 }
 
-/* =======================
-    CARDS
-======================= */
+/* CARDS */
 function carregarTotais(){
-  let dados = cache.dashboard;
+  if(!cache.dashboard) return;
 
-  let receita = dados.find(l=>l[0]=="receita_total")[1];
-  let despesa = dados.find(l=>l[0]=="despesa_total")[1];
-  let saldo   = dados.find(l=>l[0]=="saldo_total")[1];
+  let receita = cache.dashboard.find(l=>l[0]=="receita_total")[1];
+  let despesa = cache.dashboard.find(l=>l[0]=="despesa_total")[1];
+  let saldo   = cache.dashboard.find(l=>l[0]=="saldo_total")[1];
 
   receitaTotal.innerText = fmt(receita);
   despesaTotal.innerText = fmt(despesa);
   saldoTotal.innerText   = fmt(saldo);
 }
 
-/* =======================
-    GRÁFICO LINHA
-======================= */
+/* GRÁFICO LINHA */
 function carregarGraficoLinha(){
-  let dados = cache.fluxo.slice(-12); // limitar 12 meses
+  if(!cache.fluxo) return;
 
-  let meses = dados.slice(1).map(l=>l[0]);
-  let receitas = dados.slice(1).map(l=>l[1]);
-  let despesas = dados.slice(1).map(l=>l[2]);
+  let dados = cache.fluxo.slice(1); // IGNORA CABEÇALHO
+
+  // Ordenar por data (garante ordem correta)
+  dados.sort((a,b)=>{
+    let da = new Date("01/" + a[0]);
+    let db = new Date("01/" + b[0]);
+    return da - db;
+  });
+
+  // PEGAR APENAS OS ÚLTIMOS 12
+  dados = dados.slice(-12);
+
+  let meses = dados.map(l=>l[0]);
+  let receitas = dados.map(l=>l[1]);
+  let despesas = dados.map(l=>l[2]);
 
   if(grafLinha) grafLinha.destroy();
 
@@ -189,8 +194,7 @@ function carregarGraficoLinha(){
           borderColor:"#2ecc71",
           backgroundColor:"rgba(46,204,113,0.15)",
           fill:true,
-          tension:0.3,
-          borderWidth:2
+          tension:0.3
         },
         {
           label:"Despesas",
@@ -198,27 +202,23 @@ function carregarGraficoLinha(){
           borderColor:"#e74c3c",
           backgroundColor:"rgba(231,76,60,0.15)",
           fill:true,
-          tension:0.3,
-          borderWidth:2
+          tension:0.3
         }
       ]
     },
-    options:{
-      animation:{ duration:300 }
-    }
+    options:{ animation:{ duration:300 } }
   });
 }
 
-/* =======================
-    GRÁFICO CATEGORIAS
-======================= */
+/* GRÁFICO CATEGORIAS */
 function carregarGraficoCategorias(){
-  let lanc = cache.lanc;
+  if(!cache.lanc) return;
 
-  let categorias = {};
-  lanc.forEach(l=>{
+  let categorias={};
+
+  cache.lanc.forEach(l=>{
     let tipo=l[2], cat=l[3], val=Number(l[6]);
-    categorias[cat] = (categorias[cat]||0) + (tipo==="Despesa"? -val: val);
+    categorias[cat] = (categorias[cat]||0) + (tipo==="Despesa" ? -val : val);
   });
 
   let labels = Object.keys(categorias);
@@ -237,15 +237,11 @@ function carregarGraficoCategorias(){
         backgroundColor: valores.map(v=> v>=0 ? "rgba(46,204,113,0.7)" : "rgba(231,76,60,0.7)")
       }]
     },
-    options:{
-      animation:{ duration:300 }
-    }
+    options:{ animation:{ duration:300 } }
   });
 }
 
-/* =======================
-    START
-======================= */
+/* INÍCIO */
 async function iniciar(){
   loading(true);
   await preload();
