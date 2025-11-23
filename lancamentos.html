@@ -24,7 +24,6 @@ body{
   font-family:Arial, sans-serif;
 }
 
-/* Título */
 h2{
   margin-bottom:18px;
   color:var(--azul);
@@ -170,11 +169,11 @@ td{
 
     <input type="hidden" id="m-tipo">
 
-    <!-- CATEGORIA (bloqueada para digitação errada) -->
+    <!-- CATEGORIA -->
     <input list="listaCat" id="m-cat" placeholder="Categoria" autocomplete="off">
     <datalist id="listaCat"></datalist>
 
-    <!-- SUBCATEGORIA (bloqueada também) -->
+    <!-- SUBCATEGORIA -->
     <input list="listaSub" id="m-sub" placeholder="Subcategoria" autocomplete="off">
     <datalist id="listaSub"></datalist>
 
@@ -189,6 +188,17 @@ td{
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
+
+/* ===== FUNÇÃO FORMATAR DATA ===== */
+function formatarData(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  if(isNaN(d)) return iso;
+  const dia = String(d.getDate()).padStart(2,'0');
+  const mes = String(d.getMonth()+1).padStart(2,'0');
+  const ano = d.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
 
 /* Referências */
 const lista = document.getElementById("lista");
@@ -214,8 +224,8 @@ function load(v){
 }
 
 /* ===== ALERTAS ===== */
-function erro(msg){ msgBox.innerHTML = `<div class='alert alert-erro'>${msg}</div>`; }
-function ok(msg){ msgBox.innerHTML = `<div class='alert alert-ok'>${msg}</div>`; }
+function erro(msg){ msgBox.innerHTML = `<div style='color:red;'>${msg}</div>`; }
+function ok(msg){ msgBox.innerHTML = `<div style='color:green;'>${msg}</div>`; }
 
 /* ===== MÁSCARA DE MOEDA ===== */
 mValor.addEventListener("input",()=>{
@@ -224,6 +234,7 @@ mValor.addEventListener("input",()=>{
   mValor.value = "R$ " + (v/100).toFixed(2).replace(".",",");
 });
 
+/* ================= LISTAR ================= */
 async function listar(){
   load(true);
   let r = await fetch(API+"?action=listLancamentos");
@@ -238,9 +249,7 @@ async function listar(){
       <td>${l[5]}</td>
       <td>R$ ${Number(l[6]).toFixed(2)}</td>
       <td>
-        <button onclick="
-          editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')
-        ">Editar</button>
+        <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
         <button onclick="excluir('${l[0]}')">Excluir</button>
       </td>
     </tr>
@@ -250,8 +259,7 @@ async function listar(){
   load(false);
 }
 
-
-/* ===== CARREGAR CATEGORIAS ===== */
+/* ================ CARREGAR CATEGORIAS ================ */
 async function carregarCategorias(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
@@ -262,8 +270,7 @@ async function carregarCategorias(){
   aplicarBloqueioCampos();
 }
 
-/* ===== BLOQUEAR DIGITAÇÃO INVÁLIDA ===== */
-
+/* BLOQUEAR DIGITAÇÃO ERRADA */
 function aplicarBloqueioCampos(){
   bloquearInputLista(mCat, listaCat);
   bloquearInputLista(mSub, listaSub);
@@ -271,75 +278,52 @@ function aplicarBloqueioCampos(){
 
 function bloquearInputLista(input, datalist){
   const valores = [...datalist.options].map(o => o.value);
-
   input.addEventListener("input", () => {
     if (!valores.includes(input.value)) input.value = "";
   });
-
   input.addEventListener("blur", () => {
     if (!valores.includes(input.value)) input.value = "";
   });
 }
 
-/* ===== ABRIR MODAL ===== */
+/* ============ MODAL ============= */
 function abrirModal(id=null){
-  editandoID = id;
+  editandoID=id;
   modalBg.style.display="flex";
 
-  mData.value = new Date().toISOString().split("T")[0];
+  mData.value=new Date().toISOString().split("T")[0];
   mTipo.value="";
   mCat.value="";
   mSub.value="";
   mDesc.value="";
   mValor.value="R$ 0,00";
-  limparSelecao();
 
-  tituloModal.innerText = "Novo Lançamento";
-}
-
-/* ===== FECHAR MODAL ===== */
-function fecharModal(){
-  modalBg.style.display="none";
-}
-
-/* ===== SELETOR TIPO ===== */
-btnReceita.onclick=()=>{
-  limparSelecao();
-  btnReceita.classList.add("activeSel");
-  btnReceita.style.background="var(--green)";
-  mTipo.value="Receita";
-};
-btnDespesa.onclick=()=>{
-  limparSelecao();
-  btnDespesa.classList.add("activeSel");
-  btnDespesa.style.background="var(--red)";
-  mTipo.value="Despesa";
-};
-function limparSelecao(){
   btnReceita.classList.remove("activeSel");
   btnDespesa.classList.remove("activeSel");
-  btnReceita.style.background="var(--gray)";
-  btnDespesa.style.background="var(--gray)";
+
+  tituloModal.innerText="Novo Lançamento";
 }
 
-/* ===== EDITAR ===== */
+function fecharModal(){ modalBg.style.display="none"; }
+
+/* ============ EDITAR ============= */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
   tituloModal.innerText="Editar Lançamento";
 
-  mData.value=data;
-  mTipo.value=tipo;
-  mCat.value=cat;
-  mSub.value=sub;
-  mDesc.value=desc;
-  mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
+  mData.value = data.split("T")[0];
+  mTipo.value = tipo;
+  mCat.value = cat;
+  mSub.value = sub;
+  mDesc.value = desc;
+  mValor.value = "R$ "+Number(val).toFixed(2).replace(".",",");
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
 }
 
-/* ===== SALVAR ===== */
+/* ============ SALVAR ============= */
 async function salvar(){
   let data = mData.value;
   let tipo = mTipo.value;
@@ -353,64 +337,38 @@ async function salvar(){
     return;
   }
 
-  // Verificação final (backup)
   const cats = [...listaCat.options].map(o=>o.value);
   const subs = [...listaSub.options].map(o=>o.value);
 
-  if(!cats.includes(cat)){
-    erro("❌ Categoria não cadastrada!");
-    return;
-  }
-
-  if(!subs.includes(sub)){
-    erro("❌ Subcategoria não cadastrada!");
-    return;
-  }
+  if(!cats.includes(cat)){ erro("Categoria inválida!"); return; }
+  if(!subs.includes(sub)){ erro("Subcategoria inválida!"); return; }
 
   load(true);
 
-  try{
-    let url;
-
-    if(editandoID){
-      const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
-      url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
-    } else {
-      url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
-    }
-
-    let r = await fetch(url);
-    let resp = await r.json();
-
-    if(resp.status!=="ok"){
-      erro("Erro ao salvar!");
-    } else {
-      ok("Salvo com sucesso!");
-    }
-
-    fecharModal();
-    listar();
-
-  }catch(e){
-    erro("Erro ao salvar!");
+  let url;
+  if(editandoID){
+    const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
+    url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
+  } else {
+    url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
   }
 
+  let r = await fetch(url);
+  let resp = await r.json();
+
+  if(resp.status!=="ok") erro("Erro ao salvar!");
+  else ok("Salvo!");
+
+  fecharModal();
+  listar();
   load(false);
 }
 
-/* ===== EXCLUIR ===== */
+/* ============ EXCLUIR ============= */
 async function excluir(id){
-  if(!confirm("Excluir lançamento?")) return;
-
-  load(true);
-  let r = await fetch(API+"?action=deleteLancamento&id="+id);
-  let resp = await r.json();
-
-  if(resp.status!=="ok") erro("Erro ao excluir");
-  else ok("Excluído!");
-
+  if(!confirm("Excluir?")) return;
+  await fetch(API+"?action=deleteLancamento&id="+id);
   listar();
-  load(false);
 }
 
 /* START */
