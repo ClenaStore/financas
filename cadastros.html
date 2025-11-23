@@ -9,54 +9,30 @@
 :root{
   --azul:#1F4E78;
   --verde:#2ECC71;
+  --verde-claro:#d9f6e6;
   --vermelho:#E74C3C;
+  --vermelho-claro:#fde2e2;
   --bg:#f4f6f9;
-  --shadow:0 8px 28px rgba(0,0,0,0.18);
   --radius:14px;
+  --shadow:0 6px 22px rgba(0,0,0,0.15);
 }
 
-/* ========================= GERAL ========================= */
+/* ===== GERAL ===== */
 body{
   margin:0;
   padding:25px;
   background:var(--bg);
-  font-family:Arial;
+  font-family:Arial, sans-serif;
+  color:#222;
 }
 
 h1{
   font-size:32px;
   color:var(--azul);
+  margin-bottom:18px;
 }
 
-/* ========================= TABELA ========================= */
-table{
-  width:100%;
-  margin-top:20px;
-  border-collapse:collapse;
-  border-radius:var(--radius);
-  overflow:hidden;
-  background:white;
-  box-shadow:var(--shadow);
-}
-thead{
-  background:var(--azul);
-  color:white;
-}
-th,td{
-  padding:14px;
-  font-size:15px;
-  text-align:left;
-}
-
-/* cores por tipo */
-.linha-receita{
-  background:#d9ffe7 !important;
-}
-.linha-despesa{
-  background:#ffe0e0 !important;
-}
-
-/* ========================= BOTÕES ========================= */
+/* ===== BOTÃO NOVO ===== */
 .btn{
   padding:10px 16px;
   border-radius:8px;
@@ -69,7 +45,39 @@ th,td{
 .btn-red{ background:var(--vermelho); }
 .btn-blue{ background:var(--azul); }
 
-/* ========================= MODAL ========================= */
+/* ===== TABELA ===== */
+table{
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+  border-radius:var(--radius);
+  overflow:hidden;
+  background:white;
+  box-shadow:var(--shadow);
+}
+
+thead{
+  background:var(--azul);
+  color:white;
+}
+
+th,td{
+  padding:16px;
+  font-size:16px;
+  text-align:left;
+}
+
+/* LINHA RECEITA */
+.receita-row{
+  background:var(--verde-claro) !important;
+}
+
+/* LINHA DESPESA */
+.despesa-row{
+  background:var(--vermelho-claro) !important;
+}
+
+/* ===== MODAL ===== */
 #modal-bg{
   position:fixed;
   inset:0;
@@ -78,7 +86,7 @@ th,td{
   align-items:center;
   justify-content:center;
   backdrop-filter:blur(3px);
-  z-index:999;
+  z-index:2000;
 }
 
 #modal{
@@ -103,17 +111,16 @@ input{
   border:1px solid #ccc;
 }
 
-/* ========================= LOADING ========================= */
+/* LOADING */
 #loading{
   position:fixed;
   bottom:20px;
   left:20px;
-  background:#1F4E78;
+  background:var(--azul);
   padding:12px 22px;
   border-radius:14px;
   color:white;
   font-size:16px;
-  box-shadow:0 8px 28px rgba(0,0,0,0.20);
   display:none;
   animation:pulse 1.2s infinite;
   z-index:999;
@@ -147,7 +154,7 @@ input{
   <tbody id="tabela"></tbody>
 </table>
 
-<!-- ============ MODAL ============ -->
+<!-- ========== MODAL ========== -->
 <div id="modal-bg">
   <div id="modal">
     <h2 id="tituloModal" style="margin-top:0;color:var(--azul)">Novo Cadastro</h2>
@@ -157,10 +164,10 @@ input{
       <button class="btn" id="btnDespesa" style="flex:1;background:var(--vermelho);" onclick="setTipo('Despesa')">Despesa</button>
     </div>
 
-    <input id="categoria" list="listaCategorias" placeholder="Categoria" autocomplete="off">
+    <input id="categoria" list="listaCategorias" placeholder="Categoria">
     <datalist id="listaCategorias"></datalist>
 
-    <input id="subcategoria" list="listaSub" placeholder="Subcategoria" autocomplete="off">
+    <input id="subcategoria" list="listaSub" placeholder="Subcategoria">
     <datalist id="listaSub"></datalist>
 
     <button class="btn btn-green" onclick="salvar()" style="width:100%">Salvar</button>
@@ -169,56 +176,28 @@ input{
 </div>
 
 <script>
-/* =========================================================
-   CONFIG
-========================================================= */
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
 let tipoAtual = "";
 let editID = null;
 
-/* =========================================================
-   LOADING
-========================================================= */
+/* LOADING */
 function load(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* =========================================================
-   FILTRO INTELIGENTE
-========================================================= */
-function filtroInteligente(input, datalist){
-  let valores = [...datalist.options].map(o=>o.value);
-
-  input.addEventListener("input",()=>{
-    const txt = input.value.toLowerCase();
-    datalist.innerHTML = valores
-      .filter(v => v.toLowerCase().includes(txt))
-      .map(v => `<option value="${v}">`)
-      .join("");
-
-    input.dataset.valid = valores.includes(input.value) ? "1" : "0";
-  });
-
-  input.addEventListener("blur",()=>{
-    if(input.dataset.valid !== "1") input.value="";
-  });
-}
-
-/* =========================================================
-   MODAL
-========================================================= */
-function abrirModal(id=null,tipo="",cat="",sub=""){
+/* MODAL */
+function abrirModal(id=null,t="",c="",s=""){
   editID = id;
-  tipoAtual = tipo;
-  categoria.value = cat;
-  subcategoria.value = sub;
+  tipoAtual = t;
+
+  categoria.value = c || "";
+  subcategoria.value = s || "";
+  tituloModal.innerText = id ? "Editar Cadastro" : "Novo Cadastro";
 
   highlightTipo();
-  document.getElementById("tituloModal").innerText = id ? "Editar Cadastro" : "Novo Cadastro";
-  document.getElementById("modal-bg").style.display = "flex";
+  document.getElementById("modal-bg").style.display="flex";
 }
-
 function fecharModal(){
   document.getElementById("modal-bg").style.display="none";
 }
@@ -233,9 +212,7 @@ function highlightTipo(){
   btnDespesa.style.opacity = tipoAtual==="Despesa" ? "1" : ".4";
 }
 
-/* =========================================================
-   LISTAR
-========================================================= */
+/* ===== LISTAR ===== */
 async function carregar(){
   load(true);
   try{
@@ -244,8 +221,10 @@ async function carregar(){
 
     let html="";
     dados.forEach(l=>{
+      let classe = l[1] === "Receita" ? "receita-row" : "despesa-row";
+
       html+=`
-      <tr class="${l[1]==='Receita' ? 'linha-receita' : 'linha-despesa'}">
+      <tr class="${classe}">
         <td>${l[1]}</td>
         <td>${l[2]}</td>
         <td>${l[3]}</td>
@@ -256,19 +235,16 @@ async function carregar(){
       </tr>`;
     });
 
-    document.getElementById("tabela").innerHTML = html;
-
+    tabela.innerHTML = html;
     preencherAuto(dados);
 
   }catch(e){
-    alert("Erro: "+e);
+    alert("Erro ao carregar cadastros");
   }
   load(false);
 }
 
-/* =========================================================
-   AUTOCOMPLETE
-========================================================= */
+/* AUTOCOMPLETE */
 function preencherAuto(dados){
   let cats=new Set(), subs=new Set();
 
@@ -279,27 +255,16 @@ function preencherAuto(dados){
 
   listaCategorias.innerHTML = [...cats].map(c=>`<option value="${c}">`).join("");
   listaSub.innerHTML = [...subs].map(s=>`<option value="${s}">`).join("");
-
-  filtroInteligente(categoria, listaCategorias);
-  filtroInteligente(subcategoria, listaSub);
 }
 
-/* =========================================================
-   SALVAR
-========================================================= */
+/* SALVAR */
 async function salvar(){
-  if(!tipoAtual){
-    alert("Escolha o tipo.");
-    return;
-  }
+  if(!tipoAtual){ alert("Escolha Receita ou Despesa."); return; }
 
   let cat = categoria.value.trim();
   let sub = subcategoria.value.trim();
 
-  if(!cat){
-    alert("Informe a categoria.");
-    return;
-  }
+  if(!cat){ alert("Informe a categoria."); return; }
 
   load(true);
 
@@ -308,14 +273,11 @@ async function salvar(){
     : `${API}?action=createCadastro&tipo=${tipoAtual}&categoria=${cat}&subcategoria=${sub}`;
 
   await fetch(url);
-
   fecharModal();
   carregar();
 }
 
-/* =========================================================
-   EXCLUIR
-========================================================= */
+/* EXCLUIR */
 async function excluir(id){
   if(!confirm("Excluir cadastro?")) return;
   load(true);
@@ -323,9 +285,7 @@ async function excluir(id){
   carregar();
 }
 
-/* =========================================================
-   START
-========================================================= */
+/* INICIAR */
 carregar();
 </script>
 
