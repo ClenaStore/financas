@@ -11,8 +11,8 @@
   --azul-escuro:#12375A;
   --bg:#f4f6f9;
   --card:#ffffff;
-  --radius:12px;
-  --shadow:0 6px 20px rgba(0,0,0,0.15);
+  --radius:14px;
+  --shadow:0 6px 22px rgba(0,0,0,0.15);
   --green:#2ecc71;
   --red:#e74c3c;
   --gray:#999;
@@ -47,36 +47,29 @@ h2{
 
 /* ALERTAS */
 .alert{
-  padding:15px;
+  padding:14px;
   border-radius:8px;
   margin-bottom:20px;
   color:white;
+  font-size:16px;
 }
 .alert-erro{ background:#c62828; }
 .alert-ok{ background:#2e7d32; }
 
-/* LOADING – AGORA NÃO BLOQUEIA CLICKS */
+/* LOADING */
 #loading{
   position:fixed;
   bottom:20px;
   left:20px;
   background:#1F4E78;
-  padding:12px 21px;
-  border-radius:14px;
+  padding:12px 20px;
+  border-radius:12px;
   color:white;
-  font-size:16px;
-  font-weight:bold;
+  font-size:15px;
   display:none;
   z-index:999;
   animation:pulse 1.2s infinite;
-  pointer-events:none;
 }
-
-#loading.show{
-  pointer-events:all;
-  display:flex;
-}
-
 @keyframes pulse{
   0%{opacity:.5; transform:scale(.95);}
   50%{opacity:1; transform:scale(1);}
@@ -89,21 +82,21 @@ table{
   border-collapse:collapse;
   background:white;
   margin-top:20px;
-  border-radius:12px;
+  border-radius:14px;
   overflow:hidden;
   box-shadow:var(--shadow);
 }
 th{
-  padding:12px;
+  padding:13px;
   background:var(--azul);
   color:white;
 }
 td{
-  padding:12px;
-  border-bottom:1px solid #e1e1e1;
+  padding:13px;
+  border-bottom:1px solid #e4e4e4;
 }
 
-/* BOTÕES AÇÃO */
+/* BOTÕES EDITAR/EXCLUIR */
 .btn-edit{
   background:#0277bd;
   padding:6px 10px;
@@ -118,59 +111,51 @@ td{
 }
 
 /* MODAL */
-.modal-bg{
+#modal-bg{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.55);
   display:none;
-  justify-content:center;
   align-items:center;
-  backdrop-filter:blur(2px);
+  justify-content:center;
+  backdrop-filter:blur(3px);
   z-index:1000;
-  pointer-events:none;
-}
-
-.modal-bg.show{
-  display:flex;
-  pointer-events:all;
 }
 
 .modal{
   background:white;
-  width:450px;
+  width:430px;
   padding:25px;
-  border-radius:14px;
-  box-shadow:var(--shadow);
+  border-radius:16px;
+  box-shadow:0 10px 35px rgba(0,0,0,0.25);
   animation:pop .25s ease;
 }
-
 @keyframes pop{
-  from{ transform:scale(.85); opacity:.3; }
+  from{ transform:scale(.85); opacity:.2; }
   to{ transform:scale(1); opacity:1; }
 }
 
-.modal h3{ margin-top:0; color:var(--azul); }
-
-input{
+.modal input{
   width:100%;
   padding:12px;
   margin-bottom:12px;
-  border-radius:8px;
   border:1px solid #ccc;
+  border-radius:8px;
+  font-size:15px;
 }
 
-/* SELETOR RECEITA/DESPESA */
+/* seleção tipo */
 #tipoBtns button{
   flex:1;
-  opacity:.5;
+  opacity:.4;
 }
 .activeSel{
   opacity:1 !important;
-  box-shadow:0 0 5px #0002;
+  box-shadow:0 0 6px #0003;
 }
 </style>
-</head>
 
+</head>
 <body>
 
 <div id="loading">Carregando...</div>
@@ -189,20 +174,20 @@ input{
       <th>Subcategoria</th>
       <th>Descrição</th>
       <th>Valor</th>
-      <th style="width:160px">Ações</th>
+      <th style="width:150px">Ações</th>
     </tr>
   </thead>
   <tbody id="lista"></tbody>
 </table>
 
 <!-- MODAL -->
-<div class="modal-bg" id="modal-bg">
+<div id="modal-bg">
   <div class="modal">
     <h3 id="titulo-modal">Novo Lançamento</h3>
 
     <input id="m-data" type="date">
 
-    <div id="tipoBtns" style="display:flex; gap:10px;">
+    <div id="tipoBtns" style="display:flex; gap:10px; margin-bottom:12px;">
       <button id="btnReceita" class="btn btn-gray">Receita</button>
       <button id="btnDespesa" class="btn btn-gray">Despesa</button>
     </div>
@@ -218,46 +203,56 @@ input{
     <input id="m-descricao" placeholder="Descrição">
     <input id="m-valor" placeholder="Valor">
 
-    <button class="btn btn-green" style="width:100%" onclick="salvar()">Salvar</button>
-    <button class="btn btn-gray" style="width:100%;margin-top:8px" onclick="fecharModal()">Cancelar</button>
+    <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
+    <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
   </div>
 </div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
+/* refs rápidas */
+const listaEl = document.getElementById("lista");
+const modalBg = document.getElementById("modal-bg");
+const msgBox = document.getElementById("msg");
+
+const mData = document.getElementById("m-data");
+const mTipo = document.getElementById("m-tipo");
+const mCat = document.getElementById("m-cat");
+const mSub = document.getElementById("m-sub");
+const mDescricao = document.getElementById("m-descricao");
+const mValor = document.getElementById("m-valor");
+const tituloModal = document.getElementById("titulo-modal");
+
+const btnReceita = document.getElementById("btnReceita");
+const btnDespesa = document.getElementById("btnDespesa");
+
 let editandoID = null;
 
-/* LOADING */
+/* loading */
 function load(v){
-  const el = document.getElementById("loading");
-  if(v){
-    el.classList.add("show");
-  }else{
-    el.classList.remove("show");
-  }
+  document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* ALERTAS */
+/* alerta */
 function erro(msg){ msgBox.innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`; }
 function ok(msg){ msgBox.innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`; }
 
-/* MASCARA */
-function mascaraValor(el){
-  let v = el.value.replace(/\D/g,"");
-  el.value = "R$ " + (v/100).toFixed(2).replace(".",",");
-}
+/* mascara */
+mValor.addEventListener("input", ()=>{
+  let v = mValor.value.replace(/\D/g,"");
+  mValor.value = "R$ " + (v/100).toFixed(2).replace(".",",");
+});
 
-/* ====== LISTAR ====== */
+/* ===== LISTAR ===== */
 async function listar(){
   load(true);
-
   try{
     let r = await fetch(API+"?action=listLancamentos");
     let dados = await r.json();
 
     if(!Array.isArray(dados)){
-      erro("Erro no retorno do servidor.");
+      erro("Erro no servidor.");
       load(false);
       return;
     }
@@ -266,9 +261,8 @@ async function listar(){
     carregarCombos();
 
   }catch(e){
-    erro("Falha ao carregar: "+e);
+    erro("Falha ao carregar");
   }
-
   load(false);
 }
 
@@ -289,7 +283,7 @@ function renderizar(lista){
   `).join("");
 }
 
-/* ====== COMBOS ====== */
+/* ===== CARREGAR CATEGORIAS ===== */
 async function carregarCombos(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
@@ -298,29 +292,29 @@ async function carregarCombos(){
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
 }
 
-/* ====== MODAL ====== */
+/* ===== ABRIR MODAL ===== */
 function abrirModal(id=null){
   editandoID = id;
-
-  document.getElementById("modal-bg").classList.add("show");
+  modalBg.style.display = "flex";
 
   if(!id){
     tituloModal.innerText = "Novo Lançamento";
     mData.value = new Date().toISOString().split("T")[0];
-    mDescricao.value = "";
-    mValor.value = "";
+    mTipo.value = "";
     mCat.value = "";
     mSub.value = "";
-    mTipo.value = "";
+    mDescricao.value = "";
+    mValor.value = "";
+
     limparSelecao();
   }
 }
 
 function fecharModal(){
-  document.getElementById("modal-bg").classList.remove("show");
+  modalBg.style.display = "none";
 }
 
-/* ====== TIPO ====== */
+/* ===== TIPO ===== */
 btnReceita.onclick = ()=>{
   limparSelecao();
   btnReceita.classList.add("activeSel");
@@ -338,11 +332,12 @@ btnDespesa.onclick = ()=>{
 function limparSelecao(){
   btnReceita.classList.remove("activeSel");
   btnDespesa.classList.remove("activeSel");
+
   btnReceita.style.background="var(--gray)";
   btnDespesa.style.background="var(--gray)";
 }
 
-/* ====== EDITAR ====== */
+/* ===== EDITAR ===== */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
@@ -365,7 +360,7 @@ function editar(id,data,tipo,cat,sub,desc,val){
   }
 }
 
-/* ====== SALVAR ====== */
+/* ===== SALVAR ===== */
 async function salvar(){
   let data = mData.value;
   let tipo = mTipo.value;
@@ -375,7 +370,7 @@ async function salvar(){
   let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
-    erro("Preencha todos os campos!");
+    erro("Preencha todos os campos.");
     return;
   }
 
@@ -405,13 +400,13 @@ async function salvar(){
     listar();
 
   }catch(e){
-    erro("Falha ao salvar: "+ e);
+    erro("Erro ao salvar.");
   }
 
   load(false);
 }
 
-/* ====== EXCLUIR ====== */
+/* ===== EXCLUIR ===== */
 async function excluir(id){
   if(!confirm("Excluir lançamento?")) return;
 
@@ -427,9 +422,7 @@ async function excluir(id){
   load(false);
 }
 
-mValor.addEventListener("input", ()=>mascaraValor(mValor));
-
-/* ====== INICIAR ====== */
+/* ===== INICIAR ===== */
 listar();
 </script>
 
