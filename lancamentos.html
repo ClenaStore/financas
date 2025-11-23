@@ -299,7 +299,10 @@ function abrirModal(id=null){
 
   if(!id){
     tituloModal.innerText = "Novo Lançamento";
-    mData.value = new Date().toISOString().split("T")[0];
+
+    // DATA HOJE CORRIGIDA
+    mData.value = new Date().toISOString().substring(0,10);
+
     mTipo.value = "";
     mCat.value = "";
     mSub.value = "";
