@@ -12,7 +12,6 @@
   --verde:#2ECC71;
   --vermelho:#E74C3C;
   --bg:#f4f6f9;
-  --branco:#ffffff;
   --shadow:0 4px 12px rgba(0,0,0,0.15);
   --radius:12px;
 }
@@ -65,25 +64,33 @@ tbody tr:nth-child(even){
   font-weight:bold;
 }
 
-/* loading */
+/* LOADING — mesmo estilo do dashboard */
 #loading{
-  display:none;
   position:fixed;
-  inset:0;
-  background:rgba(255,255,255,0.8);
-  font-size:22px;
-  font-weight:bold;
-  color:#333;
-  align-items:center;
-  justify-content:center;
-  z-index:99;
+  bottom:20px;
+  left:20px;
+  background:#1F4E78;
+  padding:12px 22px;
+  border-radius:14px;
+  color:white;
+  font-size:16px;
+  box-shadow:0 8px 28px rgba(0,0,0,0.2);
+  display:none;
+  z-index:999;
+  animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse{
+  0%{ opacity:.5; transform:scale(.95); }
+  50%{ opacity:1; transform:scale(1); }
+  100%{ opacity:.5; transform:scale(.95); }
 }
 </style>
 </head>
 
 <body>
 
-<div id="loading">Carregando...</div>
+<div id="loading">Carregando fluxo...</div>
 
 <h1>Fluxo de Caixa</h1>
 
@@ -103,51 +110,57 @@ tbody tr:nth-child(even){
 <script>
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
-/* LOADING */
-function load(s){
-  document.getElementById("loading").style.display = s ? "flex" : "none";
+/* =======================
+     LOADING
+======================== */
+function load(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* FORMATADOR */
-function fmt(valor){
-  return Number(valor).toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
+/* formato */
+function fmt(v){
+  return Number(v).toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
 }
 
-/* CARREGAR FLUXO */
+/* =======================
+     CARREGAR FLUXO
+======================== */
 async function carregarFluxo(){
-  load(true);
+  load(true); // ativa animação
 
   try{
     let r = await fetch(API+"?action=fluxo");
     let dados = await r.json();
 
-    let tab = "";
+    let html = "";
+
     dados.slice(1).forEach(l => {
       let mes = l[0];
-      let rec = Number(l[1]);
-      let des = Number(l[2]);
-      let saldoMes = Number(l[3]);
-      let acumulado = Number(l[4]);
+      let r = Number(l[1]);
+      let d = Number(l[2]);
+      let sm = Number(l[3]);
+      let ac = Number(l[4]);
 
-      tab += `
-      <tr>
-        <td>${mes}</td>
-        <td class="valorPositivo">${fmt(rec)}</td>
-        <td class="valorNegativo">${fmt(des)}</td>
-        <td class="${saldoMes >= 0 ? 'valorPositivo' : 'valorNegativo'}">${fmt(saldoMes)}</td>
-        <td class="${acumulado >= 0 ? 'valorPositivo' : 'valorNegativo'}">${fmt(acumulado)}</td>
-      </tr>`;
+      html += `
+        <tr>
+          <td>${mes}</td>
+          <td class="valorPositivo">${fmt(r)}</td>
+          <td class="valorNegativo">${fmt(d)}</td>
+          <td class="${sm>=0?'valorPositivo':'valorNegativo'}">${fmt(sm)}</td>
+          <td class="${ac>=0?'valorPositivo':'valorNegativo'}">${fmt(ac)}</td>
+        </tr>`;
     });
 
-    document.getElementById("tabelaFluxo").innerHTML = tab;
+    document.getElementById("tabelaFluxo").innerHTML = html;
 
   }catch(e){
     alert("Erro ao carregar fluxo: " + e);
   }
 
-  load(false);
+  setTimeout(()=> load(false), 400); // remove animação suavemente
 }
 
+/* iniciar */
 carregarFluxo();
 </script>
 
