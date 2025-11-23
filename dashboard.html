@@ -5,90 +5,110 @@
 <title>Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
   --azul:#1F4E78;
-  --azul-escuro:#12375A;
-  --bg:#f4f6f9;
+  --azul2:#2565a8;
+  --bg:#eef3fa;
   --card:#ffffff;
-  --radius:14px;
-  --shadow:0 6px 20px rgba(0,0,0,0.15);
+  --radius:18px;
+  --shadow:0 10px 45px rgba(0,0,0,0.12);
   --verde:#2ecc71;
   --vermelho:#e74c3c;
-  --texto:#222;
+  --texto:#223;
 }
 
 /* GERAL */
 body{
   margin:0;
-  padding:25px;
+  padding:30px;
   background:var(--bg);
   font-family:Arial;
 }
 
 h2{
-  font-size:34px;
-  margin-bottom:20px;
+  font-size:36px;
+  margin-bottom:25px;
   color:var(--azul);
+  letter-spacing:1px;
 }
 
 /* CARDS */
 .cards{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:20px;
-  margin-bottom:30px;
+  grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+  gap:25px;
+  margin-bottom:35px;
 }
 
 .card{
   background:white;
-  padding:25px;
+  padding:30px;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
+  transition:.25s;
+  position:relative;
+  overflow:hidden;
+}
+.card:hover{
+  transform:translateY(-5px);
 }
 
 .card h3{
-  margin:0 0 10px 0;
-  color:var(--azul-escuro);
+  margin:0 0 12px 0;
+  color:var(--azul2);
+  font-size:18px;
 }
 
 .card .valor{
-  font-size:28px;
+  font-size:32px;
   font-weight:bold;
 }
 
-/* GRÁFICOS */
+/* GRÁFICO BOX */
 .grafico-box{
   background:white;
-  margin-top:30px;
-  padding:25px;
+  margin-top:35px;
+  padding:30px;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
+  animation:fade .5s ease-out;
+}
+
+@keyframes fade{
+  from{ opacity:0; transform:translateY(15px); }
+  to{ opacity:1; transform:translateY(0); }
 }
 
 /* LOADING */
 #loading{
   position:fixed;
-  inset:0;
+  bottom:20px;
+  left:20px;
+  background:#1F4E78;
+  padding:12px 20px;
+  border-radius:12px;
+  color:white;
+  font-size:16px;
+  box-shadow:var(--shadow);
   display:none;
-  justify-content:center;
-  align-items:center;
-  background:rgba(255,255,255,0.7);
-  font-size:26px;
-  font-weight:bold;
-  color:#333;
   z-index:999;
+  animation:pulse 1s infinite;
 }
 
+@keyframes pulse{
+  0%{opacity:.6}
+  50%{opacity:1}
+  100%{opacity:.6}
+}
 </style>
 </head>
 
 <body>
 
-<div id="loading">Carregando...</div>
+<div id="loading">Atualizando Dashboard...</div>
 
 <h2>Dashboard Financeiro</h2>
 
@@ -103,7 +123,7 @@ h2{
   </div>
   <div class="card">
     <h3>Saldo Total</h3>
-    <div id="saldoTotal" class="valor" style="color:var(--azul)">R$ 0,00</div>
+    <div id="saldoTotal" class="valor" style="color:var(--azul2)">R$ 0,00</div>
   </div>
 </div>
 
@@ -120,39 +140,61 @@ h2{
 <script>
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
-function load(v){
-  document.getElementById("loading").style.display = v ? "flex" : "none";
-}
+let grafLinha, grafCat;
 
 function fmt(v){
   return Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
-let grafLinha, grafCat;
+/* ======================
+     CARREGAMENTO OCULTO
+   ====================== */
 
-/* =================== DASHBOARD TOTAL ==================== */
+async function preload(url){
+  try{
+    return await fetch(url).then(r=>r.json());
+  }catch(e){
+    return null;
+  }
+}
+
+let cache = {
+  dashboard:null,
+  fluxo:null,
+  lanc:null
+};
+
+/* TAREFA EM SEGUNDO PLANO — Pré-carrega tudo antes do usuário ver */
+setTimeout(async ()=>{
+  cache.dashboard = await preload(API+"?action=dashboard");
+  cache.fluxo = await preload(API+"?action=fluxo");
+  cache.lanc = await preload(API+"?action=listLancamentos");
+}, 50);
+
+/* ======================
+     CARREGAR CARDS
+   ====================== */
+
 async function carregarTotais(){
-  let r = await fetch(API+"?action=dashboard");
-  let dados = await r.json();
+  let dados = cache.dashboard || await preload(API+"?action=dashboard");
 
   let receita = dados.find(l=>l[0]==="receita_total")[1];
   let despesa = dados.find(l=>l[0]==="despesa_total")[1];
   let saldo = dados.find(l=>l[0]==="saldo_total")[1];
 
-  document.getElementById("receitaTotal").innerText = fmt(receita);
-  document.getElementById("despesaTotal").innerText = fmt(despesa);
-  document.getElementById("saldoTotal").innerText = fmt(saldo);
+  receitaTotal.innerText = fmt(receita);
+  despesaTotal.innerText = fmt(despesa);
+  saldoTotal.innerText = fmt(saldo);
 }
 
-/* =================== GRÁFICO LINHA ==================== */
+/* ======================
+     GRÁFICO LINHA
+   ====================== */
+
 async function carregarGraficoLinha(){
-  let r = await fetch(API+"?action=fluxo");
-  let dados = await r.json();
+  let dados = cache.fluxo || await preload(API+"?action=fluxo");
 
-  let meses = [];
-  let receitas = [];
-  let despesas = [];
-
+  let meses=[], receitas=[], despesas=[];
   dados.slice(1).forEach(l=>{
     meses.push(l[0]);
     receitas.push(l[1]);
@@ -161,7 +203,7 @@ async function carregarGraficoLinha(){
 
   if(grafLinha) grafLinha.destroy();
 
-  grafLinha = new Chart(document.getElementById("graficoLinha"),{
+  grafLinha = new Chart(graficoLinha,{
     type:"line",
     data:{
       labels:meses,
@@ -170,73 +212,80 @@ async function carregarGraficoLinha(){
           label:"Receitas",
           data:receitas,
           borderColor:"#2ecc71",
-          backgroundColor:"rgba(46,204,113,0.2)",
+          backgroundColor:"rgba(46,204,113,0.18)",
           fill:true,
-          tension:0.3
+          tension:0.35,
+          borderWidth:3
         },
         {
           label:"Despesas",
           data:despesas,
           borderColor:"#e74c3c",
-          backgroundColor:"rgba(231,76,60,0.2)",
+          backgroundColor:"rgba(231,76,60,0.18)",
           fill:true,
-          tension:0.3
+          tension:0.35,
+          borderWidth:3
         }
       ]
     }
   });
 }
 
-/* =================== GRÁFICO CATEGORIAS ==================== */
+/* ======================
+    GRÁFICO CATEGORIAS
+   ====================== */
+
 async function carregarGraficoCategorias(){
-  let r = await fetch(API+"?action=listLancamentos");
-  let lanc = await r.json();
+  let lanc = cache.lanc || await preload(API+"?action=listLancamentos");
 
-  let categorias = {};
-  
+  let categorias={};
   lanc.forEach(l=>{
-    let tipo = l[2];
-    let cat = l[3];
-    let valor = Number(l[6]);
-
-    if(!categorias[cat]) categorias[cat] = 0;
-
-    categorias[cat] += tipo === "Despesa" ? -valor : valor;
+    let tipo=l[2], cat=l[3], val=Number(l[6]);
+    if(!categorias[cat]) categorias[cat]=0;
+    categorias[cat]+= tipo==="Despesa" ? -val : val;
   });
 
-  let labels = Object.keys(categorias);
-  let valores = Object.values(categorias);
+  let labels=Object.keys(categorias);
+  let valores=Object.values(categorias);
 
   if(grafCat) grafCat.destroy();
 
-  grafCat = new Chart(document.getElementById("graficoCategorias"),{
+  grafCat=new Chart(graficoCategorias,{
     type:"bar",
     data:{
       labels,
       datasets:[{
         label:"Valor",
         data:valores,
-        backgroundColor: labels.map(v => 
-          categorias[v] >= 0 
-          ? "rgba(46,204,113,0.6)" 
-          : "rgba(231,76,60,0.6)"
-        ),
+        borderRadius:8,
+        backgroundColor: valores.map(v=> v>=0
+          ? "rgba(46,204,113,.7)"
+          : "rgba(231,76,60,.7)"
+        )
       }]
     }
   });
 }
 
-/* =================== INICIAR ==================== */
+/* ======================
+      START
+   ====================== */
+
 async function iniciar(){
-  load(true);
+  loading(true);
+
   await carregarTotais();
   await carregarGraficoLinha();
   await carregarGraficoCategorias();
-  load(false);
+
+  setTimeout(()=>loading(false),400);
+}
+
+function loading(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
 iniciar();
-
 </script>
 
 </body>
