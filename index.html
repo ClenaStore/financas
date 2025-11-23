@@ -26,28 +26,98 @@ body{
   overflow:hidden;
 }
 
+/* ========================= SPLASH ANIMATION ========================= */
+#splash{
+  position:fixed;
+  inset:0;
+  background:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:42px;
+  color:var(--azul);
+  font-weight:bold;
+  z-index:9999;
+  animation:fadeOut .9s ease forwards;
+  animation-delay:.8s;
+}
+
+@keyframes fadeOut{
+  from{opacity:1;}
+  to{opacity:0; visibility:hidden;}
+}
+
+#splash span{
+  display:inline-block;
+  animation:float 1.8s infinite ease-in-out;
+}
+
+@keyframes float{
+  0%{transform:translateY(0);}
+  50%{transform:translateY(-8px);}
+  100%{transform:translateY(0);}
+}
+
 /* ========================= SIDEBAR ========================= */
+
 #sidebar{
+  position:relative;
   width:260px;
   background:var(--azul);
   color:white;
-  padding-top:35px;
+  padding-top:25px;
   display:flex;
   flex-direction:column;
   box-shadow:0 0 20px rgba(0,0,0,0.3);
+  transition:width .25s;
+  overflow:hidden;
 }
 
+#sidebar.min{
+  width:70px;
+}
+
+/* Botão hamburguer */
+#toggleMenu{
+  position:absolute;
+  top:15px;
+  right:-20px;
+  background:var(--azul);
+  width:42px;
+  height:42px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  color:white;
+  font-size:22px;
+  box-shadow:var(--shadow);
+  z-index:10;
+}
+
+/* Título / some quando recolhido */
 #sidebar h1{
   text-align:center;
   margin-bottom:35px;
+  font-size:24px;
+  transition:.25s;
+}
+#sidebar.min h1{
+  opacity:0;
+  pointer-events:none;
 }
 
+/* LINKS DO MENU */
 .menu-btn{
   padding:18px 25px;
   color:white;
   text-decoration:none;
   font-size:18px;
   border-bottom:1px solid rgba(255,255,255,0.15);
+  display:flex;
+  gap:12px;
+  align-items:center;
   transition:0.2s;
 }
 .menu-btn:hover{
@@ -55,46 +125,85 @@ body{
   padding-left:35px;
 }
 
+/* O texto some quando fechado */
+.menu-text{
+  transition:.2s;
+  white-space:nowrap;
+}
+#sidebar.min .menu-text{
+  opacity:0;
+  width:0;
+  overflow:hidden;
+}
+
 /* ========================= CONTEÚDO ========================= */
+
 #conteudo{
   flex:1;
   overflow-y:auto;
   background:var(--bg);
-  padding:0;
 }
 
-/* FRAME QUE RECEBE AS TELAS */
 #frame{
   width:100%;
   height:100%;
   border:0;
 }
 </style>
-
 </head>
+
 <body>
 
-<!-- SIDEBAR LATERAL -->
-<div id="sidebar">
-  <h1>FINANCEIRO</h1>
-
-  <a class="menu-btn" onclick="carregar('home.html')">🏠 Início</a>
-  <a class="menu-btn" onclick="carregar('cadastros.html')">📋 Cadastros</a>
-  <a class="menu-btn" onclick="carregar('lancamentos.html')">💸 Lançamentos</a>
-  <a class="menu-btn" onclick="carregar('fluxo.html')">📈 Fluxo de Caixa</a>
-  <a class="menu-btn" onclick="carregar('dashboard.html')">📊 Dashboard</a>
-  <a class="menu-btn" onclick="carregar('historico.html')">📜 Histórico</a>
+<!-- SPLASH -->
+<div id="splash">
+  <span>F</span><span>I</span><span>N</span><span>A</span><span>N</span><span>C</span><span>E</span><span>I</span><span>R</span><span>O</span>
 </div>
 
-<!-- ÁREA QUE VAI CARREGAR AS PÁGINAS -->
+<!-- SIDEBAR -->
+<div id="sidebar">
+
+  <!-- Botão hamburguer -->
+  <div id="toggleMenu">☰</div>
+
+  <h1>FINANCEIRO</h1>
+
+  <a class="menu-btn" onclick="carregar('home.html')">🏠 <span class="menu-text">Início</span></a>
+  <a class="menu-btn" onclick="carregar('cadastros.html')">📋 <span class="menu-text">Cadastros</span></a>
+  <a class="menu-btn" onclick="carregar('lancamentos.html')">💸 <span class="menu-text">Lançamentos</span></a>
+  <a class="menu-btn" onclick="carregar('fluxo.html')">📈 <span class="menu-text">Fluxo de Caixa</span></a>
+  <a class="menu-btn" onclick="carregar('dashboard.html')">📊 <span class="menu-text">Dashboard</span></a>
+  <a class="menu-btn" onclick="carregar('historico.html')">📜 <span class="menu-text">Histórico</span></a>
+
+</div>
+
+<!-- CONTEÚDO -->
 <div id="conteudo">
   <iframe id="frame" src="home.html"></iframe>
 </div>
 
 <script>
+/* Abrir páginas */
 function carregar(pagina){
   document.getElementById("frame").src = pagina;
 }
+
+/* Controla abrir/fechar menu */
+const sidebar = document.getElementById("sidebar");
+const toggleBtn = document.getElementById("toggleMenu");
+
+/* Lê o estado salvo */
+if(localStorage.getItem("sidebar") === "min"){
+  sidebar.classList.add("min");
+}
+
+/* Alterna o estado */
+toggleBtn.onclick = ()=>{
+  sidebar.classList.toggle("min");
+
+  localStorage.setItem("sidebar",
+    sidebar.classList.contains("min") ? "min" : "max"
+  );
+};
 </script>
 
 </body>
