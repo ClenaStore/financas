@@ -2,17 +2,19 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Lançamentos</title>
+<title>Cadastros</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --azul:#1F4E78;
+  --verde:#2ECC71;
+  --vermelho:#E74C3C;
+  --green-soft:#eafaf1;
+  --red-soft:#fdecea;
   --bg:#f4f6f9;
-  --green:#2ecc71;
-  --red:#e74c3c;
-  --gray:#999;
   --shadow:0 6px 22px rgba(0,0,0,0.15);
+  --radius:12px;
 }
 
 /* GERAL */
@@ -23,43 +25,26 @@ body{
   font-family:Arial, sans-serif;
 }
 
-h2{
+h1{
   margin-bottom:18px;
   color:var(--azul);
   font-size:32px;
 }
 
-/* Botões */
+/* BOTÕES */
 .btn{
-  padding:12px 18px;
+  padding:10px 18px;
   border:none;
   border-radius:10px;
   color:white;
-  font-size:16px;
+  font-size:15px;
   cursor:pointer;
+  transition:.2s;
 }
-.btn-green{ background:var(--green); }
-.btn-gray{ background:var(--gray); }
-
-/* Loading */
-#loading{
-  position:fixed;
-  bottom:20px;
-  left:20px;
-  background:#1F4E78;
-  padding:12px 20px;
-  border-radius:10px;
-  color:white;
-  display:none;
-  animation:pulse 1.2s infinite;
-  z-index:900;
-}
-
-@keyframes pulse{
-  0%{opacity:.5; transform:scale(.95);}
-  50%{opacity:1; transform:scale(1);}
-  100%{opacity:.5; transform:scale(.95);}
-}
+.btn-gray{ background:#999; }
+.btn-green{ background:var(--verde); }
+.btn-red{ background:var(--vermelho); }
+.btn-blue{ background:var(--azul); }
 
 /* TABELA */
 table{
@@ -67,62 +52,86 @@ table{
   background:white;
   border-collapse:collapse;
   border-radius:12px;
+  margin-top:15px;
   overflow:hidden;
-  margin-top:20px;
   box-shadow:var(--shadow);
 }
 th{
-  padding:13px;
   background:var(--azul);
   color:white;
   text-align:left;
+  padding:13px;
+  font-size:16px;
 }
 td{
   padding:12px;
   border-bottom:1px solid #e4e4e4;
+  font-size:15px;
 }
+tr.receita-row { background:var(--green-soft); }
+tr.despesa-row { background:var(--red-soft); }
 
 /* MODAL */
 #modal-bg{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(3px);
   display:none;
   align-items:center;
   justify-content:center;
-  backdrop-filter:blur(3px);
-  z-index:2000;
+  z-index:1000;
 }
 
-.modal{
-  width:420px;
+#modal{
+  width:400px;
   background:white;
   padding:25px;
-  border-radius:15px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
   animation:pop .25s ease;
-  box-shadow:0 12px 35px rgba(0,0,0,0.25);
 }
+
 @keyframes pop{
-  from{transform:scale(.85); opacity:.3;}
-  to{transform:scale(1); opacity:1;}
+  from{ transform:scale(0.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
 }
 
-.modal input{
+input{
   width:100%;
-  border:1px solid #ccc;
-  border-radius:10px;
-  padding:11px;
+  padding:12px;
   margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
 
-/* Tipo */
-#tipoBtns button{
-  flex:1;
+/* Loading */
+#loading{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  background:var(--azul);
+  padding:12px 20px;
+  border-radius:10px;
+  color:white;
+  font-size:16px;
+  display:none;
+  animation:pulse 1.2s infinite;
+  z-index:2000;
+}
+@keyframes pulse{
+  0%{opacity:.5; transform:scale(.95);}
+  50%{opacity:1; transform:scale(1);}
+  100%{opacity:.5; transform:scale(.95);}
+}
+
+/* TIPO BOTÕES MODAL */
+#btnReceita, #btnDespesa{
   opacity:.4;
 }
-.activeSel{
+.selTipo{
   opacity:1 !important;
-  box-shadow:0 0 6px #0003;
+  box-shadow:0 0 8px #0003;
 }
 </style>
 </head>
@@ -131,262 +140,166 @@ td{
 
 <div id="loading">Carregando...</div>
 
-<h2>Lançamentos</h2>
-<div id="msg"></div>
+<h1>Cadastros</h1>
 
-<button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
+<button class="btn btn-gray" onclick="abrirModal()">+ Novo Cadastro</button>
 
 <table>
   <thead>
     <tr>
-      <th>Data</th>
       <th>Tipo</th>
       <th>Categoria</th>
       <th>Subcategoria</th>
-      <th>Descrição</th>
-      <th>Valor</th>
       <th>Ações</th>
     </tr>
   </thead>
-  <tbody id="lista"></tbody>
+  <tbody id="tabela"></tbody>
 </table>
 
 <!-- MODAL -->
 <div id="modal-bg">
-  <div class="modal">
+  <div id="modal">
+    <h2 id="tituloModal" style="margin-top:0;color:var(--azul)">Novo Cadastro</h2>
 
-    <h3 id="tituloModal">Novo Lançamento</h3>
-
-    <input id="mData" type="date">
-
-    <div id="tipoBtns" style="display:flex; gap:10px; margin-bottom:12px;">
-      <button id="btnReceita" class="btn btn-gray">Receita</button>
-      <button id="btnDespesa" class="btn btn-gray">Despesa</button>
+    <div style="display:flex; gap:10px; margin-bottom:12px;">
+      <button class="btn btn-gray" id="btnReceita" style="flex:1" onclick="setTipo('Receita')">Receita</button>
+      <button class="btn btn-gray" id="btnDespesa" style="flex:1" onclick="setTipo('Despesa')">Despesa</button>
     </div>
 
-    <input type="hidden" id="mTipo">
+    <input id="categoria" list="listCats" placeholder="Categoria" autocomplete="off">
+    <datalist id="listCats"></datalist>
 
-    <!-- Categoria com filtro inteligente -->
-    <input list="listaCat" id="mCat" placeholder="Categoria" autocomplete="off">
-    <datalist id="listaCat"></datalist>
+    <input id="subcategoria" list="listSubs" placeholder="Subcategoria" autocomplete="off">
+    <datalist id="listSubs"></datalist>
 
-    <!-- Subcategoria com filtro inteligente -->
-    <input list="listaSub" id="mSub" placeholder="Subcategoria" autocomplete="off">
-    <datalist id="listaSub"></datalist>
-
-    <input id="mDesc" placeholder="Descrição">
-    <input id="mValor" placeholder="R$ 0,00">
-
-    <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
-    <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
-
+    <button class="btn btn-gray" onclick="salvar()" style="width:100%">Salvar</button>
+    <button class="btn btn-gray" onclick="fecharModal()" style="width:100%;margin-top:8px;">Cancelar</button>
   </div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
+const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
-/* ===== FORMATAR DATA ===== */
-function formatarData(iso){
-  if(!iso) return "";
-  const d = new Date(iso);
-  if(isNaN(d)) return iso;
-  return String(d.getDate()).padStart(2,'0') + "/" +
-         String(d.getMonth()+1).padStart(2,'0') + "/" +
-         d.getFullYear();
-}
+let tipoAtual = "";
+let editID = null;
 
-/* ELEMENTOS */
-const lista = document.getElementById("lista");
-const modalBg = document.getElementById("modal-bg");
-const msg = document.getElementById("msg");
-
-const mData = document.getElementById("mData");
-const mTipo = document.getElementById("mTipo");
-const mCat = document.getElementById("mCat");
-const mSub = document.getElementById("mSub");
-const mDesc = document.getElementById("mDesc");
-const mValor = document.getElementById("mValor");
-
-const btnReceita = document.getElementById("btnReceita");
-const btnDespesa = document.getElementById("btnDespesa");
-const tituloModal = document.getElementById("tituloModal");
-
-let editandoID = null;
-
-/* Loading */
+/* ====== LOADING ====== */
 function load(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* ALERTAS */
-function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
-function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
+/* ====== TIPO ====== */
+function setTipo(t){
+  tipoAtual = t;
 
-/* MÁSCARA */
-mValor.addEventListener("input",()=>{
-  let v = mValor.value.replace(/\D/g,"");
-  if(!v) v="0";
-  mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
-});
+  btnReceita.classList.remove("selTipo");
+  btnDespesa.classList.remove("selTipo");
 
-/* RECEITA / DESPESA */
-btnReceita.onclick = ()=>{
-  mTipo.value="Receita";
-  btnReceita.classList.add("activeSel");
-  btnDespesa.classList.remove("activeSel");
-};
-btnDespesa.onclick = ()=>{
-  mTipo.value="Despesa";
-  btnDespesa.classList.add("activeSel");
-  btnReceita.classList.remove("activeSel");
-};
-
-/* ===== FILTRO INTELIGENTE ===== */
-function filtroInteligente(input, datalist){
-  const valores = [...datalist.options].map(o=>o.value);
-
-  input.addEventListener("input",()=>{
-
-    const txt = input.value.toLowerCase();
-
-    datalist.innerHTML = valores
-      .filter(v => v.toLowerCase().includes(txt))
-      .map(v => `<option value="${v}">`)
-      .join("");
-
-    input.dataset.valid = valores.includes(input.value) ? "1" : "0";
-  });
-
-  input.addEventListener("blur",()=>{
-    if(input.dataset.valid !== "1") input.value="";
-  });
+  if(t === "Receita") btnReceita.classList.add("selTipo");
+  else btnDespesa.classList.add("selTipo");
 }
 
-/* LISTAR */
-async function listar(){
+/* ====== ABRIR MODAL ====== */
+function abrirModal(id=null,t="",c="",s=""){
+  editID = id;
+  tipoAtual = t;
+
+  categoria.value = c;
+  subcategoria.value = s;
+
+  btnReceita.classList.remove("selTipo");
+  btnDespesa.classList.remove("selTipo");
+
+  if(t==="Receita") btnReceita.classList.add("selTipo");
+  if(t==="Despesa") btnDespesa.classList.add("selTipo");
+
+  tituloModal.innerText = id ? "Editar Cadastro" : "Novo Cadastro";
+
+  document.getElementById("modal-bg").style.display="flex";
+}
+
+/* ====== FECHAR MODAL ====== */
+function fecharModal(){
+  document.getElementById("modal-bg").style.display="none";
+}
+
+/* ====== CARREGAR TABELA ====== */
+async function carregar(){
   load(true);
-  const r = await fetch(API+"?action=listLancamentos");
-  const dados = await r.json();
 
-  lista.innerHTML = dados.map(l=>`
-    <tr>
-      <td>${formatarData(l[1])}</td>
-      <td>${l[2]}</td>
-      <td>${l[3]}</td>
-      <td>${l[4]}</td>
-      <td>${l[5]}</td>
-      <td>R$ ${Number(l[6]).toFixed(2)}</td>
-      <td>
-        <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
-        <button onclick="excluir('${l[0]}')">Excluir</button>
-      </td>
-    </tr>
-  `).join("");
+  let r = await fetch(API+"?action=listCadastros");
+  let dados = await r.json();
 
-  await carregarCategorias();
+  let html = "";
+
+  dados.forEach(l=>{
+    const tipo = l[1];
+    const classe = tipo === "Receita" ? "receita-row" : "despesa-row";
+
+    html += `
+      <tr class="${classe}">
+        <td>${l[1]}</td>
+        <td>${l[2]}</td>
+        <td>${l[3]}</td>
+        <td>
+          <button class="btn btn-gray" onclick="abrirModal('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
+          <button class="btn btn-gray" onclick="excluir('${l[0]}')">Excluir</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("tabela").innerHTML = html;
+
+  preencherListas(dados);
   load(false);
 }
 
-/* CARREGAR LISTAS */
-async function carregarCategorias(){
-  const r = await fetch(API+"?action=listCadastros");
-  const dados = await r.json();
+/* ====== AUTO LISTS ====== */
+function preencherListas(dados){
+  let cats = new Set();
+  let subs = new Set();
 
-  listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
-  listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
+  dados.forEach(l=>{
+    if(l[2]) cats.add(l[2]);
+    if(l[3]) subs.add(l[3]);
+  });
 
-  filtroInteligente(mCat, listaCat);
-  filtroInteligente(mSub, listaSub);
+  listCats.innerHTML = [...cats].map(v=>`<option value="${v}">`).join("");
+  listSubs.innerHTML = [...subs].map(v=>`<option value="${v}">`).join("");
 }
 
-/* MODAL */
-function abrirModal(id=null){
-  editandoID=id;
-  modalBg.style.display="flex";
-
-  mData.value=new Date().toISOString().split("T")[0];
-  mTipo.value="";
-  mCat.value="";
-  mSub.value="";
-  mDesc.value="";
-  mValor.value="R$ 0,00";
-
-  btnReceita.classList.remove("activeSel");
-  btnDespesa.classList.remove("activeSel");
-
-  tituloModal.innerText="Novo Lançamento";
-}
-
-function fecharModal(){ modalBg.style.display="none"; }
-
-/* EDITAR */
-function editar(id,data,tipo,cat,sub,desc,val){
-  abrirModal(id);
-
-  tituloModal.innerText="Editar Lançamento";
-
-  mData.value=data.split("T")[0];
-  mTipo.value=tipo;
-  mCat.value=cat;
-  mSub.value=sub;
-  mDesc.value=desc;
-  mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
-
-  if(tipo==="Receita") btnReceita.click();
-  else btnDespesa.click();
-}
-
-/* SALVAR */
+/* ====== SALVAR ====== */
 async function salvar(){
-  let data = mData.value;
-  let tipo = mTipo.value;
-  let cat = mCat.value;
-  let sub = mSub.value;
-  let desc = mDesc.value;
-  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
+  if(!tipoAtual){ alert("Escolha Receita ou Despesa."); return; }
 
-  if(!data||!tipo||!cat||!sub||!desc||!val){
-    erro("Preencha tudo!");
-    return;
-  }
+  let cat = categoria.value.trim();
+  let sub = subcategoria.value.trim();
 
-  const cats = [...listaCat.options].map(o=>o.value);
-  const subs = [...listaSub.options].map(o=>o.value);
-
-  if(!cats.includes(cat)){ erro("Categoria inválida!"); return; }
-  if(!subs.includes(sub)){ erro("Subcategoria inválida!"); return; }
+  if(!cat){ alert("Informe a categoria."); return; }
 
   load(true);
 
-  let url;
-  if(editandoID){
-    const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
-    url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
-  } else {
-    url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
-  }
+  let url = editID
+    ? `${API}?action=editCadastro&id=${editID}&tipo=${tipoAtual}&categoria=${cat}&subcategoria=${sub}`
+    : `${API}?action=createCadastro&tipo=${tipoAtual}&categoria=${cat}&subcategoria=${sub}`;
 
-  let r = await fetch(url);
-  let resp = await r.json();
-
-  if(resp.status!=="ok") erro("Erro ao salvar!");
-  else ok("Salvo!");
+  await fetch(url);
 
   fecharModal();
-  listar();
-  load(false);
+  carregar();
 }
 
-/* EXCLUIR */
+/* ====== EXCLUIR ====== */
 async function excluir(id){
-  if(!confirm("Excluir?")) return;
-  await fetch(API+"?action=deleteLancamento&id="+id);
-  listar();
+  if(!confirm("Excluir este cadastro?")) return;
+  load(true);
+  await fetch(API+"?action=deleteCadastro&id="+id);
+  carregar();
 }
 
 /* START */
-listar();
+carregar();
 </script>
 
 </body>
