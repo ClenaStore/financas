@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Cadastros • Financeiro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --azul:#1F4E78;
+  --azul-escuro:#12375A;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --texto:#222;
+  --radius:10px;
+  --shadow:0 4px 15px rgba(0,0,0,0.15);
+}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+}
+
+#sidebar{
+  width:260px;
+  height:100vh;
+  position:fixed;
+  left:0; top:0;
+  background:var(--azul);
+  padding:35px 0;
+  color:white;
+}
+
+#sidebar h2{
+  text-align:center;
+  font-weight:600;
+  margin-bottom:40px;
+}
+
+.menu-btn{
+  display:block;
+  padding:20px 25px;
+  color:white;
+  cursor:pointer;
+  font-size:18px;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  text-decoration:none;
+}
+
+.menu-btn:hover{
+  background:var(--azul-escuro);
+}
+
+#conteudo{
+  margin-left:260px;
+  padding:40px;
+}
+
+.card{
+  background:white;
+  padding:25px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+
+h1{
+  margin-top:0;
+  color:var(--azul);
+}
+
+.btn{
+  padding:12px 18px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:15px;
+  font-weight:bold;
+}
+
+.btn-green{ background:#4CAF50; color:white; }
+.btn-blue{ background:var(--azul); color:white; }
+.btn-red{ background:#C62828; color:white; }
+
+table{
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+}
+
+th{
+  background:var(--azul);
+  color:white;
+  padding:12px;
+}
+
+td{
+  background:white;
+  padding:12px;
+  border-bottom:1px solid #ddd;
+}
+
+/* 🔥 MODAL */
+#modal{
+  position:fixed;
+  inset:0;
+  background:#0007;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.modal-box{
+  background:white;
+  padding:25px;
+  width:90%;
+  max-width:420px;
+  border-radius:10px;
+  box-shadow:var(--shadow);
+}
+
+.modal-box h2{
+  margin-top:0;
+  color:var(--azul);
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+#overlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  background:#0008;
+  color:white;
+  font-size:20px;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+</style>
+</head>
+
+<body>
+
+<div id="overlay">Carregando...</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <h2>FINANCEIRO</h2>
+
+  <a href="index.html" class="menu-btn">🏠 Início</a>
+  <a href="cadastros.html" class="menu-btn">📁 Cadastros</a>
+  <a href="lancamentos.html" class="menu-btn">🧾 Lançamentos</a>
+  <a href="fluxo.html" class="menu-btn">📊 Fluxo de Caixa</a>
+  <a href="dashboard.html" class="menu-btn">📈 Dashboard</a>
+  <a href="historico.html" class="menu-btn">📜 Histórico</a>
+</div>
+
+<!-- CONTEÚDO -->
+<div id="conteudo">
+  <div class="card">
+    <h1>Cadastros</h1>
+
+    <button class="btn btn-green" onclick="abrirModal()">+ Novo Cadastro</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Categoria</th>
+          <th>Subcategoria</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaCadastros"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-box">
+    <h2 id="modalTitulo">Novo Cadastro</h2>
+
+    <input type="hidden" id="editId">
+
+    <label>Tipo</label>
+    <select id="tipo">
+      <option value="Receita">Receita</option>
+      <option value="Despesa">Despesa</option>
+    </select>
+
+    <label>Categoria</label>
+    <input type="text" id="categoria">
+
+    <label>Subcategoria</label>
+    <input type="text" id="subcategoria">
+
+    <button class="btn btn-blue" onclick="salvarCadastro()">Salvar</button>
+    <button class="btn btn-red" onclick="fecharModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
+
+/* 🔄 CARREGAMENTO */
+function overlay(v){
+  document.getElementById("overlay").style.display = v ? "flex" : "none";
+}
+
+/* 🟦 LISTAR */
+async function carregarCadastros(){
+  overlay(true);
+  const r = await fetch(API+"?action=listCadastros");
+  const dados = await r.json();
+
+  let html = "";
+  dados.forEach(l => {
+    html += `
+      <tr>
+        <td>${l[1]}</td>
+        <td>${l[2]}</td>
+        <td>${l[3]}</td>
+        <td>
+          <button class="btn btn-blue" onclick="editarCadastro('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
+          <button class="btn btn-red" onclick="excluirCadastro('${l[0]}')">Excluir</button>
+        </td>
+      </tr>`;
+  });
+
+  document.getElementById("tabelaCadastros").innerHTML = html;
+  overlay(false);
+}
+
+/* 🟩 MODAL */
+function abrirModal(){
+  document.getElementById("modalTitulo").innerText = "Novo Cadastro";
+  document.getElementById("editId").value = "";
+  document.getElementById("tipo").value = "Receita";
+  document.getElementById("categoria").value = "";
+  document.getElementById("subcategoria").value = "";
+  document.getElementById("modal").style.display = "flex";
+}
+
+function fecharModal(){
+  document.getElementById("modal").style.display = "none";
+}
+
+/* ✏ EDITAR */
+function editarCadastro(id, tipo, categoria, sub){
+  document.getElementById("modalTitulo").innerText = "Editar Cadastro";
+  document.getElementById("editId").value = id;
+  document.getElementById("tipo").value = tipo;
+  document.getElementById("categoria").value = categoria;
+  document.getElementById("subcategoria").value = sub;
+  document.getElementById("modal").style.display = "flex";
+}
+
+/* 💾 SALVAR */
+async function salvarCadastro(){
+  const id = document.getElementById("editId").value;
+  const tipo = document.getElementById("tipo").value;
+  const categoria = document.getElementById("categoria").value;
+  const sub = document.getElementById("subcategoria").value;
+
+  overlay(true);
+
+  if(id){
+    await fetch(API+`?action=editCadastro&id=${id}&tipo=${tipo}&categoria=${categoria}&subcategoria=${sub}`);
+  } else {
+    await fetch(API+`?action=createCadastro&tipo=${tipo}&categoria=${categoria}&subcategoria=${sub}`);
+  }
+
+  fecharModal();
+  carregarCadastros();
+}
+
+/* 🗑 EXCLUIR */
+async function excluirCadastro(id){
+  if(!confirm("Deseja excluir este cadastro?")) return;
+
+  overlay(true);
+  await fetch(API+`?action=deleteCadastro&id=${id}`);
+  carregarCadastros();
+}
+
+/* ▶ INICIAR */
+carregarCadastros();
+</script>
+
+</body>
+</html>
