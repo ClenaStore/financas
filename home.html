@@ -22,30 +22,49 @@ body{
   color:#222;
 }
 
-/* HERO / BANNER */
+/* HERO / BANNER PRINCIPAL */
 .hero{
-  background:linear-gradient(to right, #1F4E78, #356FA8);
-  color:white;
-  padding:60px 25px;
-  text-align:center;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:30px;
+  padding:50px 25px;
+  background:white;
   box-shadow:var(--shadow);
 }
 
-.hero h1{
+.hero-text{
+  flex:1;
+}
+
+.hero-text h1{
+  color:var(--azul);
   font-size:40px;
   margin:0 0 15px;
 }
 
-.hero p{
-  font-size:19px;
-  max-width:600px;
-  margin:auto;
+.hero-text p{
+  font-size:18px;
   opacity:.9;
+  max-width:500px;
 }
 
-/* CONTAINER */
+/* VIDEO */
+.hero-video{
+  flex:1;
+  min-width:300px;
+}
+
+.hero-video iframe{
+  width:100%;
+  height:300px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+
+/* CONTEÚDO */
 .container{
-  padding:35px 25px;
+  padding:40px 25px;
   max-width:1100px;
   margin:auto;
 }
@@ -106,18 +125,46 @@ body{
 .card-content a:hover{
   background:#163b58;
 }
+
+/* RESPONSIVO */
+@media(max-width:850px){
+  .hero{
+    flex-direction:column;
+    text-align:center;
+  }
+  .hero-text h1{
+    font-size:32px;
+  }
+}
 </style>
 </head>
 
 <body>
 
-<!-- HERO -->
+<!-- HERO / BANNER PRINCIPAL -->
 <div class="hero">
-  <h1>Painel Financeiro</h1>
-  <p>Gerencie lançamentos, cadastros, categorias e tenha controle completo do seu fluxo financeiro.</p>
+
+  <!-- TEXTO -->
+  <div class="hero-text">
+    <h1>Bem-vindo ao Painel Financeiro</h1>
+    <p>
+      Controle completo das suas finanças: lançamentos, cadastros, categorias, relatórios 
+      e muito mais — tudo em um só lugar.
+    </p>
+  </div>
+
+  <!-- VÍDEO YOUTUBE TEMPORÁRIO -->
+  <div class="hero-video">
+    <iframe 
+      src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+      title="YouTube video" 
+      allowfullscreen>
+    </iframe>
+  </div>
+
 </div>
 
-<!-- CONTEÚDO -->
+<!-- PRODUTOS INDICADOS -->
 <div class="container">
 
   <h2 style="color:var(--azul); margin-bottom:15px;">Produtos Indicados</h2>
@@ -126,30 +173,30 @@ body{
 
     <!-- CARD 1 -->
     <div class="card">
-      <img src="https://picsum.photos/500/300?random=1">
+      <img src="https://picsum.photos/500/300?random=21">
       <div class="card-content">
         <h3>Controle de Lançamentos</h3>
-        <p>Registre, edite e organize seus lançamentos financeiros com rapidez.</p>
+        <p>Registre e organize receitas e despesas com facilidade.</p>
         <a href="lancamentos.html">Acessar</a>
       </div>
     </div>
 
     <!-- CARD 2 -->
     <div class="card">
-      <img src="https://picsum.photos/500/300?random=2">
+      <img src="https://picsum.photos/500/300?random=22">
       <div class="card-content">
         <h3>Cadastros Financeiros</h3>
-        <p>Gerencie categorias, subcategorias e tipos de receita e despesa.</p>
+        <p>Gerencie categorias, subcategorias e tipos.</p>
         <a href="cadastros.html">Acessar</a>
       </div>
     </div>
 
     <!-- CARD 3 -->
     <div class="card">
-      <img src="https://picsum.photos/500/300?random=3">
+      <img src="https://picsum.photos/500/300?random=23">
       <div class="card-content">
-        <h3>Relatórios e Análises</h3>
-        <p>Visualize gráficos, saldo mensal, totais e indicadores do seu painel.</p>
+        <h3>Relatórios e Gráficos</h3>
+        <p>Visualize análises completas do seu desempenho financeiro.</p>
         <a href="#">Abrir Relatórios</a>
       </div>
     </div>
