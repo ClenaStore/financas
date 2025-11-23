@@ -2,462 +2,151 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+<title>Financeiro • Menu Inicial</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Financeiro • Grupo DV</title>
-
-<!-- ========= PWA ======== -->
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="apple-touch-icon" href="https://i.imgur.com/9M1IR7Z.png">
-
-<!-- ========= FONTE ======== -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<!-- ========= ESTILO ======== -->
 <style>
-:root {
-  --azul:#0b1e39;
-  --azul2:#152b4e;
-  --gold:#d4af37;
-  --bg:#f3f5f7;
-  --radius:20px;
-  --shadow:0 8px 25px rgba(0,0,0,0.18);
+:root{
+  --azul:#1F4E78;
+  --azul-escuro:#12375A;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --texto:#222;
+  --radius:12px;
+  --shadow:0 6px 20px rgba(0,0,0,0.15);
 }
 
-body {
-  font-family:'Inter', sans-serif;
+body{
   margin:0;
+  font-family: Arial, sans-serif;
   background:var(--bg);
-  color:#111;
 }
 
-header {
-  background:var(--azul);
-  padding:22px;
-  text-align:center;
-  color:white;
-  font-size:22px;
-  font-weight:700;
-  box-shadow:var(--shadow);
-  border-bottom-left-radius:25px;
-  border-bottom-right-radius:25px;
-}
-
-/* Carregamento */
-#overlay {
+/* SIDEBAR */
+#sidebar{
+  width:270px;
+  height:100vh;
   position:fixed;
-  inset:0;
-  background:white;
-  z-index:9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  font-weight:700;
-  color:var(--azul);
+  left:0;
+  top:0;
+  background:var(--azul);
+  color:white;
+  padding:40px 0;
+  box-shadow:0 0 20px rgba(0,0,0,0.25);
 }
 
-/* Dashboard */
-.section-title {
-  margin:20px;
-  margin-bottom:10px;
-  font-size:20px;
-  font-weight:700;
-  color:var(--azul);
-}
-
-.dashboard {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-  padding:20px;
-}
-
-.card {
-  background:white;
-  padding:20px;
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  text-align:center;
-}
-
-.card h3 {
-  font-size:15px;
+#sidebar h1{
   margin:0;
-  color:var(--azul);
-}
-
-.card p {
-  margin-top:10px;
-  font-size:22px;
-  font-weight:700;
-  color:var(--gold);
-}
-
-/* Botões flutuantes */
-.menu-floating {
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-.action-btn {
-  padding:16px;
-  background:var(--azul);
-  color:white;
-  font-size:16px;
-  border-radius:50px;
-  box-shadow:var(--shadow);
+  font-size:26px;
   text-align:center;
-  width:58px;
-  height:58px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
+  margin-bottom:40px;
+  font-weight:700;
 }
 
-/* Seções */
-.section {
-  margin:20px;
-  background:white;
-  padding:20px;
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-}
-
-label {
-  font-weight:600;
-  margin-top:15px;
+.menu-btn{
   display:block;
-}
-
-input, select {
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid #ccc;
-  margin-top:6px;
-  font-size:15px;
-}
-
-button {
-  width:100%;
-  margin-top:20px;
-  padding:14px;
-  background:var(--azul);
+  padding:20px 25px;
+  font-size:18px;
   color:white;
-  font-size:16px;
-  font-weight:600;
-  border:0;
-  border-radius:12px;
-  cursor:pointer;
-  box-shadow:var(--shadow);
+  text-decoration:none;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  transition:0.2s;
 }
 
-button:hover {
-  background:var(--azul2);
+.menu-btn:hover{
+  background:var(--azul-escuro);
+  padding-left:35px;
 }
 
-/* Lista */
-.item {
-  background:white;
-  padding:16px;
-  border-radius:16px;
-  margin-bottom:12px;
-  box-shadow:var(--shadow);
+/* CONTEÚDO */
+#conteudo{
+  margin-left:270px;
+  padding:50px;
 }
 
-.item h4 {
-  margin:0;
-  font-size:16px;
+h2{
+  font-size:30px;
+  margin-top:0;
   color:var(--azul);
 }
 
-.item span { display:block; margin-top:6px; }
-
-/* Gráficos */
-canvas {
-  width:100% !important;
-  max-height:260px;
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:30px;
+  margin-top:30px;
 }
 
+.card{
+  background:white;
+  padding:25px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  text-align:center;
+  transition:0.2s;
+  cursor:pointer;
+  font-size:20px;
+}
+
+.card:hover{
+  transform:scale(1.03);
+  box-shadow:0 10px 25px rgba(0,0,0,0.25);
+}
+
+.card-title{
+  font-weight:bold;
+  color:var(--azul);
+  margin-bottom:10px;
+  font-size:22px;
+}
 </style>
 </head>
 
 <body>
 
-<div id="overlay">Carregando...</div>
+<div id="sidebar">
+  <h1>FINANCEIRO</h1>
 
-<header>Financeiro • Grupo DV</header>
+  <a class="menu-btn" href="cadastros.html">Cadastros</a>
+  <a class="menu-btn" href="lancamentos.html">Lançamentos</a>
+  <a class="menu-btn" href="fluxo.html">Fluxo de Caixa</a>
+  <a class="menu-btn" href="dashboard.html">Dashboard</a>
+  <a class="menu-btn" href="historico.html">Histórico</a>
 
-<!-- DASHBOARD -->
-<div class="section-title">Dashboard Geral</div>
-<section class="dashboard">
-  <div class="card">
-    <h3>Receitas (Mês)</h3>
-    <p id="receitaMes">R$ 0,00</p>
+</div>
+
+<div id="conteudo">
+  <h2>Menu Principal</h2>
+
+  <div class="card-grid">
+
+    <a href="cadastros.html" class="card">
+      <div class="card-title">Cadastros</div>
+      <div>Gerencie categorias e subcategorias</div>
+    </a>
+
+    <a href="lancamentos.html" class="card">
+      <div class="card-title">Lançamentos</div>
+      <div>Registre entradas e saídas</div>
+    </a>
+
+    <a href="fluxo.html" class="card">
+      <div class="card-title">Fluxo de Caixa</div>
+      <div>Controle de receitas e despesas mensais</div>
+    </a>
+
+    <a href="dashboard.html" class="card">
+      <div class="card-title">Dashboard</div>
+      <div>Indicadores e gráficos analíticos</div>
+    </a>
+
+    <a href="historico.html" class="card">
+      <div class="card-title">Histórico</div>
+      <div>Registro completo de ações</div>
+    </a>
+
   </div>
-  <div class="card">
-    <h3>Despesas (Mês)</h3>
-    <p id="despesaMes">R$ 0,00</p>
-  </div>
-  <div class="card">
-    <h3>Saldo</h3>
-    <p id="saldoMes">R$ 0,00</p>
-  </div>
-  <div class="card">
-    <h3>Lançamentos</h3>
-    <p id="totalLanc">0</p>
-  </div>
-</section>
-
-<!-- GRÁFICO DE BARRAS -->
-<div class="section">
-  <h3 style="color:var(--azul); margin-top:0;">Gráfico Mensal</h3>
-  <canvas id="graficoMes"></canvas>
 </div>
-
-<!-- GRÁFICO DE PIZZA -->
-<div class="section">
-  <h3 style="color:var(--azul); margin-top:0;">Categorias (Pizza)</h3>
-  <canvas id="graficoPizza"></canvas>
-</div>
-
-<!-- FORMULÁRIO -->
-<div class="section">
-  <h2 style="margin-top:0; color:var(--azul);">Novo Lançamento</h2>
-
-  <label>Categoria</label>
-  <select id="categoria"></select>
-
-  <label>Tipo</label>
-  <select id="tipo">
-    <option value="receita">Receita</option>
-    <option value="despesa">Despesa</option>
-  </select>
-
-  <label>Descrição</label>
-  <input type="text" id="descricao">
-
-  <label>Valor</label>
-  <input type="number" id="valor" step="0.01">
-
-  <label>Data</label>
-  <input type="date" id="data">
-
-  <button onclick="salvarLancamento()">Salvar</button>
-</div>
-
-<!-- EDITOR DE CATEGORIAS -->
-<div class="section">
-  <h2 style="margin-top:0; color:var(--azul);">Categorias</h2>
-
-  <label>Nova categoria</label>
-  <input id="novaCategoria" type="text">
-
-  <select id="novoTipo">
-    <option value="receita">Receita</option>
-    <option value="despesa">Despesa</option>
-  </select>
-
-  <button onclick="addCategoria()">Adicionar Categoria</button>
-
-  <div id="listaCategorias" style="margin-top:20px;"></div>
-</div>
-
-<!-- LISTA -->
-<div class="section">
-  <h2 style="margin-top:0; color:var(--azul);">Lançamentos</h2>
-  <div id="lista"></div>
-</div>
-
-<!-- BOTÕES FLUTUANTES -->
-<div class="menu-floating">
-  <div class="action-btn" onclick="window.scrollTo({top:0,behavior:'smooth'});">↑</div>
-  <div class="action-btn" onclick="gerarTabelaAnual()">📊</div>
-</div>
-
-<!-- ========== SCRIPTS ========== -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-const API = "https://script.google.com/macros/s/AKfycbx7qqf5my7UGoJpDUhGMUaHuhTaiJoUWqeO5G19t5BnHRD2wJaogrrlznkvRCWf-j9k/exec"; // coloque sua URL AQUI
-
-/* INICIALIZAÇÃO */
-window.onload = async () => {
-  await carregarCategorias();
-  await carregarLancamentos();
-  document.getElementById("overlay").style.display = "none";
-};
-
-/* CATEGORIAS */
-async function carregarCategorias() {
-  const r = await fetch(API + "?action=listaCategorias");
-  const dados = await r.json();
-
-  const sel = document.getElementById("categoria");
-  sel.innerHTML = "";
-
-  const lista = document.getElementById("listaCategorias");
-  lista.innerHTML = "";
-
-  dados.forEach(c => {
-    let opt = document.createElement("option");
-    opt.value = c.categoria;
-    opt.textContent = c.categoria;
-    sel.appendChild(opt);
-
-    lista.innerHTML += `
-      <div class='item'>
-        <h4>${c.categoria}</h4>
-        <span>Tipo: ${c.tipo}</span>
-      </div>
-    `;
-  });
-}
-
-async function addCategoria() {
-  const categoria = document.getElementById("novaCategoria").value;
-  const tipo = document.getElementById("novoTipo").value;
-
-  if (!categoria.trim()) {
-    alert("Nome inválido");
-    return;
-  }
-
-  await fetch(API, {
-    method:"POST",
-    body:JSON.stringify({
-      action:"addCategoria",
-      categoria,
-      tipo
-    })
-  });
-
-  document.getElementById("novaCategoria").value = "";
-  carregarCategorias();
-}
-
-/* LANÇAMENTOS */
-async function salvarLancamento() {
-  const payload = {
-    action: "addLancamento",
-    categoria: document.getElementById("categoria").value,
-    tipo: document.getElementById("tipo").value,
-    descricao: document.getElementById("descricao").value,
-    valor: parseFloat(document.getElementById("valor").value),
-    data: document.getElementById("data").value
-  };
-
-  await fetch(API, { method: "POST", body: JSON.stringify(payload) });
-
-  document.getElementById("descricao").value = "";
-  document.getElementById("valor").value = "";
-  document.getElementById("data").value = "";
-  carregarLancamentos();
-}
-
-let graficoMes, graficoPizza;
-
-/* CARREGAR LANÇAMENTOS */
-async function carregarLancamentos() {
-  const r = await fetch(API + "?action=listaLancamentos");
-  const dados = await r.json();
-
-  let html = "";
-  let receitas = 0;
-  let despesas = 0;
-
-  let mes = new Array(12).fill(0);
-  let categoriasPizza = {};
-
-  dados.forEach(l => {
-    html += `
-      <div class="item">
-        <h4>${l.descricao}</h4>
-        <span><b>Categoria:</b> ${l.categoria}</span>
-        <span><b>Tipo:</b> ${l.tipo}</span>
-        <span><b>Valor:</b> R$ ${Number(l.valor).toFixed(2)}</span>
-        <span><b>Data:</b> ${l.data}</span>
-      </div>
-    `;
-
-    const valor = Number(l.valor);
-    const dt = new Date(l.data);
-    const m = dt.getMonth();
-
-    if (l.tipo === "receita") receitas += valor;
-    else despesas += valor;
-
-    mes[m] += valor;
-
-    if (!categoriasPizza[l.categoria]) categoriasPizza[l.categoria] = 0;
-    categoriasPizza[l.categoria] += valor;
-  });
-
-  document.getElementById("lista").innerHTML = html;
-
-  document.getElementById("receitaMes").innerText = "R$ " + receitas.toFixed(2);
-  document.getElementById("despesaMes").innerText = "R$ " + despesas.toFixed(2);
-  document.getElementById("saldoMes").innerText = "R$ " + (receitas - despesas).toFixed(2);
-  document.getElementById("totalLanc").innerText = dados.length;
-
-  montarGraficoMes(mes);
-  montarGraficoPizza(categoriasPizza);
-}
-
-/* GRÁFICOS */
-function montarGraficoMes(mes) {
-  const ctx = document.getElementById("graficoMes");
-
-  if (graficoMes) graficoMes.destroy();
-
-  graficoMes = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"],
-      datasets: [{
-        label:"Valores",
-        data: mes,
-        backgroundColor:"#0b1e39"
-      }]
-    }
-  });
-}
-
-function montarGraficoPizza(cat) {
-  const ctx = document.getElementById("graficoPizza");
-
-  if (graficoPizza) graficoPizza.destroy();
-
-  graficoPizza = new Chart(ctx, {
-    type:"pie",
-    data:{
-      labels: Object.keys(cat),
-      datasets:[{
-        data:Object.values(cat),
-        backgroundColor:[
-          "#0b1e39","#152b4e","#d4af37","#567","#999","#c2a","#829","#665","#baa"
-        ]
-      }]
-    }
-  });
-}
-
-/* GERAR TABELA ANUAL */
-async function gerarTabelaAnual() {
-  await fetch(API + "?action=gerarTabelaAnual");
-  alert("Tabela anual atualizada!");
-}
-
-</script>
 
 </body>
 </html>
