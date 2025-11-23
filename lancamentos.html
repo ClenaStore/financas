@@ -224,37 +224,32 @@ mValor.addEventListener("input",()=>{
   mValor.value = "R$ " + (v/100).toFixed(2).replace(".",",");
 });
 
-/* ===== LISTAR ===== */
 async function listar(){
   load(true);
-  try{
-    let r = await fetch(API+"?action=listLancamentos");
-    let dados = await r.json();
+  let r = await fetch(API+"?action=listLancamentos");
+  let dados = await r.json();
 
-    if(!Array.isArray(dados)) return erro("Erro no servidor.");
+  lista.innerHTML = dados.map(l=>`
+    <tr>
+      <td>${formatarData(l[1])}</td>
+      <td>${l[2]}</td>
+      <td>${l[3]}</td>
+      <td>${l[4]}</td>
+      <td>${l[5]}</td>
+      <td>R$ ${Number(l[6]).toFixed(2)}</td>
+      <td>
+        <button onclick="
+          editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')
+        ">Editar</button>
+        <button onclick="excluir('${l[0]}')">Excluir</button>
+      </td>
+    </tr>
+  `).join("");
 
-    lista.innerHTML = dados.map(l=>`
-      <tr>
-        <td>${l[1]}</td>
-        <td>${l[2]}</td>
-        <td>${l[3]}</td>
-        <td>${l[4]}</td>
-        <td>${l[5]}</td>
-        <td>R$ ${Number(l[6]).toFixed(2)}</td>
-        <td>
-          <button class='btn-edit' onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
-          <button class='btn-del' onclick="excluir('${l[0]}')">Excluir</button>
-        </td>
-      </tr>
-    `).join("");
-
-    carregarCategorias();
-
-  }catch(e){
-    erro("Erro ao carregar");
-  }
+  await carregarCategorias();
   load(false);
 }
+
 
 /* ===== CARREGAR CATEGORIAS ===== */
 async function carregarCategorias(){
