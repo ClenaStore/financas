@@ -8,9 +8,7 @@
 <style>
 :root{
   --azul:#1F4E78;
-  --azul-escuro:#12375A;
   --bg:#f4f6f9;
-  --card:#ffffff;
   --radius:14px;
   --shadow:0 6px 22px rgba(0,0,0,0.15);
   --green:#2ecc71;
@@ -23,52 +21,43 @@ body{
   margin:0;
   padding:25px;
   background:var(--bg);
-  font-family:Arial;
+  font-family:Arial, sans-serif;
 }
 
+/* Título */
 h2{
-  margin-bottom:15px;
+  margin-bottom:18px;
   color:var(--azul);
   font-size:32px;
 }
 
+/* Botões */
 .btn{
-  padding:12px 20px;
-  border-radius:8px;
+  padding:12px 18px;
   border:none;
+  border-radius:10px;
   color:white;
+  font-size:16px;
   cursor:pointer;
-  font-size:17px;
   transition:.2s;
 }
 .btn-green{ background:var(--green); }
 .btn-red{ background:var(--red); }
 .btn-gray{ background:var(--gray); }
 
-/* ALERTAS */
-.alert{
-  padding:14px;
-  border-radius:8px;
-  margin-bottom:20px;
-  color:white;
-  font-size:16px;
-}
-.alert-erro{ background:#c62828; }
-.alert-ok{ background:#2e7d32; }
-
-/* LOADING */
+/* Loading */
 #loading{
   position:fixed;
   bottom:20px;
   left:20px;
   background:#1F4E78;
   padding:12px 20px;
-  border-radius:12px;
+  border-radius:10px;
   color:white;
   font-size:15px;
   display:none;
-  z-index:999;
   animation:pulse 1.2s infinite;
+  z-index:900;
 }
 @keyframes pulse{
   0%{opacity:.5; transform:scale(.95);}
@@ -76,41 +65,28 @@ h2{
   100%{opacity:.5; transform:scale(.95);}
 }
 
-/* TABELA */
+/* Tabela */
 table{
   width:100%;
-  border-collapse:collapse;
   background:white;
-  margin-top:20px;
-  border-radius:14px;
+  border-collapse:collapse;
+  border-radius:12px;
   overflow:hidden;
+  margin-top:20px;
   box-shadow:var(--shadow);
 }
 th{
   padding:13px;
   background:var(--azul);
   color:white;
+  text-align:left;
 }
 td{
-  padding:13px;
+  padding:12px;
   border-bottom:1px solid #e4e4e4;
 }
 
-/* BOTÕES EDITAR/EXCLUIR */
-.btn-edit{
-  background:#0277bd;
-  padding:6px 10px;
-  border-radius:6px;
-  color:white;
-}
-.btn-del{
-  background:#c62828;
-  padding:6px 10px;
-  border-radius:6px;
-  color:white;
-}
-
-/* MODAL */
+/* Modal */
 #modal-bg{
   position:fixed;
   inset:0;
@@ -123,28 +99,27 @@ td{
 }
 
 .modal{
+  width:420px;
   background:white;
-  width:430px;
   padding:25px;
-  border-radius:16px;
-  box-shadow:0 10px 35px rgba(0,0,0,0.25);
+  border-radius:15px;
   animation:pop .25s ease;
+  box-shadow:0 12px 35px rgba(0,0,0,0.25);
 }
 @keyframes pop{
-  from{ transform:scale(.85); opacity:.2; }
-  to{ transform:scale(1); opacity:1; }
+  from{transform:scale(.85); opacity:.3;}
+  to{transform:scale(1); opacity:1;}
 }
 
 .modal input{
   width:100%;
-  padding:12px;
-  margin-bottom:12px;
   border:1px solid #ccc;
-  border-radius:8px;
-  font-size:15px;
+  border-radius:10px;
+  padding:11px;
+  margin-bottom:12px;
 }
 
-/* seleção tipo */
+/* Tipo Receita / Despesa */
 #tipoBtns button{
   flex:1;
   opacity:.4;
@@ -154,8 +129,8 @@ td{
   box-shadow:0 0 6px #0003;
 }
 </style>
-
 </head>
+
 <body>
 
 <div id="loading">Carregando...</div>
@@ -174,7 +149,7 @@ td{
       <th>Subcategoria</th>
       <th>Descrição</th>
       <th>Valor</th>
-      <th style="width:150px">Ações</th>
+      <th>Ações</th>
     </tr>
   </thead>
   <tbody id="lista"></tbody>
@@ -183,6 +158,7 @@ td{
 <!-- MODAL -->
 <div id="modal-bg">
   <div class="modal">
+
     <h3 id="titulo-modal">Novo Lançamento</h3>
 
     <input id="m-data" type="date">
@@ -201,18 +177,19 @@ td{
     <datalist id="listaSub"></datalist>
 
     <input id="m-descricao" placeholder="Descrição">
-    <input id="m-valor" placeholder="Valor">
+    <input id="m-valor" placeholder="R$ 0,00">
 
     <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
     <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
+
   </div>
 </div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
-/* refs rápidas */
-const listaEl = document.getElementById("lista");
+/* Referências */
+const lista = document.getElementById("lista");
 const modalBg = document.getElementById("modal-bg");
 const msgBox = document.getElementById("msg");
 
@@ -220,71 +197,65 @@ const mData = document.getElementById("m-data");
 const mTipo = document.getElementById("m-tipo");
 const mCat = document.getElementById("m-cat");
 const mSub = document.getElementById("m-sub");
-const mDescricao = document.getElementById("m-descricao");
+const mDesc = document.getElementById("m-descricao");
 const mValor = document.getElementById("m-valor");
-const tituloModal = document.getElementById("titulo-modal");
 
 const btnReceita = document.getElementById("btnReceita");
 const btnDespesa = document.getElementById("btnDespesa");
+const tituloModal = document.getElementById("titulo-modal");
 
 let editandoID = null;
 
-/* loading */
+/* LOADING */
 function load(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* alerta */
-function erro(msg){ msgBox.innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`; }
-function ok(msg){ msgBox.innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`; }
+/* ALERTAS */
+function erro(msg){ msgBox.innerHTML = `<div class='alert alert-erro'>${msg}</div>`; }
+function ok(msg){ msgBox.innerHTML = `<div class='alert alert-ok'>${msg}</div>`; }
 
-/* mascara */
-mValor.addEventListener("input", ()=>{
+/* MASCARA DE MOEDA */
+mValor.addEventListener("input",()=>{
   let v = mValor.value.replace(/\D/g,"");
+  if(!v) v = "0";
   mValor.value = "R$ " + (v/100).toFixed(2).replace(".",",");
 });
 
-/* ===== LISTAR ===== */
+/* LISTAR */
 async function listar(){
   load(true);
   try{
     let r = await fetch(API+"?action=listLancamentos");
     let dados = await r.json();
 
-    if(!Array.isArray(dados)){
-      erro("Erro no servidor.");
-      load(false);
-      return;
-    }
+    if(!Array.isArray(dados)) return erro("Erro no servidor.");
 
-    renderizar(dados);
-    carregarCombos();
+    lista.innerHTML = dados.map(l=>`
+      <tr>
+        <td>${l[1]}</td>
+        <td>${l[2]}</td>
+        <td>${l[3]}</td>
+        <td>${l[4]}</td>
+        <td>${l[5]}</td>
+        <td>R$ ${Number(l[6]).toFixed(2)}</td>
+        <td>
+          <button class='btn-edit' onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
+          <button class='btn-del' onclick="excluir('${l[0]}')">Excluir</button>
+        </td>
+      </tr>
+    `).join("");
+
+    carregarCategorias();
 
   }catch(e){
-    erro("Falha ao carregar");
+    erro("Erro ao carregar");
   }
   load(false);
 }
 
-function renderizar(lista){
-  listaEl.innerHTML = lista.map(l=>`
-    <tr>
-      <td>${l[1]}</td>
-      <td>${l[2]}</td>
-      <td>${l[3]}</td>
-      <td>${l[4]}</td>
-      <td>${l[5]}</td>
-      <td>R$ ${Number(l[6]).toFixed(2)}</td>
-      <td>
-        <button class="btn-edit" onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
-        <button class="btn-del" onclick="excluir('${l[0]}')">Excluir</button>
-      </td>
-    </tr>
-  `).join("");
-}
-
-/* ===== CARREGAR CATEGORIAS ===== */
-async function carregarCombos(){
+/* CARREGAR CATEGORIAS */
+async function carregarCategorias(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
 
@@ -292,88 +263,78 @@ async function carregarCombos(){
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
 }
 
-/* ===== ABRIR MODAL ===== */
+/* ABRIR MODAL */
 function abrirModal(id=null){
   editandoID = id;
-  modalBg.style.display = "flex";
+  modalBg.style.display="flex";
 
-  if(!id){
-    tituloModal.innerText = "Novo Lançamento";
+  mData.value = new Date().toISOString().split("T")[0];
+  mTipo.value="";
+  mCat.value="";
+  mSub.value="";
+  mDesc.value="";
+  mValor.value="R$ 0,00";
+  limparSelecao();
 
-    // DATA HOJE CORRIGIDA
-    mData.value = new Date().toISOString().substring(0,10);
-
-    mTipo.value = "";
-    mCat.value = "";
-    mSub.value = "";
-    mDescricao.value = "";
-    mValor.value = "";
-
-    limparSelecao();
-  }
+  tituloModal.innerText = "Novo Lançamento";
 }
 
+/* FECHAR MODAL */
 function fecharModal(){
-  modalBg.style.display = "none";
+  modalBg.style.display="none";
 }
 
-/* ===== TIPO ===== */
-btnReceita.onclick = ()=>{
+/* SELETOR TIPO */
+btnReceita.onclick=()=>{
   limparSelecao();
   btnReceita.classList.add("activeSel");
   btnReceita.style.background="var(--green)";
   mTipo.value="Receita";
 };
-
-btnDespesa.onclick = ()=>{
+btnDespesa.onclick=()=>{
   limparSelecao();
   btnDespesa.classList.add("activeSel");
   btnDespesa.style.background="var(--red)";
   mTipo.value="Despesa";
 };
-
 function limparSelecao(){
   btnReceita.classList.remove("activeSel");
   btnDespesa.classList.remove("activeSel");
-
   btnReceita.style.background="var(--gray)";
   btnDespesa.style.background="var(--gray)";
 }
 
-/* ===== EDITAR ===== */
+/* EDITAR */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
-  tituloModal.innerText = "Editar Lançamento";
+  tituloModal.innerText="Editar Lançamento";
 
-  mData.value = data;
-  mTipo.value = tipo;
-  mCat.value = cat;
-  mSub.value = sub;
-  mDescricao.value = desc;
-  mValor.value = "R$ "+Number(val).toFixed(2).replace(".",",");
+  mData.value=data;
+  mTipo.value=tipo;
+  mCat.value=cat;
+  mSub.value=sub;
+  mDesc.value=desc;
+  mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
 
-  limparSelecao();
   if(tipo==="Receita"){
-    btnReceita.classList.add("activeSel");
-    btnReceita.style.background="var(--green)";
-  }else{
-    btnDespesa.classList.add("activeSel");
-    btnDespesa.style.background="var(--red)";
+    btnReceita.click();
+  } else {
+    btnDespesa.click();
   }
 }
 
-/* ===== SALVAR ===== */
+/* SALVAR */
 async function salvar(){
   let data = mData.value;
   let tipo = mTipo.value;
   let cat = mCat.value;
   let sub = mSub.value;
-  let desc = mDescricao.value;
+  let desc = mDesc.value;
   let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
-  if(!data||!tipo||!cat||!sub||!desc||!val){
-    erro("Preencha todos os campos.");
+  if(!data || !tipo || !cat || !sub || !desc || !val){
+    erro("Preencha todos os campos!");
     return;
   }
 
@@ -383,49 +344,44 @@ async function salvar(){
     let url;
 
     if(editandoID){
-      const campos = JSON.stringify({
-        data, tipo, categoria:cat, subcategoria:sub, descricao:desc, valor:val
-      });
-
+      const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
       url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
-
-    }else{
+    } else {
       url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
     }
 
     let r = await fetch(url);
     let resp = await r.json();
 
-    if(resp.erro) erro(resp.erro);
+    if(resp.status!=="ok") erro("Erro ao salvar");
     else ok("Salvo com sucesso!");
 
     fecharModal();
     listar();
 
   }catch(e){
-    erro("Erro ao salvar.");
+    erro("Erro ao salvar");
   }
 
   load(false);
 }
 
-/* ===== EXCLUIR ===== */
+/* EXCLUIR */
 async function excluir(id){
   if(!confirm("Excluir lançamento?")) return;
 
   load(true);
-
   let r = await fetch(API+"?action=deleteLancamento&id="+id);
   let resp = await r.json();
 
-  if(resp.erro) erro(resp.erro);
+  if(resp.status!=="ok") erro("Erro ao excluir");
   else ok("Excluído!");
 
   listar();
   load(false);
 }
 
-/* ===== INICIAR ===== */
+/* START */
 listar();
 </script>
 
