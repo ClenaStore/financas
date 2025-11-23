@@ -24,7 +24,6 @@ body{
   font-family:Arial, sans-serif;
 }
 
-/* Título */
 h2{
   margin-bottom:18px;
   color:var(--azul);
@@ -39,7 +38,6 @@ h2{
   color:white;
   font-size:16px;
   cursor:pointer;
-  transition:.2s;
 }
 .btn-green{ background:var(--green); }
 .btn-red{ background:var(--red); }
@@ -184,7 +182,7 @@ td{
 <div id="modal-bg">
   <div class="modal">
 
-    <h3 id="titulo-modal">Novo Lançamento</h3>
+    <h3 id="tituloModal">Novo Lançamento</h3>
 
     <input id="m-data" type="date">
 
@@ -223,30 +221,31 @@ let categorias = [];
 let subs = [];
 let editandoID = null;
 
-function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
+/* FUNÇÕES DE INTERFACE */
+function load(v){ loading.style.display = v ? "flex" : "none"; }
 function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
 function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
 
 /* BOTÕES RECEITA / DESPESA */
 btnReceita.onclick = ()=>{
-  mTipo.value="Receita";
+  m-tipo.value="Receita";
   btnReceita.classList.add("activeSel");
   btnDespesa.classList.remove("activeSel");
 };
 btnDespesa.onclick = ()=>{
-  mTipo.value="Despesa";
+  m-tipo.value="Despesa";
   btnDespesa.classList.add("activeSel");
   btnReceita.classList.remove("activeSel");
 };
 
 /* MÁSCARA */
-mValor.addEventListener("input",()=>{
-  let v = mValor.value.replace(/\D/g,"");
+m-valor.addEventListener("input",()=>{
+  let v = m-valor.value.replace(/\D/g,"");
   if(!v) v = "0";
-  mValor.value = "R$ " + (v/100).toFixed(2).replace(".",",");
+  m-valor.value = "R$ " + (v/100).toFixed(2).replace(".",",");
 });
 
-/* LISTAR */
+/* ================= LISTAR ================= */
 async function listar(){
   load(true);
   let r = await fetch(API+"?action=listLancamentos");
@@ -261,7 +260,9 @@ async function listar(){
       <td>${l[5]}</td>
       <td>R$ ${Number(l[6]).toFixed(2)}</td>
       <td>
-        <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
+        <button onclick="
+          editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')
+        ">Editar</button>
         <button onclick="excluir('${l[0]}')">Excluir</button>
       </td>
     </tr>
@@ -271,7 +272,7 @@ async function listar(){
   load(false);
 }
 
-/* CARREGAR LISTAS */
+/* ================ CARREGAR CATEGORIAS ================ */
 async function carregarCategorias(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
@@ -283,54 +284,56 @@ async function carregarCategorias(){
   montarLista("listaSubBox", subs, "m-sub");
 }
 
-/* MONTAR LISTA */
 function montarLista(idBox, lista, inputId){
   let box = document.getElementById(idBox);
   box.innerHTML = "";
 
-  lista.forEach(valor=>{
+  lista.forEach(v=>{
     let div = document.createElement("div");
-    div.innerText = valor;
+    div.innerText = v;
     div.onclick = ()=>{
-      document.getElementById(inputId).value = valor;
+      document.getElementById(inputId).value = v;
       box.style.display="none";
     };
     box.appendChild(div);
   });
 }
 
-/* ABRIR LISTA */
+/* ABRIR LISTAS */
 function abrirCat(){ listaCatBox.style.display="block"; }
 function abrirSub(){ listaSubBox.style.display="block"; }
 
-/* ABRIR MODAL */
+/* MODAL */
 function abrirModal(id=null){
-  editandoID = id;
-  modalBg.style.display="flex";
+  editandoID=id;
+  modal-bg.style.display="flex";
 
-  mData.value = new Date().toISOString().split("T")[0];
-  mTipo.value="";
-  mCat.value="";
-  mSub.value="";
-  mDesc.value="";
-  mValor.value="R$ 0,00";
+  m-data.value=new Date().toISOString().split("T")[0];
+  m-tipo.value="";
+  m-cat.value="";
+  m-sub.value="";
+  m-descricao.value="";
+  m-valor.value="R$ 0,00";
+
   btnReceita.classList.remove("activeSel");
   btnDespesa.classList.remove("activeSel");
+
+  tituloModal.innerText="Novo Lançamento";
 }
 
-/* FECHAR */
-function fecharModal(){ modalBg.style.display="none"; }
+function fecharModal(){ modal-bg.style.display="none"; }
 
 /* EDITAR */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
-  titulo-modal.innerText="Editar Lançamento";
 
-  mData.value=data;
-  mCat.value=cat;
-  mSub.value=sub;
-  mDesc.value=desc;
-  mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
+  tituloModal.innerText="Editar Lançamento";
+
+  m-data.value=data;
+  m-cat.value=cat;
+  m-sub.value=sub;
+  m-descricao.value=desc;
+  m-valor.value="R$ "+Number(val).toFixed(2).replace(".",",");
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
@@ -338,21 +341,21 @@ function editar(id,data,tipo,cat,sub,desc,val){
 
 /* SALVAR */
 async function salvar(){
-  let data = mData.value;
-  let tipo = mTipo.value;
-  let cat = mCat.value.trim();
-  let sub = mSub.value.trim();
-  let desc = mDesc.value;
-  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
-  if(!categorias.includes(cat)){ erro("❌ Categoria inválida!"); mCat.value=""; return; }
-  if(!subs.includes(sub)){ erro("❌ Subcategoria inválida!"); mSub.value=""; return; }
+  let data = m-data.value;
+  let tipo = m-tipo.value;
+  let cat = m-cat.value;
+  let sub = m-sub.value;
+  let desc = m-descricao.value;
+  let val = m-valor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
+  if(!categorias.includes(cat)){ erro("❌ Categoria inválida!"); m-cat.value=""; return; }
+  if(!subs.includes(sub)){ erro("❌ Subcategoria inválida!"); m-sub.value=""; return; }
   if(!data||!tipo||!cat||!sub||!desc||!val){ erro("Preencha tudo!"); return; }
 
   load(true);
-  let url;
 
+  let url;
   if(editandoID){
     const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
     url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
@@ -364,7 +367,7 @@ async function salvar(){
   let resp = await r.json();
 
   if(resp.status!=="ok") erro("Erro ao salvar!");
-  else ok("Salvo com sucesso!");
+  else ok("Salvo!");
 
   fecharModal();
   listar();
