@@ -16,7 +16,7 @@
   --texto:#222;
   --green:#2ecc71;
   --red:#e74c3c;
-  --gray:#999;
+  --gray:#aaa;
 }
 
 /* GERAL */
@@ -47,6 +47,11 @@ h2{
 .btn-red{ background:var(--red); }
 .btn-gray{ background:var(--gray); }
 
+.activeSel{
+  box-shadow:0 0 5px rgba(0,0,0,0.5);
+  opacity:1 !important;
+}
+
 /* TABELA */
 table{
   width:100%;
@@ -67,7 +72,6 @@ td{
   border-bottom:1px solid #ddd;
 }
 
-/* AÇÕES */
 .btn-edit{
   background:#0277bd;
   padding:6px 10px;
@@ -81,30 +85,6 @@ td{
   border-radius:6px;
   color:white;
   cursor:pointer;
-}
-
-/* ALERTAS */
-.alert{
-  padding:15px;
-  border-radius:8px;
-  margin-bottom:20px;
-  color:white;
-}
-.alert-erro{ background:#c62828; }
-.alert-ok{ background:#2e7d32; }
-
-/* LOADING */
-#loading{
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.45);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  color:white;
-  font-size:28px;
-  z-index:999;
 }
 
 /* MODAL */
@@ -129,7 +109,8 @@ td{
   margin-top:0;
   color:var(--azul);
 }
-input, select{
+
+input{
   width:100%;
   padding:12px;
   margin-bottom:12px;
@@ -137,13 +118,27 @@ input, select{
   border:1px solid #ccc;
 }
 
-#tipoBtns button{
-  flex:1;
+#loading{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  color:white;
+  font-size:28px;
+  z-index:999;
 }
-.activeSel{
-  box-shadow:0 0 5px #000;
-  opacity:1 !important;
+
+.alert{
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:20px;
+  color:white;
 }
+.alert-erro{ background:#c62828; }
+.alert-ok{ background:#2ecc71; }
 
 </style>
 </head>
@@ -151,7 +146,6 @@ input, select{
 <body>
 
 <h2>Lançamentos</h2>
-
 <div id="msg"></div>
 
 <button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
@@ -176,13 +170,12 @@ input, select{
 <!-- ======================= MODAL ======================= -->
 <div class="modal-bg" id="modal">
   <div class="modal">
+
     <h3 id="titulo-modal">Novo Lançamento</h3>
 
-    <!-- DATA -->
     <input id="m-data" type="date">
 
-    <!-- TIPO -->
-    <div id="tipoBtns" style="display:flex; gap:10px; margin-bottom:12px;">
+    <div style="display:flex; gap:10px; margin-bottom:12px;">
       <button id="btnReceita" class="btn btn-gray">Receita</button>
       <button id="btnDespesa" class="btn btn-gray">Despesa</button>
     </div>
@@ -198,57 +191,60 @@ input, select{
     <datalist id="listaSub"></datalist>
 
     <input id="m-descricao" placeholder="Descrição">
-
     <input id="m-valor" placeholder="Valor">
 
-    <button class="btn-full btn-green" onclick="salvar()">Salvar</button>
-    <button class="btn-full btn-gray" onclick="fecharModal()">Cancelar</button>
+    <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
+    <button class="btn btn-gray" style="width:100%;" onclick="fecharModal()">Cancelar</button>
+
   </div>
 </div>
 
 <script>
-/* ============================= CONFIG ============================= */
-
-const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
+const API =
+ "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
 let editandoID = null;
 
-/* ============================= UTIL ============================= */
+function loading(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
+}
+function erro(msg){
+  document.getElementById("msg").innerHTML =
+    `<div class='alert alert-erro'>❌ ${msg}</div>`;
+}
+function ok(msg){
+  document.getElementById("msg").innerHTML =
+    `<div class='alert alert-ok'>✔ ${msg}</div>`;
+}
 
-function loading(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
-function erro(msg){ document.getElementById("msg").innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`; }
-function ok(msg){ document.getElementById("msg").innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`; }
-
+/* ================= MÁSCARA DE VALOR ================= */
 function mascaraValor(el){
   let v = el.value.replace(/\D/g,"");
   v = (v/100).toFixed(2) + "";
   el.value = "R$ " + v.replace(".",",");
 }
 
-/* ============================= MODAL ============================= */
-
+/* ================= MODAL ================= */
 function abrirModal(id=null){
   editandoID = id;
-
   document.getElementById("titulo-modal").innerText = id ? "Editar Lançamento" : "Novo Lançamento";
   document.getElementById("modal").style.display = "flex";
 
   if(!id){
-    // data atual
     document.getElementById("m-data").value = new Date().toISOString().split("T")[0];
     document.getElementById("m-descricao").value = "";
     document.getElementById("m-cat").value = "";
     document.getElementById("m-sub").value = "";
     document.getElementById("m-valor").value = "";
-    document.getElementById("m-tipo").value = "";
-    limparSelecaoTipo();
+    limparSelTipo();
   }
 }
 
-function fecharModal(){ document.getElementById("modal").style.display = "none"; }
+function fecharModal(){
+  document.getElementById("modal").style.display = "none";
+}
 
-/* ============================= LOAD COMBOS ============================= */
-
+/* ================= CARREGAR LISTAS ================= */
 async function carregarCombos(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
@@ -268,20 +264,41 @@ async function carregarCombos(){
     [...subs].map(s=>`<option value="${s}">`).join("");
 }
 
-/* ============================= LISTAR ============================= */
+/* ================= BOTÕES DE TIPO ================= */
+function limparSelTipo(){
+  document.getElementById("btnReceita").classList.remove("activeSel");
+  document.getElementById("btnDespesa").classList.remove("activeSel");
+  document.getElementById("btnReceita").style.background = "var(--gray)";
+  document.getElementById("btnDespesa").style.background = "var(--gray)";
+}
 
+document.getElementById("btnReceita").onclick = ()=>{
+  limparSelTipo();
+  document.getElementById("m-tipo").value = "Receita";
+  document.getElementById("btnReceita").classList.add("activeSel");
+  document.getElementById("btnReceita").style.background = "var(--green)";
+};
+
+document.getElementById("btnDespesa").onclick = ()=>{
+  limparSelTipo();
+  document.getElementById("m-tipo").value = "Despesa";
+  document.getElementById("btnDespesa").classList.add("activeSel");
+  document.getElementById("btnDespesa").style.background = "var(--red)";
+};
+
+/* ================= LISTAR ================= */
 async function listar(){
   loading(true);
   try{
     let r = await fetch(API+"?action=listLancamentos");
     let dados = await r.json();
-    renderizar(dados);
+    render(dados);
     carregarCombos();
   }catch(e){ erro(e.message); }
   loading(false);
 }
 
-function renderizar(lista){
+function render(lista){
   let tbody = document.getElementById("lista");
   tbody.innerHTML = "";
 
@@ -295,7 +312,7 @@ function renderizar(lista){
         <td>${l[5]}</td>
         <td>R$ ${Number(l[6]).toFixed(2)}</td>
         <td>
-          <button class="btn-edit" 
+          <button class="btn-edit"
             onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">
             Editar
           </button>
@@ -306,30 +323,7 @@ function renderizar(lista){
   });
 }
 
-/* ============================= BOTÕES TIPO ============================= */
-
-document.getElementById("btnReceita").onclick = ()=>{
-  limparSelecaoTipo();
-  document.getElementById("m-tipo").value = "Receita";
-  document.getElementById("btnReceita").classList.add("activeSel");
-  document.getElementById("btnReceita").style.background = "var(--green)";
-  document.getElementById("btnDespesa").style.background = "var(--gray)";
-}
-document.getElementById("btnDespesa").onclick = ()=>{
-  limparSelecaoTipo();
-  document.getElementById("m-tipo").value = "Despesa";
-  document.getElementById("btnDespesa").classList.add("activeSel");
-  document.getElementById("btnDespesa").style.background = "var(--red)";
-  document.getElementById("btnReceita").style.background = "var(--gray)";
-}
-
-function limparSelecaoTipo(){
-  document.getElementById("btnReceita").classList.remove("activeSel");
-  document.getElementById("btnDespesa").classList.remove("activeSel");
-}
-
-/* ============================= EDITAR ============================= */
-
+/* ================= EDITAR ================= */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
@@ -341,20 +335,17 @@ function editar(id,data,tipo,cat,sub,desc,val){
 
   document.getElementById("m-tipo").value = tipo;
 
-  limparSelecaoTipo();
+  limparSelTipo();
   if(tipo==="Receita"){
     document.getElementById("btnReceita").classList.add("activeSel");
     document.getElementById("btnReceita").style.background = "var(--green)";
-    document.getElementById("btnDespesa").style.background = "var(--gray)";
   }else{
     document.getElementById("btnDespesa").classList.add("activeSel");
     document.getElementById("btnDespesa").style.background = "var(--red)";
-    document.getElementById("btnReceita").style.background = "var(--gray)";
   }
 }
 
-/* ============================= SALVAR ============================= */
-
+/* ================= SALVAR ================= */
 async function salvar(){
   let data = document.getElementById("m-data").value;
   let tipo = document.getElementById("m-tipo").value;
@@ -374,28 +365,23 @@ async function salvar(){
     let url;
 
     if(editandoID){
-      url =
-        `${API}?action=editLancamento&id=${editandoID}&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
+      url = `${API}?action=editLancamento&id=${editandoID}&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
     }else{
-      url =
-        `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
+      url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
     }
 
     await fetch(url);
-
     ok("Lançamento salvo!");
+
     fecharModal();
     listar();
 
-  }catch(e){
-    erro(e.message);
-  }
+  }catch(e){ erro(e.message); }
 
   loading(false);
 }
 
-/* ============================= EXCLUIR ============================= */
-
+/* ================= EXCLUIR ================= */
 async function excluir(id){
   if(!confirm("Excluir lançamento?")) return;
 
@@ -405,9 +391,8 @@ async function excluir(id){
   listar();
 }
 
-/* ============================= INICIAR ============================= */
-
-document.getElementById("m-valor").addEventListener("input", function(){
+/* ================= START ================= */
+document.getElementById("m-valor").addEventListener("input",function(){
   mascaraValor(this);
 });
 
