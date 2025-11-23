@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<title>Dashboard Financeiro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -10,36 +10,31 @@
 <style>
 :root{
   --azul:#1F4E78;
-  --azul2:#2565a8;
+  --verde:#2ecc71;
+  --vermelho:#e74c3c;
   --bg:#eef3fa;
   --card:#ffffff;
   --radius:18px;
   --shadow:0 8px 28px rgba(0,0,0,0.12);
-  --verde:#2ecc71;
-  --vermelho:#e74c3c;
-  --texto:#223;
 }
 
-/* GERAL */
 body{
   margin:0;
   padding:25px;
   background:var(--bg);
-  font-family:Arial;
+  font-family:Arial, sans-serif;
 }
 
 h2{
+  color:var(--azul);
   font-size:32px;
   margin-bottom:20px;
-  color:var(--azul);
 }
 
-/* CARDS */
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
   gap:20px;
-  margin-bottom:25px;
 }
 
 .card{
@@ -51,8 +46,8 @@ h2{
 
 .card h3{
   margin:0 0 8px 0;
+  color:#2565a8;
   font-size:17px;
-  color:var(--azul2);
 }
 
 .valor{
@@ -60,42 +55,57 @@ h2{
   font-weight:bold;
 }
 
-/* GRAFICOS */
-.grafico-box{
+.box{
   background:white;
-  margin-top:20px;
   padding:22px;
+  margin-top:25px;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
 }
 
-canvas{
-  max-height:260px !important;
+canvas{ max-height:260px !important; }
+
+.lista{
+  margin-top:15px;
+  font-size:16px;
 }
 
-/* LOADING */
+.lista li{
+  background:#f8fbff;
+  padding:8px 12px;
+  margin-bottom:6px;
+  border-radius:10px;
+  border-left:5px solid var(--azul);
+}
+
 #loading{
   position:fixed;
   bottom:20px;
   left:20px;
   background:#1F4E78;
-  padding:12px 20px;
-  border-radius:12px;
+  padding:12px 22px;
+  border-radius:14px;
   color:white;
-  font-size:14px;
-  box-shadow:var(--shadow);
+  font-size:16px;
   display:none;
+  animation:pulse 1.2s infinite;
   z-index:999;
+}
+@keyframes pulse{
+  0%{opacity:.5; transform:scale(.95);}
+  50%{opacity:1; transform:scale(1);}
+  100%{opacity:.5; transform:scale(.95);}
 }
 </style>
 </head>
 
 <body>
 
-<div id="loading">Carregando...</div>
+<div id="loading">Carregando…</div>
 
 <h2>Dashboard Financeiro</h2>
 
+<!-- CARDS -->
 <div class="cards">
   <div class="card">
     <h3>Receita Total</h3>
@@ -109,146 +119,223 @@ canvas{
 
   <div class="card">
     <h3>Saldo Total</h3>
-    <div id="saldoTotal" class="valor" style="color:var(--azul2)">R$ 0,00</div>
+    <div id="saldoTotal" class="valor">R$ 0,00</div>
   </div>
 </div>
 
-<div class="grafico-box">
-  <h3>Receita × Despesa (Últimos 12 meses)</h3>
-  <canvas id="graficoLinha"></canvas>
+<!-- GRAFICO LINHA -->
+<div class="box">
+  <h3>Receita × Despesa (12 meses)</h3>
+  <canvas id="grafLinha"></canvas>
 </div>
 
-<div class="grafico-box">
-  <h3>Totais por Categoria</h3>
-  <canvas id="graficoCategorias"></canvas>
+<!-- GRAFICO POR CATEGORIA -->
+<div class="box">
+  <h3>Gastos por Categoria</h3>
+  <canvas id="grafCategorias"></canvas>
+</div>
+
+<!-- CATEGORIAS COM AUMENTO -->
+<div class="box">
+  <h3>Categorias com Aumento em Relação ao Mês Anterior</h3>
+  <ul id="listaAumento" class="lista"></ul>
+</div>
+
+<!-- RECORRENCIAS -->
+<div class="box">
+  <h3>Despesas Recorrentes (3+ meses seguidos)</h3>
+  <ul id="listaRecorrencia" class="lista"></ul>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
-let grafLinha, grafCat;
-let cache = { dashboard:null, fluxo:null, lanc:null };
+const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
+
+let lanc = []; // lançamentos
+
+let graf1, graf2;
 
 function fmt(v){
   return Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
-function loading(v){
-  document.getElementById("loading").style.display = v ? "block" : "none";
+function load(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* PRÉ CARREGAMENTO */
-async function preload(){
-  try{
-    cache.dashboard = await fetch(API+"?action=dashboard").then(r=>r.json());
-    cache.fluxo     = await fetch(API+"?action=fluxo").then(r=>r.json());
-    cache.lanc      = await fetch(API+"?action=listLancamentos").then(r=>r.json());
-  }catch(e){
-    console.log("Erro no preload:", e);
-  }
+/* ================================
+   CARREGAR LANÇAMENTOS
+================================*/
+async function carregarLanc(){
+  load(true);
+  let r = await fetch(API+"?action=listLancamentos");
+  lanc = await r.json();
+  load(false);
 }
 
-/* CARDS */
-function carregarTotais(){
-  if(!cache.dashboard) return;
+/* ================================
+   CARDS
+================================*/
+function montarCards(){
+  let receita = 0, despesa = 0;
 
-  let receita = cache.dashboard.find(l=>l[0]=="receita_total")[1];
-  let despesa = cache.dashboard.find(l=>l[0]=="despesa_total")[1];
-  let saldo   = cache.dashboard.find(l=>l[0]=="saldo_total")[1];
+  lanc.forEach(l=>{
+    if(l[2] === "Receita") receita += Number(l[6]);
+    else despesa += Number(l[6]);
+  });
 
   receitaTotal.innerText = fmt(receita);
   despesaTotal.innerText = fmt(despesa);
-  saldoTotal.innerText   = fmt(saldo);
+  saldoTotal.innerText   = fmt(receita - despesa);
 }
 
-/* GRÁFICO LINHA */
-function carregarGraficoLinha(){
-  if(!cache.fluxo) return;
-
-  let dados = cache.fluxo.slice(1); // IGNORA CABEÇALHO
-
-  // Ordenar por data (garante ordem correta)
-  dados.sort((a,b)=>{
-    let da = new Date("01/" + a[0]);
-    let db = new Date("01/" + b[0]);
-    return da - db;
+/* ================================
+   GRÁFICO LINHA
+================================*/
+function graficoLinha(){
+  let meses = {};
+  lanc.forEach(l=>{
+    let d = new Date(l[1]);
+    let m = String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear();
+    if(!meses[m]) meses[m]= {r:0,d:0};
+    if(l[2]==="Receita") meses[m].r += Number(l[6]);
+    else meses[m].d += Number(l[6]);
   });
 
-  // PEGAR APENAS OS ÚLTIMOS 12
-  dados = dados.slice(-12);
+  let ordem = Object.keys(meses).sort((a,b)=>{
+    let pa = a.split("/");
+    let pb = b.split("/");
+    return new Date(pa[1], pa[0]-1) - new Date(pb[1], pb[0]-1);
+  }).slice(-12);
 
-  let meses = dados.map(l=>l[0]);
-  let receitas = dados.map(l=>l[1]);
-  let despesas = dados.map(l=>l[2]);
+  let labels = ordem;
+  let r = ordem.map(m=>meses[m].r);
+  let d = ordem.map(m=>meses[m].d);
 
-  if(grafLinha) grafLinha.destroy();
+  if(graf1) graf1.destroy();
 
-  grafLinha = new Chart(graficoLinha,{
+  graf1 = new Chart(grafLinha,{
     type:"line",
     data:{
-      labels:meses,
+      labels,
       datasets:[
-        {
-          label:"Receitas",
-          data:receitas,
-          borderColor:"#2ecc71",
-          backgroundColor:"rgba(46,204,113,0.15)",
-          fill:true,
-          tension:0.3
-        },
-        {
-          label:"Despesas",
-          data:despesas,
-          borderColor:"#e74c3c",
-          backgroundColor:"rgba(231,76,60,0.15)",
-          fill:true,
-          tension:0.3
-        }
+        { label:"Receitas", data:r, borderColor:"#2ecc71", tension:0.3 },
+        { label:"Despesas", data:d, borderColor:"#e74c3c", tension:0.3 }
       ]
-    },
-    options:{ animation:{ duration:300 } }
+    }
   });
 }
 
-/* GRÁFICO CATEGORIAS */
-function carregarGraficoCategorias(){
-  if(!cache.lanc) return;
-
-  let categorias={};
-
-  cache.lanc.forEach(l=>{
-    let tipo=l[2], cat=l[3], val=Number(l[6]);
-    categorias[cat] = (categorias[cat]||0) + (tipo==="Despesa" ? -val : val);
+/* ================================
+   GRAFICO POR CATEGORIA
+================================*/
+function graficoCategorias(){
+  let cat = {};
+  lanc.forEach(l=>{
+    if(l[2]==="Despesa"){
+      let c = l[3];
+      cat[c] = (cat[c]||0) + Number(l[6]);
+    }
   });
 
-  let labels = Object.keys(categorias);
-  let valores = Object.values(categorias);
+  let labels = Object.keys(cat);
+  let valores = Object.values(cat);
 
-  if(grafCat) grafCat.destroy();
+  if(graf2) graf2.destroy();
 
-  grafCat = new Chart(graficoCategorias,{
+  graf2 = new Chart(grafCategorias,{
     type:"bar",
     data:{
       labels,
       datasets:[{
-        label:"Valor",
+        label:"Gastos",
         data:valores,
-        borderRadius:6,
-        backgroundColor: valores.map(v=> v>=0 ? "rgba(46,204,113,0.7)" : "rgba(231,76,60,0.7)")
+        backgroundColor:"rgba(231,76,60,0.7)"
       }]
-    },
-    options:{ animation:{ duration:300 } }
+    }
   });
 }
 
-/* INÍCIO */
+/* ================================
+   CATEGORIAS COM AUMENTO
+================================*/
+function categoriasAumento(){
+  let meses = {};
+
+  lanc.forEach(l=>{
+    if(l[2]==="Despesa"){
+      let d = new Date(l[1]);
+      let m = String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
+      let c = l[3];
+
+      if(!meses[m]) meses[m]={};
+      meses[m][c] = (meses[m][c]||0) + Number(l[6]);
+    }
+  });
+
+  let ordem = Object.keys(meses).sort((a,b)=>{
+    let pa=a.split("/"), pb=b.split("/");
+    return new Date(pa[1],pa[0]-1)-new Date(pb[1],pb[0]-1);
+  });
+
+  let html = "";
+
+  for(let i=1;i<ordem.length;i++){
+    let atual = meses[ordem[i]];
+    let anterior = meses[ordem[i-1]];
+
+    for(let c in atual){
+      let valA = atual[c];
+      let valB = anterior[c] || 0;
+
+      if(valA > valB && valB > 0){
+        html += `<li><b>${c}</b> aumentou de ${fmt(valB)} para ${fmt(valA)} (${ordem[i]})</li>`;
+      }
+    }
+  }
+
+  listaAumento.innerHTML = html || "<li>Nenhum aumento identificado</li>";
+}
+
+/* ================================
+   RECORRÊNCIAS (3+ meses seguidos)
+================================*/
+function recorrencias(){
+  let meses = {};
+
+  lanc.forEach(l=>{
+    if(l[2]==="Despesa"){
+      let d=new Date(l[1]);
+      let m=String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
+      let c=l[3];
+
+      if(!meses[c]) meses[c]={};
+      meses[c][m]=true;
+    }
+  });
+
+  let html="";
+
+  for(let c in meses){
+    let qt = Object.keys(meses[c]).length;
+    if(qt>=3){
+      html += `<li><b>${c}</b> apareceu em ${qt} meses diferentes</li>`;
+    }
+  }
+
+  listaRecorrencia.innerHTML = html || "<li>Nenhuma recorrência encontrada</li>";
+}
+
+/* ================================
+       INICIAR
+================================*/
 async function iniciar(){
-  loading(true);
-  await preload();
-  carregarTotais();
-  carregarGraficoLinha();
-  carregarGraficoCategorias();
-  loading(false);
+  await carregarLanc();
+  montarCards();
+  graficoLinha();
+  graficoCategorias();
+  categoriasAumento();
+  recorrencias();
 }
 
 iniciar();
