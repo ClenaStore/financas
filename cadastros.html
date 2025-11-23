@@ -2,13 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cadastros</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
   --azul:#1F4E78;
-  --azul-escuro:#12375A;
   --verde:#2ECC71;
   --vermelho:#E74C3C;
   --bg:#f4f6f9;
@@ -16,7 +15,7 @@
   --radius:14px;
 }
 
-/* GERAL */
+/* ========================= GERAL ========================= */
 body{
   margin:0;
   padding:25px;
@@ -29,7 +28,7 @@ h1{
   color:var(--azul);
 }
 
-/* TABELA */
+/* ========================= TABELA ========================= */
 table{
   width:100%;
   margin-top:20px;
@@ -39,22 +38,25 @@ table{
   background:white;
   box-shadow:var(--shadow);
 }
-
 thead{
   background:var(--azul);
   color:white;
 }
-
 th,td{
   padding:14px;
   font-size:15px;
+  text-align:left;
 }
 
-tbody tr:nth-child(even){
-  background:#eef4ff;
+/* cores por tipo */
+.linha-receita{
+  background:#d9ffe7 !important;
+}
+.linha-despesa{
+  background:#ffe0e0 !important;
 }
 
-/* BOTÕES */
+/* ========================= BOTÕES ========================= */
 .btn{
   padding:10px 16px;
   border-radius:8px;
@@ -67,7 +69,7 @@ tbody tr:nth-child(even){
 .btn-red{ background:var(--vermelho); }
 .btn-blue{ background:var(--azul); }
 
-/* MODAL */
+/* ========================= MODAL ========================= */
 #modal-bg{
   position:fixed;
   inset:0;
@@ -76,6 +78,7 @@ tbody tr:nth-child(even){
   align-items:center;
   justify-content:center;
   backdrop-filter:blur(3px);
+  z-index:999;
 }
 
 #modal{
@@ -100,7 +103,7 @@ input{
   border:1px solid #ccc;
 }
 
-/* LOADING — mesmo do dashboard */
+/* ========================= LOADING ========================= */
 #loading{
   position:fixed;
   bottom:20px;
@@ -144,7 +147,7 @@ input{
   <tbody id="tabela"></tbody>
 </table>
 
-<!-- MODAL -->
+<!-- ============ MODAL ============ -->
 <div id="modal-bg">
   <div id="modal">
     <h2 id="tituloModal" style="margin-top:0;color:var(--azul)">Novo Cadastro</h2>
@@ -154,10 +157,10 @@ input{
       <button class="btn" id="btnDespesa" style="flex:1;background:var(--vermelho);" onclick="setTipo('Despesa')">Despesa</button>
     </div>
 
-    <input id="categoria" list="listaCategorias" placeholder="Categoria">
+    <input id="categoria" list="listaCategorias" placeholder="Categoria" autocomplete="off">
     <datalist id="listaCategorias"></datalist>
 
-    <input id="subcategoria" list="listaSub" placeholder="Subcategoria">
+    <input id="subcategoria" list="listaSub" placeholder="Subcategoria" autocomplete="off">
     <datalist id="listaSub"></datalist>
 
     <button class="btn btn-green" onclick="salvar()" style="width:100%">Salvar</button>
@@ -166,27 +169,56 @@ input{
 </div>
 
 <script>
+/* =========================================================
+   CONFIG
+========================================================= */
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
 let tipoAtual = "";
 let editID = null;
 
-/* LOADING */
+/* =========================================================
+   LOADING
+========================================================= */
 function load(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* MODAL */
-function abrirModal(id=null,t="",c="",s=""){
+/* =========================================================
+   FILTRO INTELIGENTE
+========================================================= */
+function filtroInteligente(input, datalist){
+  let valores = [...datalist.options].map(o=>o.value);
+
+  input.addEventListener("input",()=>{
+    const txt = input.value.toLowerCase();
+    datalist.innerHTML = valores
+      .filter(v => v.toLowerCase().includes(txt))
+      .map(v => `<option value="${v}">`)
+      .join("");
+
+    input.dataset.valid = valores.includes(input.value) ? "1" : "0";
+  });
+
+  input.addEventListener("blur",()=>{
+    if(input.dataset.valid !== "1") input.value="";
+  });
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+function abrirModal(id=null,tipo="",cat="",sub=""){
   editID = id;
-  tipoAtual = t;
-  document.getElementById("categoria").value = c;
-  document.getElementById("subcategoria").value = s;
-  document.getElementById("tituloModal").innerText = id ? "Editar Cadastro" : "Novo Cadastro";
+  tipoAtual = tipo;
+  categoria.value = cat;
+  subcategoria.value = sub;
 
   highlightTipo();
-  document.getElementById("modal-bg").style.display="flex";
+  document.getElementById("tituloModal").innerText = id ? "Editar Cadastro" : "Novo Cadastro";
+  document.getElementById("modal-bg").style.display = "flex";
 }
+
 function fecharModal(){
   document.getElementById("modal-bg").style.display="none";
 }
@@ -201,23 +233,19 @@ function highlightTipo(){
   btnDespesa.style.opacity = tipoAtual==="Despesa" ? "1" : ".4";
 }
 
-/* LISTAR */
+/* =========================================================
+   LISTAR
+========================================================= */
 async function carregar(){
   load(true);
   try{
     let r = await fetch(API+"?action=listCadastros");
     let dados = await r.json();
 
-    if(!Array.isArray(dados)){
-      alert("Erro ao carregar dados do cadastro.");
-      load(false);
-      return;
-    }
-
     let html="";
     dados.forEach(l=>{
       html+=`
-      <tr>
+      <tr class="${l[1]==='Receita' ? 'linha-receita' : 'linha-despesa'}">
         <td>${l[1]}</td>
         <td>${l[2]}</td>
         <td>${l[3]}</td>
@@ -238,7 +266,9 @@ async function carregar(){
   load(false);
 }
 
-/* AUTOCOMPLETE */
+/* =========================================================
+   AUTOCOMPLETE
+========================================================= */
 function preencherAuto(dados){
   let cats=new Set(), subs=new Set();
 
@@ -249,15 +279,27 @@ function preencherAuto(dados){
 
   listaCategorias.innerHTML = [...cats].map(c=>`<option value="${c}">`).join("");
   listaSub.innerHTML = [...subs].map(s=>`<option value="${s}">`).join("");
+
+  filtroInteligente(categoria, listaCategorias);
+  filtroInteligente(subcategoria, listaSub);
 }
 
-/* SALVAR */
+/* =========================================================
+   SALVAR
+========================================================= */
 async function salvar(){
-  if(!tipoAtual){ alert("Escolha Receita ou Despesa."); return; }
+  if(!tipoAtual){
+    alert("Escolha o tipo.");
+    return;
+  }
 
   let cat = categoria.value.trim();
   let sub = subcategoria.value.trim();
-  if(!cat){ alert("Informe a categoria."); return; }
+
+  if(!cat){
+    alert("Informe a categoria.");
+    return;
+  }
 
   load(true);
 
@@ -266,11 +308,14 @@ async function salvar(){
     : `${API}?action=createCadastro&tipo=${tipoAtual}&categoria=${cat}&subcategoria=${sub}`;
 
   await fetch(url);
+
   fecharModal();
   carregar();
 }
 
-/* EXCLUIR */
+/* =========================================================
+   EXCLUIR
+========================================================= */
 async function excluir(id){
   if(!confirm("Excluir cadastro?")) return;
   load(true);
@@ -278,7 +323,9 @@ async function excluir(id){
   carregar();
 }
 
-/* INICIAR */
+/* =========================================================
+   START
+========================================================= */
 carregar();
 </script>
 
