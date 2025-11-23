@@ -17,13 +17,16 @@
 }
 
 /* ========================= GERAL ========================= */
-body{
+html, body{
+  height:100%;
   margin:0;
+  overflow:hidden !important;
   font-family: Arial, sans-serif;
   background:var(--bg);
+}
+
+body{
   display:flex;
-  height:100vh;
-  overflow:hidden;
 }
 
 /* ========================= ANIMAÇÃO DE ABERTURA ========================= */
@@ -152,18 +155,23 @@ body{
   justify-content:center;
 }
 
-/* ========================= CONTEÚDO ========================= */
+/* ========================= CONTEÚDO / FRAME ========================= */
 #conteudo{
   flex:1;
-  overflow-y:auto;
   background:var(--bg);
-  padding:0;
+  overflow:hidden !important;
+  height:100%;
 }
 
 #frame{
   width:100%;
   height:100%;
   border:0;
+  overflow:hidden !important;
+}
+
+iframe{
+  overflow:hidden !important;
 }
 </style>
 </head>
@@ -211,7 +219,7 @@ body{
 
   <a class="menu-btn" onclick="carregar('historico.html')">
     <span class="menu-icone">📜</span>
-    <span class="menu-texto">Histórico</span>
+    <span class="menu-texto">Historico</span>
   </a>
 </div>
 
