@@ -13,7 +13,7 @@
   --card:#ffffff;
   --radius:14px;
   --shadow:0 6px 20px rgba(0,0,0,0.15);
-  --texto:#222;
+  --texto:#FFF;
 }
 
 /* ========================= GERAL ========================= */
@@ -26,98 +26,103 @@ body{
   overflow:hidden;
 }
 
-/* ========================= SPLASH ANIMATION ========================= */
+/* ========================= ANIMAÇÃO DE ABERTURA ========================= */
 #splash{
   position:fixed;
   inset:0;
-  background:white;
+  background:var(--azul);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:42px;
-  color:var(--azul);
-  font-weight:bold;
-  z-index:9999;
-  animation:fadeOut .9s ease forwards;
-  animation-delay:.8s;
+  flex-direction:column;
+  z-index:5000;
+  animation:fadeOut 1.2s ease forwards;
+  animation-delay:1.4s;
+}
+
+#splash h1{
+  color:white;
+  font-size:48px;
+  opacity:0;
+  animation:fadeInUp .8s ease forwards;
+}
+
+@keyframes fadeInUp{
+  from{opacity:0; transform:translateY(15px);}
+  to{opacity:1; transform:translateY(0);}
 }
 
 @keyframes fadeOut{
-  from{opacity:1;}
-  to{opacity:0; visibility:hidden;}
+  to{opacity:0; pointer-events:none;}
 }
 
-#splash span{
-  display:inline-block;
-  animation:float 1.8s infinite ease-in-out;
-}
-
-@keyframes float{
-  0%{transform:translateY(0);}
-  50%{transform:translateY(-8px);}
-  100%{transform:translateY(0);}
-}
-
-/* ========================= SIDEBAR ========================= */
-
-#sidebar{
-  position:relative;
-  width:260px;
-  background:var(--azul);
-  color:white;
-  padding-top:25px;
-  display:flex;
-  flex-direction:column;
-  box-shadow:0 0 20px rgba(0,0,0,0.3);
-  transition:width .25s;
-  overflow:hidden;
-}
-
-#sidebar.min{
-  width:70px;
-}
-
-/* Botão hamburguer */
-#toggleMenu{
-  position:absolute;
-  top:15px;
-  right:-20px;
-  background:var(--azul);
-  width:42px;
-  height:42px;
-  border-radius:8px;
+/* ========================= BOTÃO HAMBÚRGUER ========================= */
+#toggleSidebar{
+  position:fixed;
+  top:20px;
+  left:20px;
+  width:45px;
+  height:45px;
+  background:rgba(0,0,0,0.25);
+  backdrop-filter:blur(4px);
   display:flex;
   align-items:center;
   justify-content:center;
+  border-radius:12px;
   cursor:pointer;
+  z-index:3000;
+  transition:0.25s;
+}
+#toggleSidebar:hover{ background:rgba(0,0,0,0.35); }
+
+.hamburger{
+  width:24px;
+  height:3px;
+  background:white;
+  position:relative;
+}
+.hamburger::before,
+.hamburger::after{
+  content:"";
+  width:24px;
+  height:3px;
+  background:white;
+  position:absolute;
+  left:0;
+  transition:.3s;
+}
+.hamburger::before{ top:-8px; }
+.hamburger::after{ top:8px; }
+
+/* ========================= SIDEBAR ========================= */
+#sidebar{
+  width:260px;
+  background:var(--azul);
   color:white;
-  font-size:22px;
-  box-shadow:var(--shadow);
-  z-index:10;
+  padding-top:70px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 0 20px rgba(0,0,0,0.3);
+  transition:0.25s;
+  overflow:hidden;
 }
 
-/* Título / some quando recolhido */
 #sidebar h1{
   text-align:center;
   margin-bottom:35px;
-  font-size:24px;
-  transition:.25s;
-}
-#sidebar.min h1{
-  opacity:0;
-  pointer-events:none;
+  font-size:26px;
+  transition:0.25s;
 }
 
-/* LINKS DO MENU */
 .menu-btn{
   padding:18px 25px;
   color:white;
+  display:flex;
+  align-items:center;
+  gap:14px;
   text-decoration:none;
   font-size:18px;
   border-bottom:1px solid rgba(255,255,255,0.15);
-  display:flex;
-  gap:12px;
-  align-items:center;
   transition:0.2s;
 }
 .menu-btn:hover{
@@ -125,23 +130,34 @@ body{
   padding-left:35px;
 }
 
-/* O texto some quando fechado */
-.menu-text{
-  transition:.2s;
-  white-space:nowrap;
+.menu-icone{
+  font-size:22px;
 }
-#sidebar.min .menu-text{
+.menu-texto{
+  transition:0.2s;
+}
+
+/* ======= MODO FECHADO ======= */
+#sidebar.fechado{
+  width:70px;
+}
+#sidebar.fechado h1{
   opacity:0;
-  width:0;
-  overflow:hidden;
+  transform:scale(.8);
+}
+#sidebar.fechado .menu-texto{
+  display:none;
+}
+#sidebar.fechado .menu-btn{
+  justify-content:center;
 }
 
 /* ========================= CONTEÚDO ========================= */
-
 #conteudo{
   flex:1;
   overflow-y:auto;
   background:var(--bg);
+  padding:0;
 }
 
 #frame{
@@ -154,56 +170,85 @@ body{
 
 <body>
 
-<!-- SPLASH -->
+<!-- ANIMAÇÃO DE INÍCIO -->
 <div id="splash">
-  <span>F</span><span>I</span><span>N</span><span>A</span><span>N</span><span>C</span><span>E</span><span>I</span><span>R</span><span>O</span>
+  <h1>Financeiro</h1>
+</div>
+
+<!-- BOTÃO DE EXPANDIR / RECOLHER -->
+<div id="toggleSidebar" onclick="toggleMenu()">
+  <div class="hamburger"></div>
 </div>
 
 <!-- SIDEBAR -->
 <div id="sidebar">
-
-  <!-- Botão hamburguer -->
-  <div id="toggleMenu">☰</div>
-
   <h1>FINANCEIRO</h1>
 
-  <a class="menu-btn" onclick="carregar('home.html')">🏠 <span class="menu-text">Início</span></a>
-  <a class="menu-btn" onclick="carregar('cadastros.html')">📋 <span class="menu-text">Cadastros</span></a>
-  <a class="menu-btn" onclick="carregar('lancamentos.html')">💸 <span class="menu-text">Lançamentos</span></a>
-  <a class="menu-btn" onclick="carregar('fluxo.html')">📈 <span class="menu-text">Fluxo de Caixa</span></a>
-  <a class="menu-btn" onclick="carregar('dashboard.html')">📊 <span class="menu-text">Dashboard</span></a>
-  <a class="menu-btn" onclick="carregar('historico.html')">📜 <span class="menu-text">Histórico</span></a>
+  <a class="menu-btn" onclick="carregar('home.html')">
+    <span class="menu-icone">🏠</span>
+    <span class="menu-texto">Início</span>
+  </a>
 
+  <a class="menu-btn" onclick="carregar('cadastros.html')">
+    <span class="menu-icone">📋</span>
+    <span class="menu-texto">Cadastros</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('lancamentos.html')">
+    <span class="menu-icone">💸</span>
+    <span class="menu-texto">Lançamentos</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('fluxo.html')">
+    <span class="menu-icone">📈</span>
+    <span class="menu-texto">Fluxo de Caixa</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('dashboard.html')">
+    <span class="menu-icone">📊</span>
+    <span class="menu-texto">Dashboard</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('historico.html')">
+    <span class="menu-icone">📜</span>
+    <span class="menu-texto">Histórico</span>
+  </a>
 </div>
 
-<!-- CONTEÚDO -->
+<!-- ÁREA QUE RECEBE AS PÁGINAS -->
 <div id="conteudo">
   <iframe id="frame" src="home.html"></iframe>
 </div>
 
 <script>
-/* Abrir páginas */
+/* ================= CARREGAR PÁGINAS ================= */
 function carregar(pagina){
   document.getElementById("frame").src = pagina;
 }
 
-/* Controla abrir/fechar menu */
-const sidebar = document.getElementById("sidebar");
-const toggleBtn = document.getElementById("toggleMenu");
+/* ================= MENU RECOLHÍVEL ================= */
+let sidebarAberto = false;
 
-/* Lê o estado salvo */
-if(localStorage.getItem("sidebar") === "min"){
-  sidebar.classList.add("min");
+function toggleMenu(){
+  sidebarAberto = !sidebarAberto;
+  document.getElementById("sidebar").classList.toggle("fechado");
+  salvarEstado();
 }
 
-/* Alterna o estado */
-toggleBtn.onclick = ()=>{
-  sidebar.classList.toggle("min");
+function salvarEstado(){
+  localStorage.setItem("sidebarEstado", sidebarAberto ? "aberto" : "fechado");
+}
 
-  localStorage.setItem("sidebar",
-    sidebar.classList.contains("min") ? "min" : "max"
-  );
-};
+function carregarEstado(){
+  const estado = localStorage.getItem("sidebarEstado");
+  if(estado === "aberto"){
+    sidebarAberto = true;
+  } else {
+    sidebarAberto = false;
+    document.getElementById("sidebar").classList.add("fechado");
+  }
+}
+carregarEstado();
 </script>
 
 </body>
