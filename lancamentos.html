@@ -13,13 +13,11 @@
   --card:#ffffff;
   --radius:12px;
   --shadow:0 6px 20px rgba(0,0,0,0.15);
-  --texto:#222;
   --green:#2ecc71;
   --red:#e74c3c;
-  --gray:#aaa;
+  --gray:#999;
 }
 
-/* GERAL */
 body{
   margin:0;
   padding:25px;
@@ -33,7 +31,6 @@ h2{
   font-size:32px;
 }
 
-/* BOTÕES */
 .btn{
   padding:12px 20px;
   border-radius:8px;
@@ -47,12 +44,6 @@ h2{
 .btn-red{ background:var(--red); }
 .btn-gray{ background:var(--gray); }
 
-.activeSel{
-  box-shadow:0 0 5px rgba(0,0,0,0.5);
-  opacity:1 !important;
-}
-
-/* TABELA */
 table{
   width:100%;
   border-collapse:collapse;
@@ -87,7 +78,29 @@ td{
   cursor:pointer;
 }
 
-/* MODAL */
+.alert{
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:20px;
+  color:white;
+}
+.alert-erro{ background:#c62828; }
+.alert-ok{ background:#2e7d32; }
+
+#loading{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(255,255,255,0.6);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  color:#000;
+  font-size:26px;
+  font-weight:bold;
+  z-index:999;
+}
+
 .modal-bg{
   position:fixed;
   top:0; left:0;
@@ -100,7 +113,7 @@ td{
 }
 .modal{
   background:white;
-  width:450px;
+  width:480px;
   padding:25px;
   border-radius:12px;
   box-shadow:var(--shadow);
@@ -109,8 +122,7 @@ td{
   margin-top:0;
   color:var(--azul);
 }
-
-input{
+input, select{
   width:100%;
   padding:12px;
   margin-bottom:12px;
@@ -118,34 +130,22 @@ input{
   border:1px solid #ccc;
 }
 
-#loading{
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.45);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  color:white;
-  font-size:28px;
-  z-index:999;
+#tipoBtns button{
+  flex:1;
 }
-
-.alert{
-  padding:15px;
-  border-radius:8px;
-  margin-bottom:20px;
-  color:white;
+.activeSel{
+  opacity:1 !important;
+  box-shadow: 0 0 6px #000;
 }
-.alert-erro{ background:#c62828; }
-.alert-ok{ background:#2ecc71; }
-
 </style>
 </head>
 
 <body>
 
+<div id="loading">Carregando...</div>
+
 <h2>Lançamentos</h2>
+
 <div id="msg"></div>
 
 <button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
@@ -165,96 +165,62 @@ input{
   <tbody id="lista"></tbody>
 </table>
 
-<div id="loading">Carregando...</div>
-
-<!-- ======================= MODAL ======================= -->
+<!-- MODAL -->
 <div class="modal-bg" id="modal">
   <div class="modal">
-
     <h3 id="titulo-modal">Novo Lançamento</h3>
 
     <input id="m-data" type="date">
 
-    <div style="display:flex; gap:10px; margin-bottom:12px;">
+    <div id="tipoBtns" style="display:flex; gap:10px;">
       <button id="btnReceita" class="btn btn-gray">Receita</button>
       <button id="btnDespesa" class="btn btn-gray">Despesa</button>
     </div>
 
     <input type="hidden" id="m-tipo">
 
-    <!-- CATEGORIA -->
     <input list="listaCat" id="m-cat" placeholder="Categoria">
     <datalist id="listaCat"></datalist>
 
-    <!-- SUBCATEGORIA -->
     <input list="listaSub" id="m-sub" placeholder="Subcategoria">
     <datalist id="listaSub"></datalist>
 
     <input id="m-descricao" placeholder="Descrição">
+
     <input id="m-valor" placeholder="Valor">
 
     <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
     <button class="btn btn-gray" style="width:100%;" onclick="fecharModal()">Cancelar</button>
-
   </div>
 </div>
 
 <script>
-const API =
- "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
+const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
 let editandoID = null;
 
-function loading(v){
-  document.getElementById("loading").style.display = v ? "flex" : "none";
-}
-function erro(msg){
-  document.getElementById("msg").innerHTML =
-    `<div class='alert alert-erro'>❌ ${msg}</div>`;
-}
-function ok(msg){
-  document.getElementById("msg").innerHTML =
-    `<div class='alert alert-ok'>✔ ${msg}</div>`;
-}
+function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
+function erro(msg){ document.getElementById("msg").innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`; }
+function ok(msg){ document.getElementById("msg").innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`; }
 
-/* ================= MÁSCARA DE VALOR ================= */
 function mascaraValor(el){
   let v = el.value.replace(/\D/g,"");
   v = (v/100).toFixed(2) + "";
   el.value = "R$ " + v.replace(".",",");
 }
 
-/* ================= MODAL ================= */
-function abrirModal(id=null){
-  editandoID = id;
-  document.getElementById("titulo-modal").innerText = id ? "Editar Lançamento" : "Novo Lançamento";
-  document.getElementById("modal").style.display = "flex";
-
-  if(!id){
-    document.getElementById("m-data").value = new Date().toISOString().split("T")[0];
-    document.getElementById("m-descricao").value = "";
-    document.getElementById("m-cat").value = "";
-    document.getElementById("m-sub").value = "";
-    document.getElementById("m-valor").value = "";
-    limparSelTipo();
-  }
-}
-
-function fecharModal(){
-  document.getElementById("modal").style.display = "none";
-}
-
-/* ================= CARREGAR LISTAS ================= */
 async function carregarCombos(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
+
+  if (!Array.isArray(dados)) return;
 
   let cats = new Set();
   let subs = new Set();
 
   dados.forEach(d=>{
-    if(d[2]) cats.add(d[2]);
-    if(d[3]) subs.add(d[3]);
+    cats.add(d[2]);
+    subs.add(d[3]);
   });
 
   document.getElementById("listaCat").innerHTML =
@@ -264,41 +230,31 @@ async function carregarCombos(){
     [...subs].map(s=>`<option value="${s}">`).join("");
 }
 
-/* ================= BOTÕES DE TIPO ================= */
-function limparSelTipo(){
-  document.getElementById("btnReceita").classList.remove("activeSel");
-  document.getElementById("btnDespesa").classList.remove("activeSel");
-  document.getElementById("btnReceita").style.background = "var(--gray)";
-  document.getElementById("btnDespesa").style.background = "var(--gray)";
-}
-
-document.getElementById("btnReceita").onclick = ()=>{
-  limparSelTipo();
-  document.getElementById("m-tipo").value = "Receita";
-  document.getElementById("btnReceita").classList.add("activeSel");
-  document.getElementById("btnReceita").style.background = "var(--green)";
-};
-
-document.getElementById("btnDespesa").onclick = ()=>{
-  limparSelTipo();
-  document.getElementById("m-tipo").value = "Despesa";
-  document.getElementById("btnDespesa").classList.add("activeSel");
-  document.getElementById("btnDespesa").style.background = "var(--red)";
-};
-
-/* ================= LISTAR ================= */
 async function listar(){
-  loading(true);
+  load(true);
+
   try{
     let r = await fetch(API+"?action=listLancamentos");
     let dados = await r.json();
-    render(dados);
+
+    if(!Array.isArray(dados)){
+      erro("Erro no retorno da API de lançamentos");
+      console.log("RETORNO:", dados);
+      load(false);
+      return;
+    }
+
+    renderizar(dados);
     carregarCombos();
-  }catch(e){ erro(e.message); }
-  loading(false);
+
+  }catch(e){
+    erro(e.message);
+  }
+
+  load(false);
 }
 
-function render(lista){
+function renderizar(lista){
   let tbody = document.getElementById("lista");
   tbody.innerHTML = "";
 
@@ -312,10 +268,7 @@ function render(lista){
         <td>${l[5]}</td>
         <td>R$ ${Number(l[6]).toFixed(2)}</td>
         <td>
-          <button class="btn-edit"
-            onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">
-            Editar
-          </button>
+          <button class="btn-edit" onclick="editar('${l[0]}', '${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
           <button class="btn-del" onclick="excluir('${l[0]}')">Excluir</button>
         </td>
       </tr>
@@ -323,9 +276,48 @@ function render(lista){
   });
 }
 
-/* ================= EDITAR ================= */
+document.getElementById("btnReceita").onclick = ()=>{
+  limparSelecao();
+  document.getElementById("m-tipo").value = "Receita";
+  document.getElementById("btnReceita").classList.add("activeSel");
+  document.getElementById("btnReceita").style.background = "var(--green)";
+  document.getElementById("btnDespesa").style.background = "var(--gray)";
+};
+document.getElementById("btnDespesa").onclick = ()=>{
+  limparSelecao();
+  document.getElementById("m-tipo").value = "Despesa";
+  document.getElementById("btnDespesa").classList.add("activeSel");
+  document.getElementById("btnDespesa").style.background = "var(--red)";
+  document.getElementById("btnReceita").style.background = "var(--gray)";
+};
+
+function limparSelecao(){
+  document.getElementById("btnReceita").classList.remove("activeSel");
+  document.getElementById("btnDespesa").classList.remove("activeSel");
+}
+
+function abrirModal(id=null){
+  editandoID = id;
+  document.getElementById("modal").style.display = "flex";
+
+  if(!id){
+    document.getElementById("titulo-modal").innerText = "Novo Lançamento";
+    document.getElementById("m-data").value = new Date().toISOString().split("T")[0];
+    document.getElementById("m-descricao").value = "";
+    document.getElementById("m-cat").value = "";
+    document.getElementById("m-sub").value = "";
+    document.getElementById("m-valor").value = "";
+    document.getElementById("m-tipo").value = "";
+    limparSelecao();
+  }
+}
+
+function fecharModal(){ document.getElementById("modal").style.display = "none"; }
+
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
+
+  document.getElementById("titulo-modal").innerText = "Editar Lançamento";
 
   document.getElementById("m-data").value = data;
   document.getElementById("m-descricao").value = desc;
@@ -335,17 +327,16 @@ function editar(id,data,tipo,cat,sub,desc,val){
 
   document.getElementById("m-tipo").value = tipo;
 
-  limparSelTipo();
-  if(tipo==="Receita"){
+  limparSelecao();
+  if(tipo === "Receita"){
     document.getElementById("btnReceita").classList.add("activeSel");
     document.getElementById("btnReceita").style.background = "var(--green)";
-  }else{
+  } else {
     document.getElementById("btnDespesa").classList.add("activeSel");
     document.getElementById("btnDespesa").style.background = "var(--red)";
   }
 }
 
-/* ================= SALVAR ================= */
 async function salvar(){
   let data = document.getElementById("m-data").value;
   let tipo = document.getElementById("m-tipo").value;
@@ -359,45 +350,53 @@ async function salvar(){
     return;
   }
 
-  loading(true);
+  load(true);
 
   try{
     let url;
-
     if(editandoID){
-      url = `${API}?action=editLancamento&id=${editandoID}&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
+      const campos = JSON.stringify({
+        data, tipo, categoria:cat, subcategoria:sub, descricao:desc, valor:val
+      });
+
+      url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
     }else{
       url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
     }
 
-    await fetch(url);
-    ok("Lançamento salvo!");
+    const r = await fetch(url);
+    const resp = await r.json();
+
+    if(resp.erro) erro(resp.erro);
+    else ok("Salvo com sucesso!");
 
     fecharModal();
     listar();
 
   }catch(e){ erro(e.message); }
 
-  loading(false);
+  load(false);
 }
 
-/* ================= EXCLUIR ================= */
 async function excluir(id){
   if(!confirm("Excluir lançamento?")) return;
+  load(true);
 
-  loading(true);
-  await fetch(API+"?action=deleteLancamento&id="+id);
-  loading(false);
+  let r = await fetch(API+"?action=deleteLancamento&id="+id);
+  let resp = await r.json();
+
+  if(resp.erro) erro(resp.erro);
+  else ok("Excluído!");
+
+  load(false);
   listar();
 }
 
-/* ================= START ================= */
-document.getElementById("m-valor").addEventListener("input",function(){
+document.getElementById("m-valor").addEventListener("input", function(){
   mascaraValor(this);
 });
 
 listar();
-
 </script>
 
 </body>
