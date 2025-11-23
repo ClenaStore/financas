@@ -106,6 +106,22 @@ function fmt(v){
 }
 
 /* ===============================
+     CONVERTER DATA
+================================*/
+function parseData(dataStr){
+  if(!dataStr) return new Date("2000-01-01");
+
+  // Caso venha 2024-10-15
+  if(dataStr.includes("-")){
+    return new Date(dataStr);
+  }
+
+  // Caso venha 15/10/2024
+  let p = dataStr.split("/");
+  return new Date(p[2], p[1]-1, p[0]);
+}
+
+/* ===============================
      CARREGAR LANÇAMENTOS
 ================================*/
 async function carregarFluxo(){
@@ -124,13 +140,13 @@ async function carregarFluxo(){
 }
 
 /* ===============================
-     MONTAR FLUXO NO FRONT
+     MONTAR FLUXO
 ================================*/
 function montarFluxo(lanc){
-  let meses = {}; // agrupador
+  let meses = {};
 
   lanc.forEach(l => {
-    let data = new Date(l[1]);
+    let data = parseData(l[1]);
     let mes = String(data.getMonth()+1).padStart(2,"0") + "/" + data.getFullYear();
 
     let tipo = l[2];
@@ -162,13 +178,13 @@ function montarFluxo(lanc){
     acumulado += sm;
 
     html += `
-    <tr>
-      <td>${m}</td>
-      <td class="valorPositivo">${fmt(r)}</td>
-      <td class="valorNegativo">${fmt(d)}</td>
-      <td class="${sm>=0?'valorPositivo':'valorNegativo'}">${fmt(sm)}</td>
-      <td class="${acumulado>=0?'valorPositivo':'valorNegativo'}">${fmt(acumulado)}</td>
-    </tr>`;
+      <tr>
+        <td>${m}</td>
+        <td class="valorPositivo">${fmt(r)}</td>
+        <td class="valorNegativo">${fmt(d)}</td>
+        <td class="${sm>=0?'valorPositivo':'valorNegativo'}">${fmt(sm)}</td>
+        <td class="${acumulado>=0?'valorPositivo':'valorNegativo'}">${fmt(acumulado)}</td>
+      </tr>`;
   });
 
   document.getElementById("tabelaFluxo").innerHTML = html;
