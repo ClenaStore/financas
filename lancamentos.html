@@ -328,13 +328,29 @@ function editar(id,data,tipo,cat,sub,desc,val){
 async function salvar(){
   let data = mData.value;
   let tipo = mTipo.value;
-  let cat = mCat.value;
-  let sub = mSub.value;
+  let cat = mCat.value.trim();
+  let sub = mSub.value.trim();
   let desc = mDesc.value;
   let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data || !tipo || !cat || !sub || !desc || !val){
     erro("Preencha todos os campos!");
+    return;
+  }
+
+  // 🔥 PEGAR LISTA DE CATEGORIAS E SUBCATEGORIAS PERMITIDAS
+  const categoriasPermitidas = [...listaCat.querySelectorAll("option")].map(o=>o.value);
+  const subPermitidas = [...listaSub.querySelectorAll("option")].map(o=>o.value);
+
+  // 🔥 BLOQUEAR CATEGORIA NÃO CADASTRADA
+  if(!categoriasPermitidas.includes(cat)){
+    erro("❌ Categoria não cadastrada! Escolha uma da lista.");
+    return;
+  }
+
+  // 🔥 BLOQUEAR SUBCATEGORIA NÃO CADASTRADA
+  if(!subPermitidas.includes(sub)){
+    erro("❌ Subcategoria não cadastrada! Escolha uma da lista.");
     return;
   }
 
@@ -353,18 +369,22 @@ async function salvar(){
     let r = await fetch(url);
     let resp = await r.json();
 
-    if(resp.status!=="ok") erro("Erro ao salvar");
-    else ok("Salvo com sucesso!");
+    if(resp.status!=="ok"){
+      erro("Erro ao salvar!");
+    } else {
+      ok("Salvo com sucesso!");
+    }
 
     fecharModal();
     listar();
 
   }catch(e){
-    erro("Erro ao salvar");
+    erro("Erro ao salvar!");
   }
 
   load(false);
 }
+
 
 /* EXCLUIR */
 async function excluir(id){
