@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluxo de Caixa</title>
+
+<style>
+:root{
+  --azul:#1F4E78;
+  --azul-escuro:#12375A;
+  --verde:#2ECC71;
+  --vermelho:#E74C3C;
+  --bg:#f4f6f9;
+  --branco:#ffffff;
+  --shadow:0 4px 12px rgba(0,0,0,0.15);
+  --radius:12px;
+}
+
+/* geral */
+body{
+  margin:0;
+  padding:25px;
+  font-family: Arial, sans-serif;
+  background:var(--bg);
+}
+
+h1{
+  font-size:32px;
+  color:var(--azul);
+  margin-bottom:20px;
+}
+
+/* tabela */
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+thead{
+  background:var(--azul);
+  color:white;
+}
+
+th, td{
+  padding:14px;
+  text-align:left;
+  font-size:16px;
+}
+
+tbody tr:nth-child(even){
+  background:#eef4ff;
+}
+
+.valorPositivo{
+  color:var(--verde);
+  font-weight:bold;
+}
+.valorNegativo{
+  color:var(--vermelho);
+  font-weight:bold;
+}
+
+/* loading */
+#loading{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,0.8);
+  font-size:22px;
+  font-weight:bold;
+  color:#333;
+  align-items:center;
+  justify-content:center;
+  z-index:99;
+}
+</style>
+</head>
+
+<body>
+
+<div id="loading">Carregando...</div>
+
+<h1>Fluxo de Caixa</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mês</th>
+      <th>Receitas</th>
+      <th>Despesas</th>
+      <th>Saldo Mensal</th>
+      <th>Saldo Acumulado</th>
+    </tr>
+  </thead>
+  <tbody id="tabelaFluxo"></tbody>
+</table>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
+
+/* LOADING */
+function load(s){
+  document.getElementById("loading").style.display = s ? "flex" : "none";
+}
+
+/* FORMATADOR */
+function fmt(valor){
+  return Number(valor).toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
+}
+
+/* CARREGAR FLUXO */
+async function carregarFluxo(){
+  load(true);
+
+  try{
+    let r = await fetch(API+"?action=fluxo");
+    let dados = await r.json();
+
+    let tab = "";
+    dados.slice(1).forEach(l => {
+      let mes = l[0];
+      let rec = Number(l[1]);
+      let des = Number(l[2]);
+      let saldoMes = Number(l[3]);
+      let acumulado = Number(l[4]);
+
+      tab += `
+      <tr>
+        <td>${mes}</td>
+        <td class="valorPositivo">${fmt(rec)}</td>
+        <td class="valorNegativo">${fmt(des)}</td>
+        <td class="${saldoMes >= 0 ? 'valorPositivo' : 'valorNegativo'}">${fmt(saldoMes)}</td>
+        <td class="${acumulado >= 0 ? 'valorPositivo' : 'valorNegativo'}">${fmt(acumulado)}</td>
+      </tr>`;
+    });
+
+    document.getElementById("tabelaFluxo").innerHTML = tab;
+
+  }catch(e){
+    alert("Erro ao carregar fluxo: " + e);
+  }
+
+  load(false);
+}
+
+carregarFluxo();
+</script>
+
+</body>
+</html>
