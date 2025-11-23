@@ -119,7 +119,7 @@ td{
   margin-bottom:12px;
 }
 
-/* Tipo Receita / Despesa */
+/* Receitas / despesas */
 #tipoBtns button{
   flex:1;
   opacity:.4;
@@ -129,10 +129,8 @@ td{
   box-shadow:0 0 6px #0003;
 }
 
-/* LISTA DE BUSCA */
-.select-box{
-  position:relative;
-}
+/* SELECT BOX */
+.select-box{ position:relative; }
 
 .options{
   position:absolute;
@@ -148,7 +146,6 @@ td{
   display:none;
   z-index:2000;
 }
-
 .options div{
   padding:10px;
   cursor:pointer;
@@ -198,15 +195,15 @@ td{
 
     <input type="hidden" id="m-tipo">
 
-    <!-- SELECT CATEGORIA -->
+    <!-- CATEGORIA -->
     <div class="select-box">
-      <input id="m-cat" placeholder="Categoria" autocomplete="off" readonly onfocus="abrirCat()">
+      <input id="m-cat" placeholder="Categoria" readonly onclick="abrirCat()">
       <div id="listaCatBox" class="options"></div>
     </div>
 
-    <!-- SELECT SUB -->
+    <!-- SUB -->
     <div class="select-box">
-      <input id="m-sub" placeholder="Subcategoria" autocomplete="off" readonly onfocus="abrirSub()">
+      <input id="m-sub" placeholder="Subcategoria" readonly onclick="abrirSub()">
       <div id="listaSubBox" class="options"></div>
     </div>
 
@@ -224,15 +221,57 @@ const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasn
 
 let categorias = [];
 let subs = [];
+let editandoID = null;
 
-function load(v){
-  document.getElementById("loading").style.display = v ? "flex" : "none";
+function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
+function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
+function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
+
+/* BOTÕES RECEITA / DESPESA */
+btnReceita.onclick = ()=>{
+  mTipo.value="Receita";
+  btnReceita.classList.add("activeSel");
+  btnDespesa.classList.remove("activeSel");
+};
+btnDespesa.onclick = ()=>{
+  mTipo.value="Despesa";
+  btnDespesa.classList.add("activeSel");
+  btnReceita.classList.remove("activeSel");
+};
+
+/* MÁSCARA */
+mValor.addEventListener("input",()=>{
+  let v = mValor.value.replace(/\D/g,"");
+  if(!v) v = "0";
+  mValor.value = "R$ " + (v/100).toFixed(2).replace(".",",");
+});
+
+/* LISTAR */
+async function listar(){
+  load(true);
+  let r = await fetch(API+"?action=listLancamentos");
+  let dados = await r.json();
+
+  lista.innerHTML = dados.map(l=>`
+    <tr>
+      <td>${l[1]}</td>
+      <td>${l[2]}</td>
+      <td>${l[3]}</td>
+      <td>${l[4]}</td>
+      <td>${l[5]}</td>
+      <td>R$ ${Number(l[6]).toFixed(2)}</td>
+      <td>
+        <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
+        <button onclick="excluir('${l[0]}')">Excluir</button>
+      </td>
+    </tr>
+  `).join("");
+
+  await carregarCategorias();
+  load(false);
 }
 
-function erro(msg){ msgBox.innerHTML = `<div style='color:red;'>${msg}</div>`; }
-function ok(msg){ msgBox.innerHTML = `<div style='color:green;'>${msg}</div>`; }
-
-/* ======================== CARREGAR LISTAS ======================= */
+/* CARREGAR LISTAS */
 async function carregarCategorias(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
@@ -244,55 +283,27 @@ async function carregarCategorias(){
   montarLista("listaSubBox", subs, "m-sub");
 }
 
+/* MONTAR LISTA */
 function montarLista(idBox, lista, inputId){
   let box = document.getElementById(idBox);
   box.innerHTML = "";
 
-  lista.forEach(v=>{
+  lista.forEach(valor=>{
     let div = document.createElement("div");
-    div.innerText = v;
+    div.innerText = valor;
     div.onclick = ()=>{
-      document.getElementById(inputId).value = v;
+      document.getElementById(inputId).value = valor;
       box.style.display="none";
     };
     box.appendChild(div);
   });
 }
 
-/* ABRIR LISTAS */
-function abrirCat(){
-  document.getElementById("listaCatBox").style.display="block";
-}
-function abrirSub(){
-  document.getElementById("listaSubBox").style.display="block";
-}
+/* ABRIR LISTA */
+function abrirCat(){ listaCatBox.style.display="block"; }
+function abrirSub(){ listaSubBox.style.display="block"; }
 
-/* ============================== LISTAR ============================= */
-async function listar(){
-  load(true);
-  let r = await fetch(API+"?action=listLancamentos");
-  let dados = await r.json();
-
-  lista.innerHTML = dados.map(l=>`
-      <tr>
-        <td>${l[1]}</td>
-        <td>${l[2]}</td>
-        <td>${l[3]}</td>
-        <td>${l[4]}</td>
-        <td>${l[5]}</td>
-        <td>R$ ${Number(l[6]).toFixed(2)}</td>
-        <td>
-          <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
-          <button onclick="excluir('${l[0]}')">Excluir</button>
-        </td>
-      </tr>
-  `).join("");
-
-  carregarCategorias();
-  load(false);
-}
-
-/* ============================== MODAL ============================= */
+/* ABRIR MODAL */
 function abrirModal(id=null){
   editandoID = id;
   modalBg.style.display="flex";
@@ -303,28 +314,39 @@ function abrirModal(id=null){
   mSub.value="";
   mDesc.value="";
   mValor.value="R$ 0,00";
+  btnReceita.classList.remove("activeSel");
+  btnDespesa.classList.remove("activeSel");
 }
+
+/* FECHAR */
 function fecharModal(){ modalBg.style.display="none"; }
 
-/* ============================== SALVAR ============================= */
+/* EDITAR */
+function editar(id,data,tipo,cat,sub,desc,val){
+  abrirModal(id);
+  titulo-modal.innerText="Editar Lançamento";
+
+  mData.value=data;
+  mCat.value=cat;
+  mSub.value=sub;
+  mDesc.value=desc;
+  mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
+
+  if(tipo==="Receita") btnReceita.click();
+  else btnDespesa.click();
+}
+
+/* SALVAR */
 async function salvar(){
   let data = mData.value;
   let tipo = mTipo.value;
-  let cat = mCat.value;
-  let sub = mSub.value;
+  let cat = mCat.value.trim();
+  let sub = mSub.value.trim();
   let desc = mDesc.value;
   let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
-  if(!categorias.includes(cat)){
-    erro("❌ Categoria inválida – escolha da lista.");
-    mCat.value="";
-    return;
-  }
-  if(!subs.includes(sub)){
-    erro("❌ Subcategoria inválida – escolha da lista.");
-    mSub.value="";
-    return;
-  }
+  if(!categorias.includes(cat)){ erro("❌ Categoria inválida!"); mCat.value=""; return; }
+  if(!subs.includes(sub)){ erro("❌ Subcategoria inválida!"); mSub.value=""; return; }
 
   if(!data||!tipo||!cat||!sub||!desc||!val){ erro("Preencha tudo!"); return; }
 
@@ -342,16 +364,16 @@ async function salvar(){
   let resp = await r.json();
 
   if(resp.status!=="ok") erro("Erro ao salvar!");
-  else ok("Salvo!");
+  else ok("Salvo com sucesso!");
 
   fecharModal();
   listar();
   load(false);
 }
 
-/* ============================== EXCLUIR ============================= */
+/* EXCLUIR */
 async function excluir(id){
-  if(!confirm("Excluir lançamento?")) return;
+  if(!confirm("Excluir?")) return;
   await fetch(API+"?action=deleteLancamento&id="+id);
   listar();
 }
