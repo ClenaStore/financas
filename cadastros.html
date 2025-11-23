@@ -16,17 +16,79 @@
   --shadow:0 6px 20px rgba(0,0,0,0.15);
 }
 
+/* GERAL */
 body{
   margin:0;
-  font-family: Arial, sans-serif;
+  display:flex;
   background:var(--bg);
+  font-family: Arial, sans-serif;
+  overflow:hidden;
 }
 
-/* ======== LAYOUT ======== */
-.container{
-  padding:30px;
-  max-width:1200px;
-  margin:auto;
+/* ========== SIDEBAR (mesmo do INDEX) ========== */
+#sidebar{
+  width:270px;
+  height:100vh;
+  background:var(--azul);
+  color:white;
+  padding-top:30px;
+  position:relative;
+  transition:0.3s;
+  overflow:hidden;
+}
+#sidebar.recolhido{ width:70px; }
+
+#toggleSidebar{
+  position:absolute;
+  top:15px;
+  right:-20px;
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:white;
+  border:none;
+  color:var(--azul);
+  font-size:20px;
+  cursor:pointer;
+  box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+#sidebar h1{
+  text-align:center;
+  margin-bottom:30px;
+}
+#sidebar.recolhido h1{ opacity:0; }
+
+.menu-btn{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:18px 22px;
+  color:white;
+  text-decoration:none;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  font-size:17px;
+}
+.menu-btn:hover{
+  background:var(--azul-escuro);
+  padding-left:30px;
+}
+.menu-icon{
+  width:22px; height:22px;
+  background:white;
+  border-radius:4px;
+}
+#sidebar.recolhido .menu-text{
+  opacity:0;
+  width:0;
+  overflow:hidden;
+}
+
+/* ========== CONTEÚDO ========== */
+#conteudo{
+  flex:1;
+  padding:40px;
+  overflow-y:auto;
 }
 
 h2{
@@ -34,6 +96,7 @@ h2{
   font-size:32px;
 }
 
+/* BOTÕES */
 .btn{
   background:#28a745;
   padding:12px 18px;
@@ -42,85 +105,141 @@ h2{
   text-decoration:none;
   font-size:16px;
   cursor:pointer;
-  display:inline-block;
-  margin-bottom:20px;
+  border:none;
 }
 
+/* ALERTAS */
 .alert{
   padding:15px;
   border-radius:8px;
   margin-bottom:20px;
   color:white;
-  font-size:16px;
 }
-
 .alert-erro{ background:#c62828; }
 .alert-ok{ background:#2e7d32; }
 
+/* TABELA */
 table{
   width:100%;
-  background:white;
   border-collapse:collapse;
   border-radius:12px;
   overflow:hidden;
   box-shadow:var(--shadow);
+  background:white;
 }
-
 th{
   background:var(--azul-escuro);
   color:white;
-  padding:14px;
+  padding:12px;
   text-align:left;
 }
-
 td{
-  padding:14px;
+  padding:12px;
   border-bottom:1px solid #ddd;
 }
+tr:hover{ background:#eef5ff; }
 
-tr:hover{
-  background:#eef5ff;
-}
-
-.acoes button{
+/* AÇÕES */
+.btn-editar{
+  background:#0277bd;
+  border:none;
+  color:white;
   padding:6px 12px;
-  border:0;
   border-radius:6px;
   cursor:pointer;
+}
+.btn-excluir{
+  background:#c62828;
+  border:none;
   color:white;
+  padding:6px 12px;
+  border-radius:6px;
+  cursor:pointer;
 }
 
-.btn-editar{ background:#0277bd; }
-.btn-excluir{ background:#c62828; }
-
+/* LOADING */
 #loading{
   position:fixed;
-  top:0;
-  left:0;
-  width:100vw;
-  height:100vh;
+  top:0; left:0;
+  width:100vw; height:100vh;
   background:rgba(0,0,0,0.55);
-  display:flex;
+  display:none;
   justify-content:center;
   align-items:center;
   color:white;
-  font-size:30px;
+  font-size:28px;
   z-index:9999;
+}
+
+/* MODAL */
+.modal-bg{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.55);
   display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+.modal{
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  width:400px;
+  box-shadow:var(--shadow);
+}
+.modal h3{
+  margin-top:0;
+  color:var(--azul);
+}
+.modal input{
+  width:100%;
+  margin-bottom:10px;
+  padding:10px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+.modal .btn{
+  width:100%;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="loading">Carregando...</div>
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <button id="toggleSidebar" onclick="toggleSidebar()">☰</button>
 
-<div class="container">
+  <h1>FINANCEIRO</h1>
+
+  <a class="menu-btn" href="index.html">
+    <div class="menu-icon"></div><span class="menu-text">Início</span>
+  </a>
+  <a class="menu-btn" href="cadastros.html">
+    <div class="menu-icon"></div><span class="menu-text">Cadastros</span>
+  </a>
+  <a class="menu-btn" href="lancamentos.html">
+    <div class="menu-icon"></div><span class="menu-text">Lançamentos</span>
+  </a>
+  <a class="menu-btn" href="fluxo.html">
+    <div class="menu-icon"></div><span class="menu-text">Fluxo de Caixa</span>
+  </a>
+  <a class="menu-btn" href="dashboard.html">
+    <div class="menu-icon"></div><span class="menu-text">Dashboard</span>
+  </a>
+</div>
+
+<!-- CONTEÚDO -->
+<div id="conteudo">
+
   <h2>Cadastros</h2>
 
   <div id="msg"></div>
 
-  <button class="btn" onclick="novoCadastro()">+ Novo Cadastro</button>
+  <button class="btn" onclick="abrirModal()">+ Novo Cadastro</button>
 
   <table>
     <thead>
@@ -133,155 +252,173 @@ tr:hover{
     </thead>
     <tbody id="lista"></tbody>
   </table>
+
+</div>
+
+<div id="loading">Carregando...</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modal-titulo">Novo Cadastro</h3>
+
+    <input id="m-tipo" placeholder="Tipo (Receita/Despesa)">
+    <input id="m-cat" placeholder="Categoria">
+    <input id="m-sub" placeholder="Subcategoria">
+
+    <button class="btn" id="btnSalvar" onclick="salvarCadastro()">Salvar</button>
+    <button class="btn" style="background:#666" onclick="fecharModal()">Cancelar</button>
+  </div>
 </div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
-/* ======================== CARREGAR CADASTROS ======================== */
-async function carregarCadastros(){
-  mostrarLoading(true);
-  try{
-    let r = await fetch(API + "?action=listCadastros");
-    let json = await r.json();
+let editandoID = null;
 
-    console.log("RETORNO GAS:", json);
-
-    if(!Array.isArray(json)){
-      throw new Error("Retorno inesperado do servidor");
-    }
-
-    renderTabela(json);
-
-  }catch(err){
-    erro("Falha ao carregar cadastros: " + err.message);
-  }
-  mostrarLoading(false);
+/* ========== SIDEBAR ========== */
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("recolhido");
 }
 
-/* ======================== RENDERIZAR ======================== */
-function renderTabela(lista){
-  const tbody = document.getElementById("lista");
-  tbody.innerHTML = "";
-
-  lista.forEach(item => {
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${item[1]}</td>
-      <td>${item[2]}</td>
-      <td>${item[3]}</td>
-      <td class="acoes">
-        <button class="btn-editar" onclick="editar('${item[0]}')">Editar</button>
-        <button class="btn-excluir" onclick="excluir('${item[0]}')">Excluir</button>
-      </td>
-    `;
-
-    tbody.appendChild(tr);
-  });
-}
-
-/* ======================== NOVO CADASTRO ======================== */
-async function novoCadastro(){
-  let tipo = prompt("Tipo (Receita / Despesa):");
-  if(!tipo) return;
-
-  let categoria = prompt("Categoria:");
-  if(!categoria) return;
-
-  let sub = prompt("Subcategoria:");
-  if(!sub) return;
-
-  mostrarLoading(true);
-
-  try{
-    let url = API + `?action=createCadastro&tipo=${encodeURIComponent(tipo)}&categoria=${encodeURIComponent(categoria)}&subcategoria=${encodeURIComponent(sub)}`;
-    let r = await fetch(url);
-    let json = await r.json();
-
-    if(json.erro) throw new Error(json.erro);
-
-    ok("Cadastro criado!");
-    carregarCadastros();
-
-  }catch(err){
-    erro("Erro ao criar cadastro: " + err.message);
-  }
-
-  mostrarLoading(false);
-}
-
-/* ======================== EDITAR ======================== */
-async function editar(id){
-  let tipo = prompt("Novo tipo:");
-  if(!tipo) return;
-
-  let categoria = prompt("Nova categoria:");
-  if(!categoria) return;
-
-  let sub = prompt("Nova subcategoria:");
-  if(!sub) return;
-
-  mostrarLoading(true);
-
-  try{
-    let url = API + `?action=editCadastro&id=${id}&tipo=${encodeURIComponent(tipo)}&categoria=${encodeURIComponent(categoria)}&subcategoria=${encodeURIComponent(sub)}`;
-    let r = await fetch(url);
-    let json = await r.json();
-
-    if(json.erro) throw new Error(json.erro);
-
-    ok("Cadastro atualizado!");
-    carregarCadastros();
-
-  }catch(err){
-    erro("Erro ao editar: " + err.message);
-  }
-
-  mostrarLoading(false);
-}
-
-/* ======================== EXCLUIR ======================== */
-async function excluir(id){
-  if(!confirm("Excluir cadastro?")) return;
-
-  mostrarLoading(true);
-
-  try{
-    let url = API + `?action=deleteCadastro&id=${id}`;
-    let r = await fetch(url);
-    let json = await r.json();
-
-    if(json.erro) throw new Error(json.erro);
-
-    ok("Cadastro excluído!");
-    carregarCadastros();
-
-  }catch(err){
-    erro("Erro ao excluir: " + err.message);
-  }
-
-  mostrarLoading(false);
-}
-
-/* ======================== MENSAGENS ======================== */
-function erro(msg){
-  document.getElementById("msg").innerHTML =
-    `<div class='alert alert-erro'>❌ ${msg}</div>`;
-}
-
-function ok(msg){
-  document.getElementById("msg").innerHTML =
-    `<div class='alert alert-ok'>✔ ${msg}</div>`;
-}
-
-/* ======================== LOADING ======================== */
-function mostrarLoading(v){
+/* ========== LOADING ========== */
+function loading(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
 
-/* ======================== INICIAR ======================== */
-carregarCadastros();
+/* ========== ALERTAS ========== */
+function erro(msg){
+  document.getElementById("msg").innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`;
+}
+function ok(msg){
+  document.getElementById("msg").innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`;
+}
+
+/* ========== MODAL ========== */
+function abrirModal(id=null, tipo="", cat="", sub=""){
+  editandoID = id;
+
+  document.getElementById("m-tipo").value = tipo;
+  document.getElementById("m-cat").value = cat;
+  document.getElementById("m-sub").value = sub;
+
+  document.getElementById("modal-titulo").innerText = id ? "Editar Cadastro" : "Novo Cadastro";
+
+  document.getElementById("modal").style.display = "flex";
+}
+function fecharModal(){
+  document.getElementById("modal").style.display = "none";
+}
+
+/* ========== SALVAR CADASTRO ========== */
+async function salvarCadastro(){
+  let tipo = document.getElementById("m-tipo").value.trim();
+  let cat  = document.getElementById("m-cat").value.trim();
+  let sub  = document.getElementById("m-sub").value.trim();
+
+  if(!tipo || !cat || !sub){
+    erro("Preencha todos os campos.");
+    return;
+  }
+
+  loading(true);
+
+  try{
+    let url;
+
+    if(editandoID){
+      url = `${API}?action=editCadastro&id=${editandoID}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}`;
+    }else{
+      url = `${API}?action=createCadastro&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}`;
+    }
+
+    let r = await fetch(url);
+    let j = await r.json();
+
+    if(j.erro) throw new Error(j.erro);
+
+    ok("Cadastro salvo com sucesso!");
+
+    fecharModal();
+    listar();
+
+  }catch(e){
+    erro(e.message);
+  }
+
+  loading(false);
+}
+
+/* ========== LISTAR ========== */
+async function listar(){
+  loading(true);
+
+  try{
+    let r = await fetch(`${API}?action=listCadastros`);
+    let dados = await r.json();
+
+    if(!Array.isArray(dados)){
+      dados = []; // tabela vazia → sem erro
+    }
+
+    renderizar(dados);
+
+  }catch(e){
+    erro("Falha ao carregar: " + e.message);
+  }
+
+  loading(false);
+}
+
+/* ========== RENDERIZAR ========== */
+function renderizar(lista){
+  let tbody = document.getElementById("lista");
+  tbody.innerHTML = "";
+
+  lista.forEach(l => {
+    let id = l[0];
+    let tipo = l[1];
+    let cat = l[2];
+    let sub = l[3];
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${tipo}</td>
+        <td>${cat}</td>
+        <td>${sub}</td>
+        <td>
+          <button class="btn-editar" onclick="abrirModal('${id}','${tipo}','${cat}','${sub}')">Editar</button>
+          <button class="btn-excluir" onclick="excluir('${id}')">Excluir</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+/* ========== EXCLUIR ========== */
+async function excluir(id){
+  if(!confirm("Tem certeza que deseja excluir?")) return;
+
+  loading(true);
+
+  try{
+    let r = await fetch(`${API}?action=deleteCadastro&id=${id}`);
+    let j = await r.json();
+
+    if(j.erro) throw new Error(j.erro);
+
+    ok("Cadastro excluído!");
+    listar();
+
+  }catch(e){
+    erro(e.message);
+  }
+
+  loading(false);
+}
+
+/* ========== START ========== */
+listar();
 </script>
 
 </body>
