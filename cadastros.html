@@ -27,7 +27,7 @@ h1{
   margin-bottom:25px;
 }
 
-/* ===== BOTÃO PRINCIPAL IGUAL AO DA IMAGEM ===== */
+/* ===== BOTÃO PRINCIPAL ===== */
 .btn-green{
   background:#2ECC71;
   padding:12px 22px;
@@ -48,7 +48,18 @@ h1{
   cursor:pointer;
 }
 
-/* ===== TABELA NO ESTILO DA IMAGEM ===== */
+/* ===== INPUT DE PESQUISA ===== */
+#busca{
+  width:100%;
+  max-width:340px;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  margin-bottom:18px;
+  font-size:15px;
+}
+
+/* ===== TABELA ===== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -76,7 +87,7 @@ td{
   border-bottom:1px solid #e4e4e4;
 }
 
-/* ===== MODAL IGUAL DO LANÇAMENTOS ===== */
+/* ===== MODAL ===== */
 #modal-bg{
   position:fixed;
   inset:0;
@@ -128,7 +139,7 @@ td{
   100%{opacity:.5; transform:scale(.95);}
 }
 
-/* ===== TIPO RECEITA / DESPESA ===== */
+/* ===== BOTÕES RECEITA/DESPESA ===== */
 #tipoBtns button{
   flex:1;
   opacity:.4;
@@ -147,6 +158,8 @@ td{
 <h1>Cadastros</h1>
 
 <button class="btn-green" onclick="abrirModal()">+ Novo Cadastro</button>
+
+<input id="busca" placeholder="Pesquisar por categoria ou subcategoria...">
 
 <table>
   <thead>
@@ -188,6 +201,7 @@ const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0
 
 let tipoAtual = "";
 let editID = null;
+let dadosGlobais = [];
 
 /* LOADING */
 function load(v){
@@ -232,11 +246,17 @@ async function carregar(){
   load(true);
 
   let r = await fetch(API+"?action=listCadastros");
-  let dados = await r.json();
+  dadosGlobais = await r.json();
 
-  let html="";
-  dados.forEach(l=>{
-    html+=`
+  renderTabela(dadosGlobais);
+  preencherAuto(dadosGlobais);
+
+  load(false);
+}
+
+/* RENDERIZAR TABELA */
+function renderTabela(lista){
+  tabela.innerHTML = lista.map(l=>`
     <tr>
       <td>${l[1]}</td>
       <td>${l[2]}</td>
@@ -245,14 +265,22 @@ async function carregar(){
         <button class="btn-gray" onclick="abrirModal('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
         <button class="btn-gray" onclick="excluir('${l[0]}')">Excluir</button>
       </td>
-    </tr>`;
-  });
-
-  tabela.innerHTML = html;
-  preencherAuto(dados);
-
-  load(false);
+    </tr>
+  `).join("");
 }
+
+/* PESQUISA */
+busca.addEventListener("input",()=>{
+
+  const txt = busca.value.toLowerCase().trim();
+
+  const filtrados = dadosGlobais.filter(l =>
+     l[2].toLowerCase().includes(txt) || 
+     l[3].toLowerCase().includes(txt)
+  );
+
+  renderTabela(filtrados);
+});
 
 /* AUTOCOMPLETE */
 function preencherAuto(dados){
