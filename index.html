@@ -5,6 +5,7 @@
 <title>Financeiro • Menu Inicial</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- =================== ESTILO GLOBAL (SEBRAE PREMIUM 2025) =================== -->
 <style>
 :root{
   --azul:#1F4E78;
@@ -25,7 +26,7 @@ body{
   overflow:hidden;
 }
 
-/* SIDEBAR */
+/* ================= SIDEBAR ================= */
 #sidebar{
   width:270px;
   height:100vh;
@@ -41,51 +42,6 @@ body{
   width:70px;
 }
 
-#sidebar h1{
-  margin:0;
-  font-size:24px;
-  text-align:center;
-  padding:0 10px;
-  margin-bottom:40px;
-  opacity:1;
-  transition:0.3s;
-}
-
-#sidebar.recolhido h1{
-  opacity:0;
-}
-
-.menu-btn{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:18px 22px;
-  color:white;
-  text-decoration:none;
-  font-size:17px;
-  border-bottom:1px solid rgba(255,255,255,0.15);
-  transition:0.3s;
-  white-space:nowrap;
-}
-
-.menu-btn:hover{
-  background:var(--azul-escuro);
-  cursor:pointer;
-}
-
-.menu-icon{
-  width:24px;
-  height:24px;
-  background:white;
-  border-radius:4px;
-}
-
-/* Oculta os textos quando recolhido */
-#sidebar.recolhido .menu-text{
-  display:none;
-}
-
-/* BOTÃO RECOLHER */
 #toggleSidebar{
   position:absolute;
   top:15px;
@@ -94,18 +50,58 @@ body{
   height:40px;
   border-radius:50%;
   background:white;
-  color:var(--azul);
   border:none;
+  color:var(--azul);
+  font-size:20px;
   cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,0.2);
+  box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Título da Sidebar */
+#sidebar h1{
+  text-align:center;
+  margin:0;
+  margin-bottom:35px;
+  font-size:24px;
+  transition:0.3s;
+}
+
+#sidebar.recolhido h1{
+  opacity:0;
+}
+
+/* Botões do menu */
+.menu-btn{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:18px 22px;
+  font-size:17px;
+  text-decoration:none;
+  color:white;
+  border-bottom:1px solid rgba(255,255,255,0.10);
   transition:0.2s;
 }
 
-#toggleSidebar:hover{
-  transform:scale(1.1);
+.menu-btn:hover{
+  background:var(--azul-escuro);
+  padding-left:30px;
 }
 
-/* CONTEÚDO */
+.menu-icon{
+  width:22px;
+  height:22px;
+  background:white;
+  border-radius:4px;
+}
+
+#sidebar.recolhido .menu-text{
+  opacity:0;
+  width:0;
+  overflow:hidden;
+}
+
+/* ================= CONTEÚDO ================= */
 #conteudo{
   flex:1;
   padding:40px;
@@ -115,11 +111,12 @@ body{
 }
 
 h2{
-  font-size:30px;
-  margin-top:0;
+  font-size:32px;
   color:var(--azul);
+  margin-top:0;
 }
 
+/* Cards da Home */
 .card-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -132,10 +129,9 @@ h2{
   padding:25px;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  text-align:center;
   transition:0.2s;
   cursor:pointer;
-  font-size:20px;
+  text-align:center;
 }
 
 .card:hover{
@@ -145,16 +141,16 @@ h2{
 
 .card-title{
   font-weight:bold;
+  font-size:22px;
   color:var(--azul);
   margin-bottom:10px;
-  font-size:22px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- MENU LATERAL -->
+<!-- ================= SIDEBAR ================= -->
 <div id="sidebar">
   
   <button id="toggleSidebar" onclick="toggleSidebar()">☰</button>
@@ -188,8 +184,9 @@ h2{
 
 </div>
 
-<!-- ÁREA DE CONTEÚDO -->
+<!-- ================= CONTEÚDO ================= -->
 <div id="conteudo">
+
   <h2>Menu Principal</h2>
 
   <div class="card-grid">
@@ -206,22 +203,23 @@ h2{
 
     <a href="fluxo.html" class="card">
       <div class="card-title">Fluxo de Caixa</div>
-      <div>Controle de receitas e despesas mensais</div>
+      <div>Controle financeiro mensal</div>
     </a>
 
     <a href="dashboard.html" class="card">
       <div class="card-title">Dashboard</div>
-      <div>Indicadores e gráficos analíticos</div>
+      <div>Análises e gráficos</div>
     </a>
 
     <a href="historico.html" class="card">
       <div class="card-title">Histórico</div>
-      <div>Registro completo de ações</div>
+      <div>Acompanhe todas as ações</div>
     </a>
 
   </div>
 </div>
 
+<!-- ================= SCRIPT ================= -->
 <script>
 function toggleSidebar(){
   document.getElementById("sidebar").classList.toggle("recolhido");
