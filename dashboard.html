@@ -14,7 +14,7 @@
   --bg:#eef3fa;
   --card:#ffffff;
   --radius:18px;
-  --shadow:0 10px 45px rgba(0,0,0,0.12);
+  --shadow:0 8px 28px rgba(0,0,0,0.12);
   --verde:#2ecc71;
   --vermelho:#e74c3c;
   --texto:#223;
@@ -23,63 +23,56 @@
 /* GERAL */
 body{
   margin:0;
-  padding:30px;
+  padding:25px;
   background:var(--bg);
   font-family:Arial;
 }
 
+/* TÍTULO */
 h2{
-  font-size:36px;
-  margin-bottom:25px;
+  font-size:32px;
+  margin-bottom:20px;
   color:var(--azul);
-  letter-spacing:1px;
 }
 
 /* CARDS */
 .cards{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
-  gap:25px;
-  margin-bottom:35px;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:20px;
+  margin-bottom:25px;
 }
 
 .card{
   background:white;
-  padding:30px;
+  padding:22px;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  transition:.25s;
-  position:relative;
-  overflow:hidden;
-}
-.card:hover{
-  transform:translateY(-5px);
 }
 
 .card h3{
-  margin:0 0 12px 0;
+  margin:0 0 8px 0;
+  font-size:17px;
   color:var(--azul2);
-  font-size:18px;
 }
 
-.card .valor{
-  font-size:32px;
+.valor{
+  font-size:28px;
   font-weight:bold;
 }
 
-/* GRÁFICO BOX */
+/* GRÁFICO */
 .grafico-box{
   background:white;
-  margin-top:35px;
-  padding:30px;
+  margin-top:20px;
+  padding:22px;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  animation:fade .5s ease-out;
 }
 
-@keyframes fade{
-  from{ opacity:0; transform:translateY(15px); }
-  to{ opacity:1; transform:translateY(0); }
+/* DIMINUIR TAMANHO DOS GRÁFICOS */
+canvas{
+  max-height:280px !important;
 }
 
 /* LOADING */
@@ -91,24 +84,17 @@ h2{
   padding:12px 20px;
   border-radius:12px;
   color:white;
-  font-size:16px;
+  font-size:14px;
   box-shadow:var(--shadow);
   display:none;
   z-index:999;
-  animation:pulse 1s infinite;
-}
-
-@keyframes pulse{
-  0%{opacity:.6}
-  50%{opacity:1}
-  100%{opacity:.6}
 }
 </style>
 </head>
 
 <body>
 
-<div id="loading">Atualizando Dashboard...</div>
+<div id="loading">Carregando...</div>
 
 <h2>Dashboard Financeiro</h2>
 
@@ -117,10 +103,12 @@ h2{
     <h3>Receita Total</h3>
     <div id="receitaTotal" class="valor" style="color:var(--verde)">R$ 0,00</div>
   </div>
+
   <div class="card">
     <h3>Despesa Total</h3>
     <div id="despesaTotal" class="valor" style="color:var(--vermelho)">R$ 0,00</div>
   </div>
+
   <div class="card">
     <h3>Saldo Total</h3>
     <div id="saldoTotal" class="valor" style="color:var(--azul2)">R$ 0,00</div>
@@ -128,7 +116,7 @@ h2{
 </div>
 
 <div class="grafico-box">
-  <h3>Receita × Despesa (Últimos 12 meses)</h3>
+  <h3>Receita × Despesa (12 meses)</h3>
   <canvas id="graficoLinha"></canvas>
 </div>
 
@@ -141,65 +129,52 @@ h2{
 const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
 
 let grafLinha, grafCat;
+let cache = { dashboard:null, fluxo:null, lanc:null };
 
 function fmt(v){
   return Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
-/* ======================
-     CARREGAMENTO OCULTO
-   ====================== */
-
-async function preload(url){
-  try{
-    return await fetch(url).then(r=>r.json());
-  }catch(e){
-    return null;
-  }
+/* =======================
+    LOADING
+======================= */
+function loading(v){
+  document.getElementById("loading").style.display = v ? "block" : "none";
 }
 
-let cache = {
-  dashboard:null,
-  fluxo:null,
-  lanc:null
-};
+/* =======================
+    PRÉ CARREGAMENTO
+======================= */
+async function preload(){
+  cache.dashboard = await fetch(API+"?action=dashboard").then(r=>r.json());
+  cache.fluxo     = await fetch(API+"?action=fluxo").then(r=>r.json());
+  cache.lanc      = await fetch(API+"?action=listLancamentos").then(r=>r.json());
+}
 
-/* TAREFA EM SEGUNDO PLANO — Pré-carrega tudo antes do usuário ver */
-setTimeout(async ()=>{
-  cache.dashboard = await preload(API+"?action=dashboard");
-  cache.fluxo = await preload(API+"?action=fluxo");
-  cache.lanc = await preload(API+"?action=listLancamentos");
-}, 50);
+/* =======================
+    CARDS
+======================= */
+function carregarTotais(){
+  let dados = cache.dashboard;
 
-/* ======================
-     CARREGAR CARDS
-   ====================== */
-
-async function carregarTotais(){
-  let dados = cache.dashboard || await preload(API+"?action=dashboard");
-
-  let receita = dados.find(l=>l[0]==="receita_total")[1];
-  let despesa = dados.find(l=>l[0]==="despesa_total")[1];
-  let saldo = dados.find(l=>l[0]==="saldo_total")[1];
+  let receita = dados.find(l=>l[0]=="receita_total")[1];
+  let despesa = dados.find(l=>l[0]=="despesa_total")[1];
+  let saldo   = dados.find(l=>l[0]=="saldo_total")[1];
 
   receitaTotal.innerText = fmt(receita);
   despesaTotal.innerText = fmt(despesa);
-  saldoTotal.innerText = fmt(saldo);
+  saldoTotal.innerText   = fmt(saldo);
 }
 
-/* ======================
-     GRÁFICO LINHA
-   ====================== */
+/* =======================
+    GRÁFICO LINHA
+======================= */
+function carregarGraficoLinha(){
+  let dados = cache.fluxo.slice(-12); // limitar 12 meses
 
-async function carregarGraficoLinha(){
-  let dados = cache.fluxo || await preload(API+"?action=fluxo");
-
-  let meses=[], receitas=[], despesas=[];
-  dados.slice(1).forEach(l=>{
-    meses.push(l[0]);
-    receitas.push(l[1]);
-    despesas.push(l[2]);
-  });
+  let meses = dados.slice(1).map(l=>l[0]);
+  let receitas = dados.slice(1).map(l=>l[1]);
+  let despesas = dados.slice(1).map(l=>l[2]);
 
   if(grafLinha) grafLinha.destroy();
 
@@ -212,77 +187,72 @@ async function carregarGraficoLinha(){
           label:"Receitas",
           data:receitas,
           borderColor:"#2ecc71",
-          backgroundColor:"rgba(46,204,113,0.18)",
+          backgroundColor:"rgba(46,204,113,0.15)",
           fill:true,
-          tension:0.35,
-          borderWidth:3
+          tension:0.3,
+          borderWidth:2
         },
         {
           label:"Despesas",
           data:despesas,
           borderColor:"#e74c3c",
-          backgroundColor:"rgba(231,76,60,0.18)",
+          backgroundColor:"rgba(231,76,60,0.15)",
           fill:true,
-          tension:0.35,
-          borderWidth:3
+          tension:0.3,
+          borderWidth:2
         }
       ]
+    },
+    options:{
+      animation:{ duration:300 }
     }
   });
 }
 
-/* ======================
+/* =======================
     GRÁFICO CATEGORIAS
-   ====================== */
+======================= */
+function carregarGraficoCategorias(){
+  let lanc = cache.lanc;
 
-async function carregarGraficoCategorias(){
-  let lanc = cache.lanc || await preload(API+"?action=listLancamentos");
-
-  let categorias={};
+  let categorias = {};
   lanc.forEach(l=>{
     let tipo=l[2], cat=l[3], val=Number(l[6]);
-    if(!categorias[cat]) categorias[cat]=0;
-    categorias[cat]+= tipo==="Despesa" ? -val : val;
+    categorias[cat] = (categorias[cat]||0) + (tipo==="Despesa"? -val: val);
   });
 
-  let labels=Object.keys(categorias);
-  let valores=Object.values(categorias);
+  let labels = Object.keys(categorias);
+  let valores = Object.values(categorias);
 
   if(grafCat) grafCat.destroy();
 
-  grafCat=new Chart(graficoCategorias,{
+  grafCat = new Chart(graficoCategorias,{
     type:"bar",
     data:{
       labels,
       datasets:[{
         label:"Valor",
         data:valores,
-        borderRadius:8,
-        backgroundColor: valores.map(v=> v>=0
-          ? "rgba(46,204,113,.7)"
-          : "rgba(231,76,60,.7)"
-        )
+        borderRadius:6,
+        backgroundColor: valores.map(v=> v>=0 ? "rgba(46,204,113,0.7)" : "rgba(231,76,60,0.7)")
       }]
+    },
+    options:{
+      animation:{ duration:300 }
     }
   });
 }
 
-/* ======================
-      START
-   ====================== */
-
+/* =======================
+    START
+======================= */
 async function iniciar(){
   loading(true);
-
-  await carregarTotais();
-  await carregarGraficoLinha();
-  await carregarGraficoCategorias();
-
-  setTimeout(()=>loading(false),400);
-}
-
-function loading(v){
-  document.getElementById("loading").style.display = v ? "flex" : "none";
+  await preload();
+  carregarTotais();
+  carregarGraficoLinha();
+  carregarGraficoCategorias();
+  loading(false);
 }
 
 iniciar();
