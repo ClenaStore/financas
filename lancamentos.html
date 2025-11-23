@@ -166,10 +166,12 @@ td{
 
     <input type="hidden" id="mTipo">
 
-    <input list="listaCat" id="mCat" placeholder="Categoria">
+    <!-- Categoria com filtro inteligente -->
+    <input list="listaCat" id="mCat" placeholder="Categoria" autocomplete="off">
     <datalist id="listaCat"></datalist>
 
-    <input list="listaSub" id="mSub" placeholder="Subcategoria">
+    <!-- Subcategoria com filtro inteligente -->
+    <input list="listaSub" id="mSub" placeholder="Subcategoria" autocomplete="off">
     <datalist id="listaSub"></datalist>
 
     <input id="mDesc" placeholder="Descrição">
@@ -194,7 +196,7 @@ function formatarData(iso){
          d.getFullYear();
 }
 
-/* ===== ELEMENTOS ===== */
+/* ELEMENTOS */
 const lista = document.getElementById("lista");
 const modalBg = document.getElementById("modal-bg");
 const msg = document.getElementById("msg");
@@ -212,21 +214,23 @@ const tituloModal = document.getElementById("tituloModal");
 
 let editandoID = null;
 
-/* ===== LOADING ===== */
-function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
+/* Loading */
+function load(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
+}
 
-/* ===== ALERTAS ===== */
+/* ALERTAS */
 function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
 function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
 
-/* ===== MÁSCARA ===== */
+/* MÁSCARA */
 mValor.addEventListener("input",()=>{
   let v = mValor.value.replace(/\D/g,"");
   if(!v) v="0";
   mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
 });
 
-/* BOTÕES */
+/* RECEITA / DESPESA */
 btnReceita.onclick = ()=>{
   mTipo.value="Receita";
   btnReceita.classList.add("activeSel");
@@ -237,6 +241,27 @@ btnDespesa.onclick = ()=>{
   btnDespesa.classList.add("activeSel");
   btnReceita.classList.remove("activeSel");
 };
+
+/* ===== FILTRO INTELIGENTE ===== */
+function filtroInteligente(input, datalist){
+  const valores = [...datalist.options].map(o=>o.value);
+
+  input.addEventListener("input",()=>{
+
+    const txt = input.value.toLowerCase();
+
+    datalist.innerHTML = valores
+      .filter(v => v.toLowerCase().includes(txt))
+      .map(v => `<option value="${v}">`)
+      .join("");
+
+    input.dataset.valid = valores.includes(input.value) ? "1" : "0";
+  });
+
+  input.addEventListener("blur",()=>{
+    if(input.dataset.valid !== "1") input.value="";
+  });
+}
 
 /* LISTAR */
 async function listar(){
@@ -263,7 +288,7 @@ async function listar(){
   load(false);
 }
 
-/* CARREGAR CATEGORIAS */
+/* CARREGAR LISTAS */
 async function carregarCategorias(){
   const r = await fetch(API+"?action=listCadastros");
   const dados = await r.json();
@@ -271,14 +296,8 @@ async function carregarCategorias(){
   listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
 
-  aplicarBloqueio(mCat, listaCat);
-  aplicarBloqueio(mSub, listaSub);
-}
-
-function aplicarBloqueio(input,datalist){
-  const lista = [...datalist.options].map(o=>o.value);
-  input.addEventListener("input",()=>{ if(!lista.includes(input.value)) input.value=""; });
-  input.addEventListener("blur",()=>{ if(!lista.includes(input.value)) input.value=""; });
+  filtroInteligente(mCat, listaCat);
+  filtroInteligente(mSub, listaSub);
 }
 
 /* MODAL */
@@ -286,7 +305,7 @@ function abrirModal(id=null){
   editandoID=id;
   modalBg.style.display="flex";
 
-  mData.value = new Date().toISOString().split("T")[0];
+  mData.value=new Date().toISOString().split("T")[0];
   mTipo.value="";
   mCat.value="";
   mSub.value="";
@@ -307,12 +326,12 @@ function editar(id,data,tipo,cat,sub,desc,val){
 
   tituloModal.innerText="Editar Lançamento";
 
-  mData.value = data.split("T")[0];
-  mTipo.value = tipo;
-  mCat.value = cat;
-  mSub.value = sub;
-  mDesc.value = desc;
-  mValor.value = "R$ "+Number(val).toFixed(2).replace(".",",");
+  mData.value=data.split("T")[0];
+  mTipo.value=tipo;
+  mCat.value=cat;
+  mSub.value=sub;
+  mDesc.value=desc;
+  mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
@@ -328,18 +347,15 @@ async function salvar(){
   let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
-    erro("Preencha todos os campos!");
+    erro("Preencha tudo!");
     return;
   }
 
-  if(!listaCat.options.namedItem(cat) && ![...listaCat.options].map(o=>o.value).includes(cat)){
-    erro("Categoria inválida!");
-    return;
-  }
-  if(!listaSub.options.namedItem(sub) && ![...listaSub.options].map(o=>o.value).includes(sub)){
-    erro("Subcategoria inválida!");
-    return;
-  }
+  const cats = [...listaCat.options].map(o=>o.value);
+  const subs = [...listaSub.options].map(o=>o.value);
+
+  if(!cats.includes(cat)){ erro("Categoria inválida!"); return; }
+  if(!subs.includes(sub)){ erro("Subcategoria inválida!"); return; }
 
   load(true);
 
@@ -355,7 +371,7 @@ async function salvar(){
   let resp = await r.json();
 
   if(resp.status!=="ok") erro("Erro ao salvar!");
-  else ok("Salvo com sucesso!");
+  else ok("Salvo!");
 
   fecharModal();
   listar();
