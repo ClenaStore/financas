@@ -55,7 +55,7 @@ h2{
 .alert-erro{ background:#c62828; }
 .alert-ok{ background:#2e7d32; }
 
-/* LOADING — igual ao dashboard */
+/* LOADING – AGORA NÃO BLOQUEIA CLICKS */
 #loading{
   position:fixed;
   bottom:20px;
@@ -69,7 +69,14 @@ h2{
   display:none;
   z-index:999;
   animation:pulse 1.2s infinite;
+  pointer-events:none;
 }
+
+#loading.show{
+  pointer-events:all;
+  display:flex;
+}
+
 @keyframes pulse{
   0%{opacity:.5; transform:scale(.95);}
   50%{opacity:1; transform:scale(1);}
@@ -120,6 +127,12 @@ td{
   align-items:center;
   backdrop-filter:blur(2px);
   z-index:1000;
+  pointer-events:none;
+}
+
+.modal-bg.show{
+  display:flex;
+  pointer-events:all;
 }
 
 .modal{
@@ -130,6 +143,7 @@ td{
   box-shadow:var(--shadow);
   animation:pop .25s ease;
 }
+
 @keyframes pop{
   from{ transform:scale(.85); opacity:.3; }
   to{ transform:scale(1); opacity:1; }
@@ -145,7 +159,7 @@ input{
   border:1px solid #ccc;
 }
 
-/* SELETOR RECEITA / DESPESA */
+/* SELETOR RECEITA/DESPESA */
 #tipoBtns button{
   flex:1;
   opacity:.5;
@@ -215,17 +229,18 @@ const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0
 let editandoID = null;
 
 /* LOADING */
-function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
+function load(v){
+  const el = document.getElementById("loading");
+  if(v){
+    el.classList.add("show");
+  }else{
+    el.classList.remove("show");
+  }
+}
 
 /* ALERTAS */
-function erro(msg){
-  document.getElementById("msg").innerHTML =
-    `<div class='alert alert-erro'>❌ ${msg}</div>`;
-}
-function ok(msg){
-  document.getElementById("msg").innerHTML =
-    `<div class='alert alert-ok'>✔ ${msg}</div>`;
-}
+function erro(msg){ msgBox.innerHTML = `<div class='alert alert-erro'>❌ ${msg}</div>`; }
+function ok(msg){ msgBox.innerHTML = `<div class='alert alert-ok'>✔ ${msg}</div>`; }
 
 /* MASCARA */
 function mascaraValor(el){
@@ -250,13 +265,15 @@ async function listar(){
     renderizar(dados);
     carregarCombos();
 
-  }catch(e){ erro("Falha ao carregar: " + e); }
+  }catch(e){
+    erro("Falha ao carregar: "+e);
+  }
 
   load(false);
 }
 
 function renderizar(lista){
-  document.getElementById("lista").innerHTML = lista.map(l=>`
+  listaEl.innerHTML = lista.map(l=>`
     <tr>
       <td>${l[1]}</td>
       <td>${l[2]}</td>
@@ -272,96 +289,90 @@ function renderizar(lista){
   `).join("");
 }
 
-/* ====== PREENCHE COMBOS ====== */
+/* ====== COMBOS ====== */
 async function carregarCombos(){
   let r = await fetch(API+"?action=listCadastros");
   let dados = await r.json();
 
-  if(!Array.isArray(dados)) return;
-
-  document.getElementById("listaCat").innerHTML =
-    [...new Set(dados.map(l=>l[2]))].map(c=>`<option value="${c}">`).join("");
-
-  document.getElementById("listaSub").innerHTML =
-    [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
+  listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(c=>`<option value="${c}">`).join("");
+  listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
 }
 
 /* ====== MODAL ====== */
 function abrirModal(id=null){
   editandoID = id;
 
-  document.getElementById("modal-bg").style.display="flex";
+  document.getElementById("modal-bg").classList.add("show");
 
-  if(id){
-    document.getElementById("titulo-modal").innerText = "Editar Lançamento";
-  }else{
-    document.getElementById("titulo-modal").innerText = "Novo Lançamento";
-    document.getElementById("m-data").value = new Date().toISOString().split("T")[0];
-    document.getElementById("m-descricao").value = "";
-    document.getElementById("m-valor").value = "";
-    document.getElementById("m-cat").value = "";
-    document.getElementById("m-sub").value = "";
-    document.getElementById("m-tipo").value = "";
+  if(!id){
+    tituloModal.innerText = "Novo Lançamento";
+    mData.value = new Date().toISOString().split("T")[0];
+    mDescricao.value = "";
+    mValor.value = "";
+    mCat.value = "";
+    mSub.value = "";
+    mTipo.value = "";
     limparSelecao();
   }
 }
 
 function fecharModal(){
-  document.getElementById("modal-bg").style.display="none";
+  document.getElementById("modal-bg").classList.remove("show");
 }
 
 /* ====== TIPO ====== */
-document.getElementById("btnReceita").onclick = ()=>{
+btnReceita.onclick = ()=>{
   limparSelecao();
-  document.getElementById("btnReceita").classList.add("activeSel");
-  document.getElementById("btnReceita").style.background = "var(--green)";
-  document.getElementById("m-tipo").value="Receita";
+  btnReceita.classList.add("activeSel");
+  btnReceita.style.background="var(--green)";
+  mTipo.value="Receita";
 };
 
-document.getElementById("btnDespesa").onclick = ()=>{
+btnDespesa.onclick = ()=>{
   limparSelecao();
-  document.getElementById("btnDespesa").classList.add("activeSel");
-  document.getElementById("btnDespesa").style.background = "var(--red)";
-  document.getElementById("m-tipo").value="Despesa";
+  btnDespesa.classList.add("activeSel");
+  btnDespesa.style.background="var(--red)";
+  mTipo.value="Despesa";
 };
 
 function limparSelecao(){
-  document.getElementById("btnReceita").classList.remove("activeSel");
-  document.getElementById("btnDespesa").classList.remove("activeSel");
-
-  document.getElementById("btnReceita").style.background = "var(--gray)";
-  document.getElementById("btnDespesa").style.background = "var(--gray)";
+  btnReceita.classList.remove("activeSel");
+  btnDespesa.classList.remove("activeSel");
+  btnReceita.style.background="var(--gray)";
+  btnDespesa.style.background="var(--gray)";
 }
 
 /* ====== EDITAR ====== */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
-  document.getElementById("m-data").value = data;
-  document.getElementById("m-tipo").value = tipo;
-  document.getElementById("m-cat").value = cat;
-  document.getElementById("m-sub").value = sub;
-  document.getElementById("m-descricao").value = desc;
-  document.getElementById("m-valor").value = "R$ "+Number(val).toFixed(2).replace(".",",");
+  tituloModal.innerText = "Editar Lançamento";
+
+  mData.value = data;
+  mTipo.value = tipo;
+  mCat.value = cat;
+  mSub.value = sub;
+  mDescricao.value = desc;
+  mValor.value = "R$ "+Number(val).toFixed(2).replace(".",",");
 
   limparSelecao();
   if(tipo==="Receita"){
-    document.getElementById("btnReceita").classList.add("activeSel");
-    document.getElementById("btnReceita").style.background="var(--green)";
+    btnReceita.classList.add("activeSel");
+    btnReceita.style.background="var(--green)";
   }else{
-    document.getElementById("btnDespesa").classList.add("activeSel");
-    document.getElementById("btnDespesa").style.background="var(--red)";
+    btnDespesa.classList.add("activeSel");
+    btnDespesa.style.background="var(--red)";
   }
 }
 
 /* ====== SALVAR ====== */
 async function salvar(){
-  let data = document.getElementById("m-data").value;
-  let tipo = document.getElementById("m-tipo").value;
-  let cat = document.getElementById("m-cat").value;
-  let sub = document.getElementById("m-sub").value;
-  let desc = document.getElementById("m-descricao").value;
-  let val = document.getElementById("m-valor").value.replace("R$","").replace(".","").replace(",",".").trim();
+  let data = mData.value;
+  let tipo = mTipo.value;
+  let cat = mCat.value;
+  let sub = mSub.value;
+  let desc = mDescricao.value;
+  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
     erro("Preencha todos os campos!");
@@ -381,8 +392,7 @@ async function salvar(){
       url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
 
     }else{
-      url =
-        `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
+      url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
     }
 
     let r = await fetch(url);
@@ -417,8 +427,7 @@ async function excluir(id){
   load(false);
 }
 
-document.getElementById("m-valor")
-  .addEventListener("input", ()=>mascaraValor(document.getElementById("m-valor")));
+mValor.addEventListener("input", ()=>mascaraValor(mValor));
 
 /* ====== INICIAR ====== */
 listar();
