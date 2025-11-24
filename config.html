@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Configurações</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --azul:#1F4E78;
+  --bg:#f4f6f9;
+  --shadow:0 6px 22px rgba(0,0,0,.15);
+  --radius:14px;
+}
+
+body{
+  margin:0;
+  padding:25px;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+}
+
+h1{
+  color:var(--azul);
+  margin-bottom:20px;
+}
+
+.card{
+  background:#fff;
+  padding:22px;
+  margin-bottom:18px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+
+.switch{
+  position:relative;
+  display:inline-block;
+  width:52px;
+  height:28px;
+}
+.switch input{ display:none; }
+.slider{
+  position:absolute;
+  cursor:pointer;
+  top:0; left:0; right:0; bottom:0;
+  background:#ccc;
+  transition:.3s;
+  border-radius:34px;
+}
+.slider:before{
+  position:absolute;
+  content:"";
+  height:22px;
+  width:22px;
+  left:3px;
+  bottom:3px;
+  background:white;
+  border-radius:50%;
+  transition:.3s;
+}
+input:checked + .slider{
+  background:var(--azul);
+}
+input:checked + .slider:before{
+  transform:translateX(24px);
+}
+
+.label{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+  font-size:17px;
+}
+
+#msg{
+  margin-top:12px;
+  font-weight:bold;
+  color:green;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Configurações do Sistema</h1>
+
+<div class="card">
+
+  <div class="label">
+    <span>Enviar relatório mensal por e-mail</span>
+    <label class="switch"><input type="checkbox" id="emailMensal"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Tema escuro</span>
+    <label class="switch"><input type="checkbox" id="temaEscuro"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Backup automático diário</span>
+    <label class="switch"><input type="checkbox" id="backupDiario"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Alertar despesas acima de R$ 500</span>
+    <label class="switch"><input type="checkbox" id="alertaDespesa"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Notificar novo lançamento</span>
+    <label class="switch"><input type="checkbox" id="notificarLancamento"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Mostrar gráficos no Dashboard</span>
+    <label class="switch"><input type="checkbox" id="mostrarGraficos"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Modo compacto</span>
+    <label class="switch"><input type="checkbox" id="modoCompacto"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Acessibilidade (fontes maiores)</span>
+    <label class="switch"><input type="checkbox" id="acessibilidade"><span class="slider"></span></label>
+  </div>
+
+  <!-- 🔥 NOVOS RECURSOS AVANÇADOS -->
+  <div class="label">
+    <span>Bloquear exclusão sem senha</span>
+    <label class="switch"><input type="checkbox" id="bloqueioExclusao"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Ativar logs avançados</span>
+    <label class="switch"><input type="checkbox" id="logsAvancados"><span class="slider"></span></label>
+  </div>
+
+  <div class="label">
+    <span>Carregar painel em modo rápido</span>
+    <label class="switch"><input type="checkbox" id="modoRapido"><span class="slider"></span></label>
+  </div>
+
+</div>
+
+<button onclick="salvar()" style="
+  padding:12px 20px;
+  background:var(--azul);
+  color:white;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+">Salvar Configurações</button>
+
+<div id="msg"></div>
+
+<script>
+
+// 🔧 COLOQUE A URL DO SEU GAS
+const API = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+
+async function carregar(){
+  let r = await fetch(API + "?action=getConfig");
+  let cfg = await r.json();
+
+  [
+    "emailMensal", "temaEscuro", "backupDiario", "alertaDespesa",
+    "notificarLancamento", "mostrarGraficos", "modoCompacto",
+    "acessibilidade", "bloqueioExclusao", "logsAvancados", "modoRapido"
+  ].forEach(id => {
+    if(cfg[id]) document.getElementById(id).checked = (cfg[id] == "1");
+  });
+}
+
+async function salvar(){
+  const data = {};
+
+  [
+    "emailMensal", "temaEscuro", "backupDiario", "alertaDespesa",
+    "notificarLancamento", "mostrarGraficos", "modoCompacto",
+    "acessibilidade", "bloqueioExclusao", "logsAvancados", "modoRapido"
+  ].forEach(id => {
+    data[id] = document.getElementById(id).checked ? "1" : "0";
+  });
+
+  await fetch(API + "?action=saveConfig&data=" + encodeURIComponent(JSON.stringify(data)));
+
+  msg.innerHTML = "Configurações salvas!";
+  setTimeout(()=> msg.innerHTML="", 2000);
+}
+
+carregar();
+
+</script>
+
+</body>
+</html>

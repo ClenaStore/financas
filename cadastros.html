@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Cadastros</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --azul:#1F4E78;
+  --verde:#2ECC71;
+  --bg:#f4f6f9;
+  --shadow:0 6px 22px rgba(0,0,0,0.15);
+}
+
+/* ===== GERAL ===== */
+body{
+  margin:0;
+  padding:25px;
+  background:var(--bg);
+  font-family:Arial, sans-serif;
+}
+
+h1{
+  font-size:38px;
+  color:var(--azul);
+  margin-bottom:25px;
+}
+
+/* ===== BOTÃO PRINCIPAL ===== */
+.btn-green{
+  background:#2ECC71;
+  padding:12px 22px;
+  border:none;
+  color:white;
+  font-size:17px;
+  border-radius:10px;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  margin-bottom:20px;
+}
+.btn-gray{
+  background:#ddd;
+  padding:7px 14px;
+  border:1px solid #bbb;
+  font-size:14px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+/* ===== INPUT DE PESQUISA ===== */
+#busca{
+  width:100%;
+  max-width:340px;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  margin-bottom:18px;
+  font-size:15px;
+}
+
+/* ===== TABELA ===== */
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+thead{
+  background:var(--azul);
+  color:white;
+}
+
+th{
+  padding:14px;
+  font-size:16px;
+  text-align:left;
+  font-weight:600;
+}
+
+td{
+  padding:14px;
+  font-size:15px;
+  border-bottom:1px solid #e4e4e4;
+}
+
+/* ===== MODAL ===== */
+#modal-bg{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(3px);
+  z-index:2000;
+}
+
+.modal{
+  width:420px;
+  background:white;
+  padding:25px;
+  border-radius:15px;
+  animation:pop .25s ease;
+  box-shadow:0 12px 35px rgba(0,0,0,0.25);
+}
+@keyframes pop{
+  from{transform:scale(.85);opacity:.3;}
+  to{transform:scale(1);opacity:1;}
+}
+
+.modal input{
+  width:100%;
+  border:1px solid #ccc;
+  border-radius:10px;
+  padding:11px;
+  margin-bottom:12px;
+}
+
+/* ===== LOADING ===== */
+#loading{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  background:var(--azul);
+  padding:12px 20px;
+  border-radius:10px;
+  color:white;
+  display:none;
+  animation:pulse 1.2s infinite;
+  z-index:999;
+}
+@keyframes pulse{
+  0%{opacity:.5; transform:scale(.95);}
+  50%{opacity:1; transform:scale(1);}
+  100%{opacity:.5; transform:scale(.95);}
+}
+
+/* ===== BOTÕES RECEITA/DESPESA ===== */
+#tipoBtns button{
+  flex:1;
+  opacity:.4;
+}
+.activeSel{
+  opacity:1 !important;
+  box-shadow:0 0 6px #0003;
+}
+</style>
+</head>
+
+<body>
+
+<div id="loading">Carregando...</div>
+
+<h1>Cadastros</h1>
+
+<button class="btn-green" onclick="abrirModal()">+ Novo Cadastro</button>
+
+<input id="busca" placeholder="Pesquisar por categoria ou subcategoria...">
+
+<table>
+  <thead>
+    <tr>
+      <th>Tipo</th>
+      <th>Categoria</th>
+      <th>Subcategoria</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody id="tabela"></tbody>
+</table>
+
+<!-- ========== MODAL ========== -->
+<div id="modal-bg">
+  <div class="modal">
+
+    <h3 id="tituloModal" style="margin-top:0;color:var(--azul)">Novo Cadastro</h3>
+
+    <div id="tipoBtns" style="display:flex; gap:10px; margin-bottom:12px;">
+      <button id="btnReceita" class="btn-gray">Receita</button>
+      <button id="btnDespesa" class="btn-gray">Despesa</button>
+    </div>
+
+    <input id="categoria" list="listaCategorias" placeholder="Categoria" autocomplete="off">
+    <datalist id="listaCategorias"></datalist>
+
+    <input id="subcategoria" list="listaSub" placeholder="Subcategoria" autocomplete="off">
+    <datalist id="listaSub"></datalist>
+
+    <button class="btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
+    <button class="btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
+
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbyInCpy_Ln1XQhcnbsfPHRimjx0frnOQDRgAyPtraKw_scr7uXP631SUyQZpIlUSi7IMA/exec";
+
+let tipoAtual = "";
+let editID = null;
+let dadosGlobais = [];
+
+/* LOADING */
+function load(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
+}
+
+/* BOTÕES RECEITA/DESPESA */
+btnReceita.onclick = ()=>{
+  tipoAtual="Receita";
+  btnReceita.classList.add("activeSel");
+  btnDespesa.classList.remove("activeSel");
+};
+btnDespesa.onclick = ()=>{
+  tipoAtual="Despesa";
+  btnReceita.classList.remove("activeSel");
+  btnDespesa.classList.add("activeSel");
+};
+
+/* MODAL */
+function abrirModal(id=null,t="",c="",s=""){
+  editID = id;
+
+  categoria.value = c || "";
+  subcategoria.value = s || "";
+  tituloModal.innerText = id ? "Editar Cadastro" : "Novo Cadastro";
+
+  btnReceita.classList.remove("activeSel");
+  btnDespesa.classList.remove("activeSel");
+
+  if(t==="Receita") btnReceita.click();
+  if(t==="Despesa") btnDespesa.click();
+
+  document.getElementById("modal-bg").style.display="flex";
+}
+
+function fecharModal(){
+  document.getElementById("modal-bg").style.display="none";
+}
+
+/* LISTAR */
+async function carregar(){
+  load(true);
+
+  let r = await fetch(API+"?action=listCadastros");
+  dadosGlobais = await r.json();
+
+  renderTabela(dadosGlobais);
+  preencherAuto(dadosGlobais);
+
+  load(false);
+}
+
+/* RENDERIZAR TABELA */
+function renderTabela(lista){
+  tabela.innerHTML = lista.map(l=>`
+    <tr>
+      <td>${l[1]}</td>
+      <td>${l[2]}</td>
+      <td>${l[3]}</td>
+      <td>
+        <button class="btn-gray" onclick="abrirModal('${l[0]}','${l[1]}','${l[2]}','${l[3]}')">Editar</button>
+        <button class="btn-gray" onclick="excluir('${l[0]}')">Excluir</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+/* PESQUISA */
+busca.addEventListener("input",()=>{
+
+  const txt = busca.value.toLowerCase().trim();
+
+  const filtrados = dadosGlobais.filter(l =>
+     l[2].toLowerCase().includes(txt) || 
+     l[3].toLowerCase().includes(txt)
+  );
+
+  renderTabela(filtrados);
+});
+
+/* AUTOCOMPLETE */
+function preencherAuto(dados){
+  let cats=new Set(), subs=new Set();
+
+  dados.forEach(l=>{
+    if(l[2]) cats.add(l[2]);
+    if(l[3]) subs.add(l[3]);
+  });
+
+  listaCategorias.innerHTML = [...cats].map(c=>`<option value="${c}">`).join("");
+  listaSub.innerHTML = [...subs].map(s=>`<option value="${s}">`).join("");
+}
+
+/* SALVAR */
+async function salvar(){
+  if(!tipoAtual){ alert("Escolha Receita ou Despesa."); return; }
+
+  let cat = categoria.value.trim();
+  let sub = subcategoria.value.trim();
+
+  if(!cat){ alert("Informe a categoria."); return; }
+
+  load(true);
+
+  let url = editID
+    ? `${API}?action=editCadastro&id=${editID}&tipo=${tipoAtual}&categoria=${cat}&subcategoria=${sub}`
+    : `${API}?action=createCadastro&tipo=${tipoAtual}&categoria=${cat}&subcategoria=${sub}`;
+
+  await fetch(url);
+  fecharModal();
+  carregar();
+}
+
+/* EXCLUIR */
+async function excluir(id){
+  if(!confirm("Excluir cadastro?")) return;
+  load(true);
+  await fetch(API+"?action=deleteCadastro&id="+id);
+  carregar();
+}
+
+/* START */
+carregar();
+</script>
+
+</body>
+</html>

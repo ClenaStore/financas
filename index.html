@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Financeiro • Sistema Completo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --azul:#1F4E78;
+  --azul-escuro:#12375A;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --radius:14px;
+  --shadow:0 6px 20px rgba(0,0,0,0.15);
+  --texto:#FFF;
+}
+
+/* ========================= GERAL ========================= */
+html, body{
+  height:100%;
+  margin:0;
+  overflow:hidden !important;
+  font-family: Arial, sans-serif;
+  background:var(--bg);
+}
+
+body{
+  display:flex;
+}
+
+/* ========================= ANIMAÇÃO DE ABERTURA ========================= */
+#splash{
+  position:fixed;
+  inset:0;
+  background:var(--azul);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:5000;
+  animation:fadeOut 1.2s ease forwards;
+  animation-delay:1.4s;
+}
+
+#splash h1{
+  color:white;
+  font-size:48px;
+  opacity:0;
+  animation:fadeInUp .8s ease forwards;
+}
+
+@keyframes fadeInUp{
+  from{opacity:0; transform:translateY(15px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+@keyframes fadeOut{
+  to{opacity:0; pointer-events:none;}
+}
+
+/* ========================= BOTÃO HAMBÚRGUER ========================= */
+#toggleSidebar{
+  position:fixed;
+  top:20px;
+  left:20px;
+  width:45px;
+  height:45px;
+  background:rgba(0,0,0,0.25);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  cursor:pointer;
+  z-index:3000;
+  transition:0.25s;
+}
+#toggleSidebar:hover{ background:rgba(0,0,0,0.35); }
+
+.hamburger{
+  width:24px;
+  height:3px;
+  background:white;
+  position:relative;
+}
+.hamburger::before,
+.hamburger::after{
+  content:"";
+  width:24px;
+  height:3px;
+  background:white;
+  position:absolute;
+  left:0;
+  transition:.3s;
+}
+.hamburger::before{ top:-8px; }
+.hamburger::after{ top:8px; }
+
+/* ========================= SIDEBAR ========================= */
+#sidebar{
+  width:260px;
+  background:var(--azul);
+  color:white;
+  padding-top:70px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 0 20px rgba(0,0,0,0.3);
+  transition:0.25s;
+  overflow:hidden;
+}
+
+#sidebar h1{
+  text-align:center;
+  margin-bottom:35px;
+  font-size:26px;
+  transition:0.25s;
+}
+
+.menu-btn{
+  padding:18px 25px;
+  color:white;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  text-decoration:none;
+  font-size:18px;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  transition:0.2s;
+}
+.menu-btn:hover{
+  background:var(--azul-escuro);
+  padding-left:35px;
+}
+
+.menu-icone{
+  font-size:22px;
+}
+.menu-texto{
+  transition:0.2s;
+}
+
+/* ======= MODO FECHADO ======= */
+#sidebar.fechado{
+  width:70px;
+}
+#sidebar.fechado h1{
+  opacity:0;
+  transform:scale(.8);
+}
+#sidebar.fechado .menu-texto{
+  display:none;
+}
+#sidebar.fechado .menu-btn{
+  justify-content:center;
+}
+
+/* ========================= CONTEÚDO / FRAME ========================= */
+#conteudo{
+  flex:1;
+  background:var(--bg);
+  overflow:hidden !important;
+  height:100%;
+}
+
+#frame{
+  width:100%;
+  height:100%;
+  border:0;
+  overflow:hidden !important;
+}
+
+iframe{
+  overflow:hidden !important;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ANIMAÇÃO DE INÍCIO -->
+<div id="splash">
+  <h1>Financeiro</h1>
+</div>
+
+<!-- BOTÃO DE EXPANDIR / RECOLHER -->
+<div id="toggleSidebar" onclick="toggleMenu()">
+  <div class="hamburger"></div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <h1>FINANCEIRO</h1>
+
+  <a class="menu-btn" onclick="carregar('home.html')">
+    <span class="menu-icone">🏠</span>
+    <span class="menu-texto">Início</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('cadastros.html')">
+    <span class="menu-icone">🗃️</span>
+    <span class="menu-texto">Cadastros</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('lancamentos.html')">
+    <span class="menu-icone">📤</span>
+    <span class="menu-texto">Lançamentos</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('fluxo.html')">
+    <span class="menu-icone">📈</span>
+    <span class="menu-texto">Fluxo de Caixa</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('dashboard.html')">
+    <span class="menu-icone">📊</span>
+    <span class="menu-texto">Dashboard</span>
+  </a>
+
+  <a class="menu-btn" onclick="carregar('config.html')">
+    <span class="menu-icone">⚙️</span>
+    <span class="menu-texto">Ajustes</span>
+  </a>
+</div>
+
+<!-- ÁREA QUE RECEBE AS PÁGINAS -->
+<div id="conteudo">
+  <iframe id="frame" src="home.html"></iframe>
+</div>
+
+<script>
+/* ================= CARREGAR PÁGINAS ================= */
+function carregar(pagina){
+  document.getElementById("frame").src = pagina;
+}
+
+/* ================= MENU RECOLHÍVEL ================= */
+let sidebarAberto = false;
+
+function toggleMenu(){
+  sidebarAberto = !sidebarAberto;
+  document.getElementById("sidebar").classList.toggle("fechado");
+  salvarEstado();
+}
+
+function salvarEstado(){
+  localStorage.setItem("sidebarEstado", sidebarAberto ? "aberto" : "fechado");
+}
+
+function carregarEstado(){
+  const estado = localStorage.getItem("sidebarEstado");
+  if(estado === "aberto"){
+    sidebarAberto = true;
+  } else {
+    sidebarAberto = false;
+    document.getElementById("sidebar").classList.add("fechado");
+  }
+}
+carregarEstado();
+</script>
+
+</body>
+</html>
