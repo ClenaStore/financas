@@ -83,6 +83,7 @@ body{
   box-shadow:var(--shadow);
   overflow:hidden;
   transition:.2s;
+  cursor:pointer;
 }
 
 .card:hover{
@@ -112,18 +113,55 @@ body{
   margin-bottom:15px;
 }
 
-.card-content a{
-  display:inline-block;
-  padding:10px 16px;
-  background:var(--azul);
-  color:white;
-  text-decoration:none;
-  border-radius:10px;
-  font-size:14px;
+/* POPUP */
+.popup-overlay{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(3px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
 }
 
-.card-content a:hover{
-  background:#163b58;
+.popup{
+  background:white;
+  width:90%;
+  max-width:420px;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 10px 40px rgba(0,0,0,.25);
+  animation:popupIn .25s ease;
+  position:relative;
+}
+
+@keyframes popupIn{
+  from{ transform:scale(.8); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+
+.popup img{
+  width:100%;
+  border-radius:12px;
+}
+
+.popup h3{
+  margin-top:15px;
+  color:var(--azul);
+}
+
+.popup p{
+  opacity:.8;
+}
+
+.popup .close{
+  position:absolute;
+  top:10px; right:14px;
+  font-size:22px;
+  cursor:pointer;
+  color:#444;
 }
 
 /* RESPONSIVO */
@@ -172,38 +210,78 @@ body{
   <div class="cards">
 
     <!-- CARD 1 -->
-    <div class="card">
+    <div class="card" onclick="abrirPopup(
+      'https://clenastore.github.io/financas/paste/gestao.png',
+      'Agendamentos',
+      'Registre e organize seus clientes de forma rápida e prática.'
+    )">
       <img src="https://clenastore.github.io/financas/paste/gestao.png">
       <div class="card-content">
         <h3>Agendamentos</h3>
         <p>Registre e organize seus clientes de forma rápida e prática.</p>
-        <a href="lancamentos.html">Acessar</a>
       </div>
     </div>
 
     <!-- CARD 2 -->
-    <div class="card">
+    <div class="card" onclick="abrirPopup(
+      'https://picsum.photos/500/300?random=22',
+      'Cadastros Financeiros',
+      'Gerencie categorias, subcategorias e tipos.'
+    )">
       <img src="https://picsum.photos/500/300?random=22">
       <div class="card-content">
         <h3>Cadastros Financeiros</h3>
         <p>Gerencie categorias, subcategorias e tipos.</p>
-        <a href="cadastros.html">Acessar</a>
       </div>
     </div>
 
     <!-- CARD 3 -->
-    <div class="card">
+    <div class="card" onclick="abrirPopup(
+      'https://picsum.photos/500/300?random=23',
+      'Relatórios e Gráficos',
+      'Visualize análises completas do seu desempenho financeiro.'
+    )">
       <img src="https://picsum.photos/500/300?random=23">
       <div class="card-content">
         <h3>Relatórios e Gráficos</h3>
         <p>Visualize análises completas do seu desempenho financeiro.</p>
-        <a href="#">Abrir Relatórios</a>
       </div>
     </div>
 
   </div>
 
 </div>
+
+<!-- POPUP GLOBAL -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup" id="popupBox">
+    <span class="close" onclick="fecharPopup()">×</span>
+    <img id="popupImg">
+    <h3 id="popupTitulo"></h3>
+    <p id="popupTexto"></p>
+  </div>
+</div>
+
+<script>
+function abrirPopup(img, titulo, texto){
+  document.getElementById("popupImg").src = img;
+  document.getElementById("popupTitulo").innerText = titulo;
+  document.getElementById("popupTexto").innerText = texto;
+
+  document.getElementById("popupOverlay").style.display = "flex";
+}
+
+function fecharPopup(){
+  document.getElementById("popupOverlay").style.display = "none";
+}
+
+/* FECHAR AO CLICAR FORA */
+document.getElementById("popupOverlay").addEventListener("click", function(e){
+  if(e.target === this){
+    fecharPopup();
+  }
+});
+</script>
 
 </body>
 </html>
