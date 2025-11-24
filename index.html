@@ -11,7 +11,7 @@
   --azul-escuro:#0D2A44;
   --azul-gradiente:linear-gradient(180deg,#1F4E78,#12375A);
   --defrade:rgba(255,255,255,0.10);
-  --bg:#e8edf3; /* ← Fundo mais forte */
+  --bg:#e8edf3;
   --card:#ffffff;
   --radius:14px;
   --shadow:0 8px 28px rgba(0,0,0,0.25);
@@ -31,7 +31,7 @@ body{
   display:flex;
 }
 
-/* ========================= ANIMAÇÃO DE ABERTURA ========================= */
+/* ========================= ANIMAÇÃO DE INÍCIO ========================= */
 #splash{
   position:fixed;
   inset:0;
@@ -113,13 +113,11 @@ body{
   border-top-right-radius:20px;
   border-bottom-right-radius:20px;
 
-  /* Evitar vazamento */
   overflow:hidden;
-
   position:relative;
 }
 
-/* faixa de luz */
+/* faixa de luz lateral */
 #sidebar::before{
   content:"";
   position:absolute;
@@ -128,7 +126,7 @@ body{
   width:8px;
   height:100%;
   background:var(--defrade);
-  box-shadow:-2px 0 12px rgba(0,0,0,0.35);
+  box-shadow:-3px 0 12px rgba(0,0,0,0.35);
 }
 
 #sidebar h1{
@@ -152,6 +150,7 @@ body{
   border-bottom:1px solid rgba(255,255,255,0.08);
   transition:0.2s;
   background:rgba(255,255,255,0.01);
+  position:relative;
 }
 
 .menu-btn:hover{
@@ -160,7 +159,7 @@ body{
   filter:brightness(1.15);
 }
 
-/* ========================= SIDEBAR FECHADO ========================= */
+/* ========================= SIDEBAR RECOLHIDA ========================= */
 #sidebar.fechado{
   width:70px;
 }
@@ -175,18 +174,37 @@ body{
 }
 
 #sidebar.fechado .menu-texto{
-  display:none;
+  display:none !important;
 }
 
+/* Centraliza emoji no modo recolhido */
 #sidebar.fechado .menu-btn{
   justify-content:center;
-  padding-left:0;
+  padding-left:0 !important;
+  text-align:center;
+}
+
+/* Setida ➤ no hover (sem mexer na posição) */
+#sidebar.fechado .menu-btn:hover::after{
+  content:"➤";
+  position:absolute;
+  right:-18px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:18px;
+  color:white;
+  opacity:0.9;
+}
+
+/* Evita deslocamento no hover */
+#sidebar.fechado .menu-btn:hover{
+  padding-left:0 !important;
 }
 
 /* ========================= CONTEÚDO / FRAME ========================= */
 #conteudo{
   flex:1;
-  background:#d8e0e9; /* ← Fundo mais forte e elegante */
+  background:#d8e0e9;
   overflow:hidden !important;
   height:100%;
 }
