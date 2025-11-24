@@ -13,7 +13,7 @@
   --defrade:rgba(255,255,255,0.10);
   --bg:#e8edf3;
   --card:#ffffff;
-  --radius:14px;
+  --radius:20px;
   --shadow:0 8px 28px rgba(0,0,0,0.25);
   --texto:#FFF;
 }
@@ -109,7 +109,6 @@ body{
   flex-direction:column;
   box-shadow:0 0 25px rgba(0,0,0,0.35);
 
-  /* Cantos arredondados na direita */
   border-top-right-radius:20px;
   border-bottom-right-radius:20px;
 
@@ -117,7 +116,7 @@ body{
   position:relative;
 }
 
-/* faixa de luz lateral */
+/* faixa de luz */
 #sidebar::before{
   content:"";
   position:absolute;
@@ -159,7 +158,7 @@ body{
   filter:brightness(1.15);
 }
 
-/* ========================= SIDEBAR RECOLHIDA ========================= */
+/* ========================= MODO FECHADO ========================= */
 #sidebar.fechado{
   width:70px;
 }
@@ -177,14 +176,14 @@ body{
   display:none !important;
 }
 
-/* Centraliza emoji no modo recolhido */
+/* Centralizar emojis */
 #sidebar.fechado .menu-btn{
   justify-content:center;
   padding-left:0 !important;
   text-align:center;
 }
 
-/* Setida ➤ no hover (sem mexer na posição) */
+/* Seta lateral no hover */
 #sidebar.fechado .menu-btn:hover::after{
   content:"➤";
   position:absolute;
@@ -196,17 +195,25 @@ body{
   opacity:0.9;
 }
 
-/* Evita deslocamento no hover */
+/* Evita mover no hover */
 #sidebar.fechado .menu-btn:hover{
   padding-left:0 !important;
 }
 
-/* ========================= CONTEÚDO / FRAME ========================= */
+/* ========================= CONTEÚDO ========================= */
 #conteudo{
   flex:1;
   background:#d8e0e9;
   overflow:hidden !important;
   height:100%;
+
+  /* Curvatura alinhada à sidebar */
+  border-top-left-radius:22px;
+  border-bottom-left-radius:22px;
+  margin-left:-22px;
+  padding-left:22px;
+
+  box-shadow:inset 5px 0 12px rgba(0,0,0,0.08);
 }
 
 #frame{
