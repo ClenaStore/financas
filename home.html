@@ -77,6 +77,12 @@ body{
   margin-top:20px;
 }
 
+/* FADE-IN */
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(15px);}
+  to   { opacity:1; transform:translateY(0);}
+}
+
 .card{
   background:white;
   border-radius:var(--radius);
@@ -84,6 +90,8 @@ body{
   overflow:hidden;
   transition:.2s;
   cursor:pointer;
+  opacity:0;
+  animation:fadeIn .6s ease forwards;
 }
 
 .card:hover{
@@ -138,8 +146,8 @@ body{
 }
 
 @keyframes popupIn{
-  from{ transform:scale(.8); opacity:0; }
-  to{ transform:scale(1); opacity:1; }
+  from{ transform:scale(.8); opacity:0;}
+  to{ transform:scale(1); opacity:1;}
 }
 
 .popup img{
@@ -154,6 +162,26 @@ body{
 
 .popup p{
   opacity:.8;
+}
+
+/* Botão Acessar */
+.popup-btn{
+  display:block;
+  margin-top:18px;
+  padding:12px 16px;
+  background:var(--azul);
+  color:white;
+  text-align:center;
+  border-radius:12px;
+  text-decoration:none;
+  font-size:15px;
+  font-weight:bold;
+  box-shadow:0 4px 14px rgba(0,0,0,.15);
+  transition:.2s;
+}
+
+.popup-btn:hover{
+  background:#163b58;
 }
 
 .popup .close{
@@ -182,7 +210,6 @@ body{
 <!-- HERO / BANNER PRINCIPAL -->
 <div class="hero">
 
-  <!-- TEXTO -->
   <div class="hero-text">
     <h1>Bem-vindo ao Painel Financeiro</h1>
     <p>
@@ -191,13 +218,8 @@ body{
     </p>
   </div>
 
-  <!-- VÍDEO YOUTUBE TEMPORÁRIO -->
   <div class="hero-video">
-    <iframe 
-      src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-      title="YouTube video" 
-      allowfullscreen>
-    </iframe>
+    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video" allowfullscreen></iframe>
   </div>
 
 </div>
@@ -213,7 +235,8 @@ body{
     <div class="card" onclick="abrirPopup(
       'https://clenastore.github.io/financas/paste/gestao.png',
       'Agendamentos',
-      'Registre e organize seus clientes de forma rápida e prática.'
+      'Registre e organize seus clientes de forma rápida e prática.',
+      'lancamentos.html'
     )">
       <img src="https://clenastore.github.io/financas/paste/gestao.png">
       <div class="card-content">
@@ -226,7 +249,8 @@ body{
     <div class="card" onclick="abrirPopup(
       'https://picsum.photos/500/300?random=22',
       'Cadastros Financeiros',
-      'Gerencie categorias, subcategorias e tipos.'
+      'Gerencie categorias, subcategorias e tipos.',
+      'cadastros.html'
     )">
       <img src="https://picsum.photos/500/300?random=22">
       <div class="card-content">
@@ -239,7 +263,8 @@ body{
     <div class="card" onclick="abrirPopup(
       'https://picsum.photos/500/300?random=23',
       'Relatórios e Gráficos',
-      'Visualize análises completas do seu desempenho financeiro.'
+      'Visualize análises completas do seu desempenho financeiro.',
+      '#'
     )">
       <img src="https://picsum.photos/500/300?random=23">
       <div class="card-content">
@@ -259,14 +284,16 @@ body{
     <img id="popupImg">
     <h3 id="popupTitulo"></h3>
     <p id="popupTexto"></p>
+    <a id="popupBotao" href="#" class="popup-btn" target="_blank">Acessar</a>
   </div>
 </div>
 
 <script>
-function abrirPopup(img, titulo, texto){
+function abrirPopup(img, titulo, texto, link){
   document.getElementById("popupImg").src = img;
   document.getElementById("popupTitulo").innerText = titulo;
   document.getElementById("popupTexto").innerText = texto;
+  document.getElementById("popupBotao").href = link;
 
   document.getElementById("popupOverlay").style.display = "flex";
 }
@@ -275,7 +302,7 @@ function fecharPopup(){
   document.getElementById("popupOverlay").style.display = "none";
 }
 
-/* FECHAR AO CLICAR FORA */
+/* FECHAR AO CLICAR FORA DO POPUP */
 document.getElementById("popupOverlay").addEventListener("click", function(e){
   if(e.target === this){
     fecharPopup();
