@@ -76,7 +76,6 @@ body{
   margin-top:20px;
 }
 
-/* Fade-in cards */
 @keyframes fadeIn {
   from { opacity:0; transform:translateY(15px);}
   to   { opacity:1; transform:translateY(0);}
@@ -120,7 +119,7 @@ body{
   margin-bottom:15px;
 }
 
-/* POPUP LADO A LADO (OPÇÃO A) */
+/* POPUP */
 .popup-overlay{
   position:fixed;
   top:0; left:0;
@@ -152,7 +151,7 @@ body{
   to{ transform:scale(1); opacity:1;}
 }
 
-/* Lado esquerdo = imagem */
+/* Imagem */
 .popup-img-box{
   width:50%;
   background:#111;
@@ -164,7 +163,7 @@ body{
   object-fit:cover;
 }
 
-/* Lado direito = texto */
+/* Conteúdo */
 .popup-content{
   width:50%;
   padding:30px;
@@ -187,7 +186,7 @@ body{
   min-height:120px;
 }
 
-/* Botão "Acessar" aparece somente no final */
+/* Botão acessar */
 .popup-btn{
   display:none;
   margin-top:20px;
@@ -207,13 +206,15 @@ body{
   position:absolute;
   top:12px;
   right:18px;
-  font-size:26px;
+  font-size:28px;
   cursor:pointer;
   color:white;
   background:black;
-  padding:5px 12px;
+  padding:5px 14px;
   border-radius:50%;
-  opacity:.8;
+  opacity:.9;
+  z-index:99999;
+  pointer-events:auto;
 }
 
 /* RESPONSIVO */
@@ -264,7 +265,7 @@ body{
     <div class="card" onclick="abrirPopup(
       'https://clenastore.github.io/financas/paste/gestao.png',
       'Agendamentos',
-      'Agendamentos rápidos, claros e sem erros. Controle cada reserva com precisão: dados completos do cliente, local, horário, valores, anexos e status em um só lugar. Automatize pendências, evite conflitos de agenda e acompanhe tudo pelo painel inteligente — simples, moderno e feito para acelerar sua operação.',
+      'Agendamentos rápidos, claros e sem erros...',
       'agendademo.html'
     )">
       <img src="https://clenastore.github.io/financas/paste/gestao.png">
@@ -323,10 +324,9 @@ body{
 
 <script>
 
-/* CONTROLE DO EFEITO DIGITAR */
+/* Texto animado */
 let primeiraVez = true;
 
-/* FUNÇÃO PARA ANIMAÇÃO DE TEXTO */
 function digitarTexto(elemento, texto, callback){
   let i = 0;
   elemento.innerHTML = "";
@@ -370,7 +370,7 @@ function fecharPopup(){
   document.getElementById("popupOverlay").style.display = "none";
 }
 
-/* FECHAR AO CLICAR FORA */
+/* Fechar ao clicar fora */
 document.getElementById("popupOverlay").addEventListener("click", function(e){
   if(e.target === this) fecharPopup();
 });
