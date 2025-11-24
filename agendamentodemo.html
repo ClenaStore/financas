@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Painel de Reservas • DEMO (LocalStorage)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="color-scheme" content="light dark" />
+
+  <style>
+    /* ============ Design base ============ */
+    :root{
+      --bg:#f3f5f9; --card:#ffffff; --text:#0f172a; --muted:#64748b; --line:#e5e7eb;
+      --brand:#2563eb; --brand-2:#1e40af; --ok:#16a34a; --warn:#b45309; --danger:#ef4444;
+      --accent:#f59e0b; --radius:16px;
+      --shadow: 0 12px 30px rgba(2,6,23,.06);
+      --glass: rgba(255,255,255,.6);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b0e14; --card:#0f131b; --text:#e5e7eb; --muted:#9ca3af; --line:#1f2937;
+        --shadow: 0 12px 30px rgba(0,0,0,.35); --glass: rgba(17,24,39,.5);
+      }
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 800px at -10% -20%, rgba(37,99,235,.08), transparent 60%),
+        radial-gradient(900px 700px at 110% -10%, rgba(16,185,129,.08), transparent 60%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    .wrap{max-width:1180px; margin:auto; padding:28px 18px 40px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px}
+    .title{font-size:clamp(1.2rem,2.6vw,1.8rem); font-weight:900; letter-spacing:.2px; display:flex; align-items:center; gap:12px}
+    .badge{font-size:.82rem; background:linear-gradient(90deg,var(--brand),var(--brand-2)); color:#fff;
+      padding:6px 10px; border-radius:999px; box-shadow:var(--shadow)}
+
+    /* Card */
+    .card{
+      background:linear-gradient(180deg,var(--card),var(--card)) padding-box,
+                 linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0)) border-box;
+      border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card-head{display:flex; align-items:center; justify-content:space-between;
+      padding:16px 18px; border-bottom:1px dashed var(--line); background:var(--glass); backdrop-filter: blur(6px)}
+    .card-head h2{margin:0; font-size:1.05rem}
+
+    .section{padding:18px}
+    .section + .section{border-top:1px dashed var(--line)}
+    .section h3{margin:0 0 10px; font-size:1rem; color:var(--muted); font-weight:700; letter-spacing:.3px}
+
+    /* Inputs */
+    label{font-weight:600; font-size:.94rem}
+    input, select, textarea, button{
+      width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--line);
+      background:transparent; color:inherit; font-size:16px; outline:none; transition:.15s;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color:var(--brand); box-shadow:0 0 0 3px rgba(37,99,235,.15)
+    }
+    textarea{min-height:90px; resize:vertical}
+
+    .hint{font-size:.82rem; color:var(--muted)}
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{border:0; cursor:pointer; font-weight:700}
+    .btn-primary{background:linear-gradient(90deg,var(--brand),var(--brand-2)); color:#fff}
+    .btn-ghost{background:#0000; border:1px dashed var(--line)}
+    .btn-danger{background:var(--danger); color:#fff}
+    .btn:disabled{opacity:.6; cursor:not-allowed}
+
+    .row{display:flex; align-items:center; gap:10px}
+    .chip{border:1px solid var(--line); border-radius:999px; padding:6px 10px; font-size:.84rem;
+      color:var(--muted); background:var(--glass); backdrop-filter: blur(6px)}
+
+    /* File Box */
+    .file-box{display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px; border:1px dashed var(--line); border-radius:12px}
+    .file-name{font-size:.9rem; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .spinner{display:none; margin-top:10px; color:var(--muted)}
+    .spinner.show{display:block}
+
+    .toast{
+      position:fixed; inset:auto 16px 16px auto;
+      background:#111827; color:#fff; padding:12px 14px;
+      border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.3);
+      display:none; z-index:50
+    }
+    .toast.show{display:block}
+
+    /* CALENDÁRIO */
+    .cal{padding:16px}
+    .cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
+    .cal-title{font-weight:800; font-size:1.1rem}
+    .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px}
+    .cal-dow{font-size:.9rem; color:var(--muted); text-align:center; padding:6px 0}
+
+    .cal-day{
+      background:transparent; border:1px solid var(--line); border-radius:14px;
+      padding:12px; min-height:120px; cursor:pointer; position:relative;
+      transition:.12s transform ease, .12s box-shadow ease;
+    }
+    .cal-day:hover{
+      transform:translateY(-1px); box-shadow:0 8px 20px rgba(2,6,23,.06)
+    }
+    .cal-day.out{opacity:.45}
+    .cal-day .num{font-weight:900; font-size:1.05rem}
+    .cal-day .tags{
+      position:absolute; bottom:10px; left:10px; right:10px;
+      display:flex; gap:6px; flex-wrap:wrap
+    }
+    .tag{
+      font-size:.78rem; padding:4px 8px; border-radius:999px; border:1px solid var(--line)
+    }
+    .t-pend{background:#fef3c7; border-color:#fde68a}
+    .t-done{background:#dcfce7; border-color:#bbf7d0}
+    .t-vip{ background:#dbeafe; border-color:#93c5fd; color:#1e3a8a }
+    .t-outros{ background:#ffedd5; border-color:#fed7aa; color:#9a3412 }
+
+    /* RESUMO */
+    .summary{padding:16px; border-top:1px dashed var(--line); background:var(--glass)}
+    .summary-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+    @media (max-width:720px){ .summary-grid{grid-template-columns:1fr} }
+
+    .kpi{border:1px solid var(--line); border-radius:12px; padding:14px; background:var(--card)}
+    .kpi .label{font-size:.9rem; color:var(--muted)}
+    .kpi .value{font-size:1.4rem; font-weight:900}
+
+    footer{padding:16px 18px 18px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; flex-wrap:wrap
+    }
+
+    /* MODAIS */
+    .modal{
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      display:none; align-items:flex-end; z-index:60
+    }
+    .modal.show{display:flex}
+
+    .sheet{
+      background:var(--card); width:100%; max-height:82vh;
+      border-radius:18px 18px 0 0;
+      box-shadow:0 -10px 30px rgba(0,0,0,.25); overflow:auto
+    }
+    .sheet h3{margin:14px 16px}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">Reservas • <b>DEMO</b></div>
+      <div class="badge">Cadastro → Calendário → Resumo</div>
+    </header>
+    <!-- ============ FORMULÁRIO (em cima) ============ -->
+    <form id="reservaForm" class="card" novalidate>
+      <div class="card-head"><h2>Nova / Editar Reserva</h2></div>
+
+      <input type="hidden" name="id" id="reservaId" value="" />
+      <input type="hidden" name="status" value="Pendente" />
+
+      <div class="section">
+        <h3>👤 Dados do Cliente</h3>
+        <div class="inline-grid">
+          <div>
+            <label for="nome">Nome Completo *</label>
+            <input id="nome" name="nome" type="text" required />
+          </div>
+
+          <div>
+            <label for="email">E-mail *</label>
+            <input id="email" name="email" type="email" required />
+          </div>
+
+          <div>
+            <label for="telefone">Telefone *</label>
+            <input id="telefone" name="telefone" type="tel" required />
+          </div>
+
+          <div>
+            <label for="pessoas">Quantidade de Pessoas *</label>
+            <input id="pessoas" name="pessoas" type="number" min="1" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🪑 Detalhes da Reserva</h3>
+        <div class="inline-grid">
+          <div>
+            <label for="mesa">Local *</label>
+            <select id="mesa" name="mesa" required>
+              <option value="">Selecione</option>
+              <option>SALA VIP</option>
+              <option>SALA VIP 2</option>
+              <option>SACADA</option>
+              <option>SALÃO CENTRAL</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="cardapio">Cardápio</label>
+            <select id="cardapio" name="cardapio">
+              <option value="">Selecione</option>
+              <option>Buffet Ouro</option>
+              <option>Buffet Diamante</option>
+              <option>Rodízio Pizza</option>
+              <option>À la carte</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="datahora">Data e Hora *</label>
+        <input type="datetime-local" id="datahora" name="datahora" required />
+
+      </div>
+
+      <div class="section">
+        <h3>💳 Pagamento / Sinal</h3>
+
+        <div class="inline-3">
+          <div>
+            <label for="valorEstimado">Valor Estimado</label>
+            <input id="valorEstimado" name="valorEstimado" type="text" />
+          </div>
+
+          <div>
+            <label for="pagamentoAntecipado">Antecipação</label>
+            <input id="pagamentoAntecipado" name="pagamentoAntecipado" type="text" />
+          </div>
+
+          <div>
+            <label for="banco">Banco</label>
+            <select id="banco" name="banco">
+              <option value="">Selecione</option>
+              <option>SICREDI</option>
+              <option>ITAÚ</option>
+              <option>CREDITO POS</option>
+              <option>DEBITO POS</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>📝 Observações</h3>
+        <textarea id="observacoes" name="observacoes" rows="3" placeholder="Preferências, aniversariante, etc."></textarea>
+      </div>
+
+      <footer>
+        <div class="spinner" id="spinner">⬤ Salvando…</div>
+        <div class="toolbar" style="margin-left:auto">
+          <button type="button" id="cancelEdit" class="btn btn-ghost" style="display:none">Cancelar edição</button>
+          <button type="reset" class="btn btn-ghost">Limpar</button>
+          <button type="submit" id="submitBtn" class="btn btn-primary">Salvar Reserva</button>
+        </div>
+      </footer>
+    </form>
+
+    <!-- ============ CALENDÁRIO + RESUMO ============ -->
+    <div class="card" style="margin-top:20px">
+      <div class="card-head">
+        <h2>Calendário de Reservas</h2>
+        <div class="toolbar">
+          <button id="prevMonth" class="btn btn-ghost">◀</button>
+          <button id="todayBtn" class="btn btn-ghost">Hoje</button>
+          <button id="nextMonth" class="btn btn-ghost">▶</button>
+        </div>
+      </div>
+
+      <div class="cal">
+        <div class="cal-head">
+          <div class="cal-title" id="calTitle">—</div>
+        </div>
+
+        <div class="cal-grid" id="calDow"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="summary">
+        <h3 style="margin:0 0 6px; color:var(--muted)">Resumo do mês</h3>
+
+        <div class="summary-grid">
+          <div class="kpi"><div class="label">Antecipado</div><div class="value" id="kpiAntecipado">R$ 0,00</div></div>
+          <div class="kpi"><div class="label">Final pago</div><div class="value" id="kpiFinalPago">R$ 0,00</div></div>
+          <div class="kpi"><div class="label">A receber</div><div class="value" id="kpiAReceber">R$ 0,00</div></div>
+        </div>
+
+        <div class="section" style="padding-top:12px">
+          <div class="kpi" style="display:flex; align-items:center; justify-content:space-between">
+            <div>
+              <div class="label">Total mês</div>
+              <div class="value" id="kpiTotalMes">R$ 0,00</div>
+            </div>
+            <button id="refreshBtn" class="btn btn-ghost" style="width:auto">Atualizar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============ MODAL DO DIA ============ -->
+  <div class="modal" id="dayModal">
+    <div class="sheet">
+      <h3 id="modalTitle">Reservas do dia</h3>
+      <div class="list" id="modalList" style="padding:0 16px 16px"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL CONCLUIR ============ -->
+  <div class="modal" id="finishModal">
+    <div class="sheet" style="max-width:520px; margin:auto; border-radius:16px">
+      <div style="padding:18px 18px 0">
+        <h3>Concluir reserva</h3>
+      </div>
+
+      <div style="padding:0 18px 18px">
+        <div class="hint">Informe o valor final pago</div>
+
+        <label style="margin-top:10px; font-weight:700">Valor final pago</label>
+        <input id="finalPagoInput" type="text" placeholder="0,00" />
+
+        <div class="toolbar" style="margin-top:14px; justify-content:flex-end">
+          <button id="cancelFinish" class="btn btn-ghost">Cancelar</button>
+          <button id="confirmFinish" class="btn btn-primary">Concluir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+<script>
+/* ============================================================
+   🔥 VERSÃO DEMO — TODO O SISTEMA USA LOCALSTORAGE
+   ============================================================ */
+
+/*  
+  Estrutura salva em localStorage:
+  {
+    reservas: [ ... ],
+    expires: timestamp_limpeza
+  }
+*/
+
+/* ===========================
+   🧽 LIMPEZA AUTOMÁTICA 24H
+   =========================== */
+function initStorageDemo(){
+  const raw = localStorage.getItem("reservas_demo");
+  if(!raw){
+    saveStorage({ reservas:[], expires: Date.now()+24*60*60*1000 });
+    return { reservas:[], expires: Date.now()+24*60*60*1000 };
+  }
+
+  try{
+    const data = JSON.parse(raw);
+
+    // expirou?
+    if(Date.now() > data.expires){
+      localStorage.removeItem("reservas_demo");
+      const fresh = { reservas:[], expires: Date.now()+24*60*60*1000 };
+      saveStorage(fresh);
+      return fresh;
+    }
+
+    return data;
+  }catch{
+    const fresh = { reservas:[], expires: Date.now()+24*60*60*1000 };
+    saveStorage(fresh);
+    return fresh;
+  }
+}
+
+function saveStorage(data){
+  localStorage.setItem("reservas_demo", JSON.stringify(data));
+}
+
+let STORAGE = initStorageDemo();
+
+/* ===========================
+   🔧 HELPERS
+   =========================== */
+const $ = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
+const toast = (msg, ms=3000)=>{
+  const t=$("#toast"); 
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), ms);
+};
+
+const formatBRL = (num)=> Number(num||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const parseBRL = (v)=> Number(String(v||"0").replace(/[R$\.\s]/g,"").replace(",",".")||0);
+
+const maskMoney = v=>{
+  const s = v.replace(/[^\d]/g,"");
+  const n = Number(s)/100;
+  return n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+};
+
+/* ===========================
+   📌 ESTADO
+   =========================== */
+const state = {
+  reservas: STORAGE.reservas,
+  mes: (new Date()).getMonth(),
+  ano: (new Date()).getFullYear(),
+  editingId: null
+};
+
+/* ============= CARREGAR DO LOCALSTORAGE ============== */
+function syncStorage(){
+  STORAGE.reservas = [...state.reservas];
+  saveStorage(STORAGE);
+}
+
+/* ===========================
+   📦 CRUD (SEM API)
+   =========================== */
+const api = {
+  listar(ano, mes){
+    return new Promise((resolve)=>{
+      const out = state.reservas.filter(r=>{
+        const d=new Date(r.datahora);
+        return d.getMonth()===mes && d.getFullYear()===ano;
+      });
+      resolve(out);
+    });
+  },
+
+  cadastrar(payload){
+    return new Promise(resolve=>{
+      payload.id = "R" + Date.now();
+      state.reservas.push(payload);
+      syncStorage();
+      resolve({ok:true, message:"Salvo localmente"});
+    });
+  },
+
+  atualizar(id, payload){
+    return new Promise(resolve=>{
+      const idx = state.reservas.findIndex(r=>r.id===id);
+      if(idx>=0){
+        state.reservas[idx] = {...state.reservas[idx], ...payload};
+        syncStorage();
+      }
+      resolve({ok:true, message:"Atualizado localmente"});
+    });
+  },
+
+  excluir(id){
+    return new Promise(resolve=>{
+      state.reservas = state.reservas.filter(r=>r.id!==id);
+      syncStorage();
+      resolve({ok:true});
+    });
+  },
+
+  concluir(id, valorFinalPago){
+    return new Promise(resolve=>{
+      const r = state.reservas.find(x=>x.id===id);
+      if(r){
+        r.valorFinalPago = valorFinalPago;
+        r.status = "Concluída";
+        syncStorage();
+      }
+      resolve({ok:true});
+    });
+  }
+};
+
+/* ===========================
+   📅 CALENDÁRIO
+   =========================== */
+const monthNames = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const dow = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+
+$("#calDow").innerHTML = dow.map(d=>`<div class="cal-dow">${d}</div>`).join("");
+
+function ymd(d){
+  const z=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+}
+
+const calGrid = $("#calGrid");
+
+function buildCalendar(){
+  const {mes, ano} = state;
+  $("#calTitle").textContent = `${monthNames[mes]} de ${ano}`;
+  calGrid.innerHTML = "";
+
+  const first = new Date(ano, mes, 1);
+  const gridStart = new Date(first);
+  const dayStart = first.getDay();
+  gridStart.setDate(first.getDate() - dayStart);
+
+  for(let i=0;i<42;i++){
+    const d = new Date(gridStart); d.setDate(gridStart.getDate() + i);
+    const inMonth = d.getMonth()===mes;
+
+    const btn = document.createElement("button");
+    btn.className = "cal-day" + (inMonth?"":" out");
+    btn.dataset.date = ymd(d);
+
+    const itens = state.reservas.filter(r=> ymd(new Date(r.datahora))===ymd(d));
+
+    const pend = itens.filter(r=> (r.status||"Pendente")!=="Concluída").length;
+    const done = itens.filter(r=> r.status==="Concluída").length;
+
+    btn.innerHTML = `
+      <div class="num">${d.getDate()}</div>
+      <div class="tags">
+        ${pend?`<span class="tag t-pend">Pend: ${pend}</span>`:""}
+        ${done?`<span class="tag t-done">Conc: ${done}</span>`:""}
+      </div>
+    `;
+
+    btn.onclick = ()=> openDayModal(d, itens);
+    calGrid.appendChild(btn);
+  }
+}
+
+/* ===========================
+   📊 RESUMO MENSAL
+   =========================== */
+function updateSummary(){
+  const {mes, ano} = state;
+  const list = state.reservas.filter(r=>{
+    const d=new Date(r.datahora);
+    return d.getMonth()===mes && d.getFullYear()===ano;
+  });
+
+  const sum = (fn)=> list.reduce((a,b)=> a+fn(b), 0);
+
+  const antecipado = sum(r=> parseBRL(r.pagamentoAntecipado||0));
+  const finalPago = sum(r=> parseBRL(r.valorFinalPago||0));
+  const aReceber = sum(r=>{
+    const est=parseBRL(r.valorEstimado||0);
+    const ant=parseBRL(r.pagamentoAntecipado||0);
+    return Math.max(est-ant,0);
+  });
+
+  $("#kpiAntecipado").textContent = formatBRL(antecipado);
+  $("#kpiFinalPago").textContent = formatBRL(finalPago);
+  $("#kpiAReceber").textContent = formatBRL(aReceber);
+  $("#kpiTotalMes").textContent = formatBRL(antecipado+finalPago);
+}
+
+/* ===========================
+   📑 MODAL DO DIA
+   =========================== */
+function renderItem(r){
+  const hora = new Date(r.datahora).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+
+  return `
+    <div class="res-item" data-id="${r.id}"
+      style="border:1px solid var(--line); padding:10px; border-radius:12px; margin-bottom:10px">
+
+      <div class="top" style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap">
+        <div>
+          <div class="name" style="font-weight:800">${r.nome}</div>
+          <div class="meta">${hora} • ${r.mesa} • ${r.pessoas} pessoa(s)</div>
+        </div>
+
+        <div class="row">
+          <button class="btn btn-ghost btn-editar" data-id="${r.id}" style="width:auto">Editar</button>
+          <button class="btn btn-danger btn-excluir" data-id="${r.id}" style="width:auto">Excluir</button>
+          <button class="btn btn-primary btn-concluir" data-id="${r.id}" style="width:auto">Concluir</button>
+        </div>
+      </div>
+
+      <div class="meta"><b>Email:</b> ${r.email}</div>
+      <div class="meta"><b>Tel:</b> ${r.telefone}</div>
+      <div class="meta"><b>Obs:</b> ${r.observacoes||"—"}</div>
+      <div class="meta">Estimado: ${formatBRL(r.valorEstimado||0)} • Sinal: ${formatBRL(r.pagamentoAntecipado||0)} • Final pago: ${formatBRL(r.valorFinalPago||0)}</div>
+    </div>
+  `;
+}
+
+const dayModal = $("#dayModal");
+
+function openDayModal(date, items){
+  $("#modalTitle").textContent = `Reservas de ${date.toLocaleDateString("pt-BR")}`;
+  const list = $("#modalList");
+
+  if(!items.length){
+    list.innerHTML = `<div class="hint">Nenhuma reserva.</div>`;
+  }else{
+    list.innerHTML = items.map(renderItem).join("");
+  }
+
+  // Bind actions
+  $$(".btn-editar").forEach(b=> b.onclick = onClickEditar);
+  $$(".btn-excluir").forEach(b=> b.onclick = onClickExcluir);
+  $$(".btn-concluir").forEach(b=> b.onclick = onClickConcluir);
+
+  dayModal.classList.add("show");
+}
+dayModal.onclick = e=>{
+  if(e.target===dayModal) dayModal.classList.remove("show");
+};
+
+/* ===========================
+   📝 FORMULÁRIO
+   =========================== */
+const form = $("#reservaForm");
+
+$("#valorEstimado").oninput = e=> e.target.value = maskMoney(e.target.value);
+$("#pagamentoAntecipado").oninput = e=> e.target.value = maskMoney(e.target.value);
+
+form.onsubmit = async (e)=>{
+  e.preventDefault();
+
+  const fd = new FormData(form);
+  let obj = Object.fromEntries(fd.entries());
+
+  obj.valorEstimado = parseBRL(obj.valorEstimado);
+  obj.pagamentoAntecipado = parseBRL(obj.pagamentoAntecipado);
+
+  if(state.editingId){
+    await api.atualizar(state.editingId, obj);
+    toast("Atualizado!");
+  }else{
+    await api.cadastrar(obj);
+    toast("Salvo!");
+  }
+
+  state.editingId = null;
+  $("#cancelEdit").style.display="none";
+  form.reset();
+
+  loadMonth(state.ano, state.mes);
+};
+
+function onClickEditar(e){
+  const id = e.target.dataset.id;
+  const r = state.reservas.find(x=>x.id===id);
+  if(!r) return;
+
+  state.editingId = id;
+
+  $("#nome").value = r.nome;
+  $("#email").value = r.email;
+  $("#telefone").value = r.telefone;
+  $("#pessoas").value = r.pessoas;
+  $("#mesa").value = r.mesa;
+  $("#cardapio").value = r.cardapio;
+  $("#datahora").value = r.datahora.slice(0,16);
+  $("#valorEstimado").value = formatBRL(r.valorEstimado);
+  $("#pagamentoAntecipado").value = formatBRL(r.pagamentoAntecipado);
+  $("#banco").value = r.banco;
+  $("#observacoes").value = r.observacoes;
+
+  $("#cancelEdit").style.display="";
+  dayModal.classList.remove("show");
+}
+
+async function onClickExcluir(e){
+  const id = e.target.dataset.id;
+  await api.excluir(id);
+  toast("Excluído!");
+  loadMonth(state.ano, state.mes);
+}
+
+let finishId = null;
+const finishModal = $("#finishModal");
+
+function onClickConcluir(e){
+  finishId = e.target.dataset.id;
+  $("#finalPagoInput").value="";
+  finishModal.classList.add("show");
+}
+
+$("#cancelFinish").onclick = ()=>{
+  finishModal.classList.remove("show");
+  finishId = null;
+};
+
+$("#confirmFinish").onclick = async()=>{
+  const v = parseBRL($("#finalPagoInput").value);
+  if(!(v>0)){ toast("Digite um valor válido"); return; }
+
+  await api.concluir(finishId, v);
+  toast("Concluída!");
+  finishModal.classList.remove("show");
+  finishId=null;
+  loadMonth(state.ano, state.mes);
+};
+
+finishModal.onclick = e=>{
+  if(e.target===finishModal){
+    finishModal.classList.remove("show");
+    finishId=null;
+  }
+};
+
+/* ===========================
+   🔄 NAVEGAÇÃO
+   =========================== */
+$("#prevMonth").onclick = ()=>{
+  const d=new Date(state.ano,state.mes,1);
+  d.setMonth(d.getMonth()-1);
+  state.mes=d.getMonth(); state.ano=d.getFullYear();
+  refreshAll();
+};
+
+$("#nextMonth").onclick = ()=>{
+  const d=new Date(state.ano,state.mes,1);
+  d.setMonth(d.getMonth()+1);
+  state.mes=d.getMonth(); state.ano=d.getFullYear();
+  refreshAll();
+};
+
+$("#todayBtn").onclick = ()=>{
+  const t=new Date();
+  state.mes=t.getMonth(); state.ano=t.getFullYear();
+  refreshAll();
+};
+
+$("#refreshBtn").onclick = refreshAll;
+
+/* ===========================
+   🔁 LOAD MÊS
+   =========================== */
+async function loadMonth(ano, mes){
+  const data = await api.listar(ano, mes);
+  buildCalendar();
+  updateSummary();
+}
+
+/* ===========================
+   🚀 INIT
+   =========================== */
+function refreshAll(){
+  buildCalendar();
+  updateSummary();
+  loadMonth(state.ano, state.mes);
+}
+
+window.onload = ()=>{
+  const now = new Date();
+  $("#datahora").min = now.toISOString().slice(0,16);
+  refreshAll();
+};
+</script>
+
+</body>
+</html>
