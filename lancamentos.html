@@ -83,81 +83,26 @@ h1{
   margin-top:4px;
 }
 
-/* CALENDÁRIO MENSAL */
-.calendario-mes{
-  margin-top:22px;
-  border-top:2px solid var(--dourado);
-  padding-top:18px;
-  display:none;
-}
-
-.grid-mes{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:7px;
-}
-
-/* DIA */
-.dia{
-  background:white;
-  border-radius:14px;
-  padding:10px;
-  min-height:95px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.07);
-  cursor:pointer;
-  transition:.2s;
-  border:1px solid #eee;
-}
-.dia:hover{
-  transform:scale(1.04);
-  border-color:var(--dourado);
-}
-
-/* NÚMERO DO DIA */
-.dia-num{
-  font-weight:700;
-  color:var(--azul);
-  font-size:17px;
-}
-
-/* VALORES */
-.dia-rec{
-  font-size:13px;
-  margin-top:5px;
-  color:var(--green);
-}
-.dia-desp{
-  font-size:13px;
-  color:var(--orange);
-}
-
-.dia-fech{
-  margin-top:4px;
-  font-size:13px;
-  font-weight:700;
-  color:var(--azul);
-}
-
-/* POPUP DIA */
-#popup-dia-bg{
+/* POPUP CENTRAL */
+#popup-bg{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.55);
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:9999;
+  z-index:99999;
   backdrop-filter:blur(3px);
 }
 
-.popup-dia{
-  width:520px;
-  max-height:85vh;
+.popup{
+  width:650px;
+  max-height:90vh;
   overflow-y:auto;
   background:white;
-  padding:22px;
-  border-radius:18px;
-  box-shadow:0 14px 40px rgba(0,0,0,0.3);
+  padding:22px 26px;
+  border-radius:22px;
+  box-shadow:0 18px 48px rgba(0,0,0,0.35);
   animation:pop .25s ease;
 }
 
@@ -166,27 +111,58 @@ h1{
   to{transform:scale(1); opacity:1;}
 }
 
-.popup-dia h2{
-  margin:0;
-  font-size:22px;
+.popup h2{
+  margin:0 0 12px 0;
+  font-size:26px;
   color:var(--azul);
   text-align:center;
-  margin-bottom:15px;
 }
 
-/* LANÇAMENTOS DO DIA */
+/* CALENDÁRIO MENSAL */
+.grid-mes{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:7px;
+  margin-top:15px;
+}
+
+.dia{
+  background:white;
+  border-radius:16px;
+  padding:10px;
+  min-height:95px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.07);
+  cursor:pointer;
+  transition:.2s;
+  border:1px solid #eee;
+}
+.dia:hover{
+  transform:scale(1.05);
+  border-color:var(--dourado);
+}
+
+.dia-num{
+  font-weight:700;
+  color:var(--azul);
+  font-size:17px;
+}
+
+.dia-rec{ font-size:13px; margin-top:5px; color:var(--green); }
+.dia-desp{ font-size:13px; color:var(--orange); }
+.dia-fech{ margin-top:4px; font-size:13px; font-weight:700; color:var(--azul); }
+
+/* LISTA DE LANÇAMENTOS NO POPUP DO DIA */
 .linha{
-  background:#fdfdfd;
-  border-radius:12px;
-  padding:12px 14px;
+  background:white;
+  padding:14px;
   margin-bottom:10px;
+  border-radius:12px;
   border-left:6px solid var(--azul);
-  box-shadow:0 4px 16px rgba(0,0,0,0.08);
+  box-shadow:0 4px 18px rgba(0,0,0,0.10);
 }
 
 .linha.receita{ border-color:var(--green); }
 .linha.despesa{ border-color:var(--orange); }
-
 .linha strong{ font-size:15px; }
 
 /* BOTÕES */
@@ -198,21 +174,26 @@ h1{
   cursor:pointer;
   color:white;
   background:var(--azul);
-  margin-top:10px;
+  margin-top:14px;
   width:100%;
 }
-.btn:hover{
-  opacity:.85;
-}
+.btn:hover{ opacity:.85; }
 
 .btn-gold{
   background:var(--dourado);
   color:var(--azul-escuro);
 }
 .btn-close{
-  background:#888;
-  margin-top:14px;
+  background:#666;
 }
+
+/* ÍCONES DE STATUS */
+.statusIcon{
+  font-size:18px;
+  margin-right:6px;
+}
+.passado{ color:var(--green); }
+.futuro{ color:var(--red); }
 
 </style>
 </head>
@@ -223,27 +204,18 @@ h1{
 
 <div id="ano"></div>
 
-<!-- POPUP DO DIA -->
-<div id="popup-dia-bg">
-  <div class="popup-dia" id="popup-dia">
-    <h2 id="tituloDia"></h2>
-
-    <div id="listaDia"></div>
-
-    <button class="btn btn-gold" onclick="novoLancamentoDia()">+ Novo Lançamento</button>
-    <button class="btn btn-close" onclick="fecharPopupDia()">Fechar</button>
-  </div>
+<!-- POPUP GERAL -->
+<div id="popup-bg">
+  <div class="popup" id="popup"></div>
 </div>
 
 <script>
 /* =============================================
-   API + STORAGE + FUNÇÕES GERAIS
+   CONFIG
 ============================================= */
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
-
-let dadosLanc = [];
-let dadosCat = [];
 let anoAtual = 2025;
+let dadosLanc = [];
 
 /* Máscara R$ 1.000,00 */
 function maskMoney(v){
@@ -252,294 +224,244 @@ function maskMoney(v){
         .replace(/\B(?=(\d{3})+(?!\d))/g,".");
 }
 
-/* Carrega localStorage */
+/* ================================
+   LOCAL STORAGE
+================================ */
 function carregarLocal(){
   const l = localStorage.getItem("lancamentos");
-  if(l){ dadosLanc = JSON.parse(l); }
+  if(l) dadosLanc = JSON.parse(l);
 }
-
-/* Salva localStorage */
 function salvarLocal(){
   localStorage.setItem("lancamentos", JSON.stringify(dadosLanc));
 }
 
-/* Atualizar em segundo plano */
-async function atualizarSegundoPlano(){
+/* ================================
+   ATUALIZAÇÃO EM SEGUNDO PLANO
+================================ */
+async function atualizarBG(){
   try{
     const r = await fetch(API+"?action=listLancamentos");
     const dados = await r.json();
     dadosLanc = dados;
     salvarLocal();
     montarAno();
-  }catch(e){ console.log("Erro atualização BG", e); }
+  }catch(e){}
 }
+setInterval(atualizarBG, 600000);
 
-/* Atuliza a cada 10 min */
-setInterval(atualizarSegundoPlano, 600000);
-
-/* =============================================
+/* ================================
    ANO COMPLETO
-============================================= */
+================================ */
 function montarAno(){
-  const anoDiv = document.getElementById("ano");
-  anoDiv.innerHTML = "";
-
   const meses = [
     "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
     "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
   ];
 
+  const ano = document.getElementById("ano");
+  ano.innerHTML = "";
+
   meses.forEach((m,i)=>{
     const card = document.createElement("div");
     card.className="card-mes";
-    const indiceMes = i+1;
+    const mes = i+1;
 
-    const lancMes = dadosLanc.filter(l=>{
+    const lanc = dadosLanc.filter(l=>{
       const d = new Date(l[1]);
-      return d.getFullYear()==anoAtual && (d.getMonth()+1)==indiceMes;
+      return d.getFullYear()==anoAtual && (d.getMonth()+1)==mes;
     });
 
-    const rec = lancMes.filter(l=>l[2]==="Receita")
-                       .reduce((t,x)=>t+Number(x[6]),0);
-    const desp = lancMes.filter(l=>l[2]==="Despesa")
-                        .reduce((t,x)=>t+Number(x[6]),0);
-
-    const fech = rec - desp;
+    const rec = lanc.filter(l=>l[2]==="Receita").reduce((t,x)=>t+Number(x[6]),0);
+    const desp = lanc.filter(l=>l[2]==="Despesa").reduce((t,x)=>t+Number(x[6]),0);
 
     card.innerHTML = `
       <h2>${m}</h2>
       <div class="resumo-mes">
         <span style="color:var(--green)">Receitas: ${maskMoney(rec)}</span>
         <span style="color:var(--orange)">Despesas: ${maskMoney(desp)}</span>
-        <span style="color:var(--azul); font-weight:700;">Fechamento: ${maskMoney(fech)}</span>
+        <span style="color:var(--azul); font-weight:700">Fechamento: ${maskMoney(rec-desp)}</span>
       </div>
-      <div class="calendario-mes" id="cal-${indiceMes}"></div>
     `;
 
-    card.onclick = ()=> abrirMes(indiceMes);
+    card.onclick = ()=> abrirMesPopup(m, mes);
 
-    anoDiv.appendChild(card);
+    ano.appendChild(card);
   });
 }
 
-/* =============================================
-   FUNÇÃO PARA ABRIR O MÊS (GERAR CALENDÁRIO)
-============================================= */
-function abrirMes(mes){
-  const alvo = document.getElementById("cal-"+mes);
+/* ================================
+   POPUP DO MÊS
+================================ */
+function abrirMesPopup(nomeMes, mes){
+  const popup = document.getElementById("popup");
+  const bg = document.getElementById("popup-bg");
 
-  // Fecha se já está aberto
-  if(alvo.style.display === "block"){
-    alvo.style.display = "none";
-    alvo.innerHTML = "";
-    return;
-  }
-
-  // Fecha todos os outros
-  document.querySelectorAll(".calendario-mes").forEach(c=>{
-    c.style.display="none";
-    c.innerHTML="";
-  });
-
-  alvo.style.display = "block";
-
-  gerarCalendarioMes(mes, alvo);
-}
-
-/* =============================================
-   GERAR CALENDÁRIO DO MÊS
-============================================= */
-function gerarCalendarioMes(mes, alvo){
-  alvo.innerHTML = "";
-
-  const nomeMes = [
-    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
-  ][mes-1];
-
-  const titulo = document.createElement("h3");
-  titulo.style.color = "var(--azul)";
-  titulo.style.margin = "0 0 15px 0";
-  titulo.style.textAlign = "center";
-  titulo.style.fontSize = "20px";
-  titulo.innerText = nomeMes + " de " + anoAtual;
-
-  const grid = document.createElement("div");
-  grid.className = "grid-mes";
-
-  const primeiroDia = new Date(anoAtual, mes-1, 1);
-  const ultimoDia = new Date(anoAtual, mes, 0);
-
-  const inicioSemana = primeiroDia.getDay();
-  const totalDias = ultimoDia.getDate();
-
-  // Espaços vazios antes do dia 1
-  for(let i=0;i<inicioSemana;i++){
-    const vazio = document.createElement("div");
-    grid.appendChild(vazio);
-  }
-
-  // Dias do mês
-  for(let d=1; d<=totalDias; d++){
-    const dataISO = `${anoAtual}-${String(mes).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const diaDiv = document.createElement("div");
-    diaDiv.className = "dia";
-
-    const lanc = dadosLanc.filter(x => x[1].startsWith(dataISO));
-    const rec = lanc.filter(x=>x[2]==="Receita").reduce((t,x)=>t+Number(x[6]),0);
-    const desp = lanc.filter(x=>x[2]==="Despesa").reduce((t,x)=>t+Number(x[6]),0);
-    const fech = rec - desp;
-
-    diaDiv.innerHTML = `
-      <div class="dia-num">${d}</div>
-      <div class="dia-rec">R: ${maskMoney(rec)}</div>
-      <div class="dia-desp">D: ${maskMoney(desp)}</div>
-      <div class="dia-fech">${maskMoney(fech)}</div>
-    `;
-
-    diaDiv.onclick = ()=> abrirDia(dataISO);
-
-    grid.appendChild(diaDiv);
-  }
-
-  alvo.appendChild(titulo);
-  alvo.appendChild(grid);
-}
-
-/* =============================================
-   POPUP DO DIA
-============================================= */
-function abrirDia(dataISO){
-  const bg = document.getElementById("popup-dia-bg");
-  const listaDia = document.getElementById("listaDia");
-  const tituloDia = document.getElementById("tituloDia");
-
+  popup.innerHTML = "";
   bg.style.display = "flex";
 
-  const d = new Date(dataISO);
-  const nomeMes = d.toLocaleString("pt-BR",{month:"long"});
-  tituloDia.innerText = `${d.getDate()} de ${nomeMes} de ${d.getFullYear()}`;
+  const lancMes = dadosLanc.filter(l=>{
+    const d=new Date(l[1]);
+    return d.getFullYear()==anoAtual && (d.getMonth()+1)==mes;
+  });
 
-  const lanc = dadosLanc.filter(x=>x[1].startsWith(dataISO));
+  const rec = lancMes.filter(l=>l[2]=="Receita").reduce((t,x)=>t+Number(x[6]),0);
+  const desp = lancMes.filter(l=>l[2]=="Despesa").reduce((t,x)=>t+Number(x[6]),0);
+  const fech = rec - desp;
 
-  listaDia.innerHTML = "";
+  popup.innerHTML = `
+    <h2>${nomeMes} de ${anoAtual}</h2>
 
-  if(lanc.length === 0){
-    listaDia.innerHTML = `<p style="text-align:center; color:#777;">Nenhum lançamento neste dia.</p>`;
+    <div class="resumo-mes" style="text-align:center; margin-bottom:20px;">
+      <span style="color:var(--green)">Receitas: ${maskMoney(rec)}</span>
+      <span style="color:var(--orange)">Despesas: ${maskMoney(desp)}</span>
+      <span style="color:var(--azul); font-weight:700">Fechamento: ${maskMoney(fech)}</span>
+    </div>
+
+    <button class="btn-gold" onclick="novoLancamentoMes(${mes})">+ Novo Lançamento para este mês</button>
+
+    <h3 style="text-align:center; color:var(--azul); margin-top:25px;">Calendário</h3>
+    <div id="gridMes"></div>
+
+    <button class="btn-close" onclick="fecharPopup()">Fechar</button>
+  `;
+
+  gerarCalendarMes(mes);
+}
+
+/* ================================
+   CALENDÁRIO DO MÊS
+================================ */
+function gerarCalendarMes(mes){
+  const alvo = document.getElementById("gridMes");
+  alvo.className = "grid-mes";
+  alvo.innerHTML="";
+
+  const primeiro = new Date(anoAtual, mes-1, 1);
+  const ultimo = new Date(anoAtual, mes, 0);
+
+  const inicio = primeiro.getDay();
+  const total = ultimo.getDate();
+
+  for(let i=0;i<inicio;i++){
+    alvo.appendChild(document.createElement("div"));
   }
 
-  lanc.sort((a,b)=> Number(a[0]) - Number(b[0]));
+  for(let d=1; d<=total; d++){
+    const iso = `${anoAtual}-${String(mes).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const diaDiv=document.createElement("div");
+    diaDiv.className="dia";
+
+    const lanc = dadosLanc.filter(x=>x[1].startsWith(iso));
+
+    const rec = lanc.filter(l=>l[2]=="Receita").reduce((t,x)=>t+Number(x[6]),0);
+    const desp= lanc.filter(l=>l[2]=="Despesa").reduce((t,x)=>t+Number(x[6]),0);
+
+    diaDiv.innerHTML=`
+      <div class='dia-num'>${d}</div>
+      <div class='dia-rec'>R: ${maskMoney(rec)}</div>
+      <div class='dia-desp'>D: ${maskMoney(desp)}</div>
+      <div class='dia-fech'>${maskMoney(rec-desp)}</div>
+    `;
+    diaDiv.onclick = ()=> abrirDiaPopup(iso);
+
+    alvo.appendChild(diaDiv);
+  }
+}
+
+/* ================================
+   POPUP DO DIA
+================================ */
+function abrirDiaPopup(iso){
+  const popup = document.getElementById("popup");
+  const bg = document.getElementById("popup-bg");
+
+  popup.innerHTML="";
+  bg.style.display="flex";
+
+  const d=new Date(iso);
+  const nomeMes=d.toLocaleString("pt-BR",{month:"long"});
+  const hoje=new Date();
+
+  popup.innerHTML=`
+    <h2>${d.getDate()} de ${nomeMes}</h2>
+
+    <div id="listaDia"></div>
+
+    <button class="btn-gold" onclick="novoLancamentoDia('${iso}')">+ Novo Lançamento</button>
+    <button class="btn-close" onclick="fecharPopup()">Fechar</button>
+  `;
+
+  const lanc = dadosLanc.filter(x=>x[1].startsWith(iso));
+  const lista = document.getElementById("listaDia");
+
+  if(lanc.length==0){
+    lista.innerHTML="<p style='text-align:center;color:#777'>Nenhum lançamento.</p>";
+  }
+
+  lanc.sort((a,b)=>Number(a[0])-Number(b[0]));
 
   lanc.forEach(l=>{
-    const linha = document.createElement("div");
-    linha.className = "linha " + (l[2]==="Receita" ? "receita" : "despesa");
+    const linha=document.createElement("div");
+    linha.className="linha "+(l[2]=="Receita"?"receita":"despesa");
 
-    linha.innerHTML = `
+    const dataLanc = new Date(l[1]);
+    const status = dataLanc < hoje 
+        ? "<span class='statusIcon passado'>✔</span>" 
+        : "<span class='statusIcon futuro'>✖</span>";
+
+    linha.innerHTML=`
+      ${status}
       <strong>${l[2]}</strong><br>
       Categoria: ${l[3]}<br>
       Sub: ${l[4]}<br>
       Desc: ${l[5]}<br>
-      Valor: ${maskMoney(l[6])}<br><br>
-      <button class="btn" onclick="editarLanc('${l[0]}')">Editar</button>
-      <button class="btn" style="background:var(--red)" onclick="excluirLanc('${l[0]}','${dataISO}')">Excluir</button>
+      Valor: ${maskMoney(l[6])}
     `;
 
-    listaDia.appendChild(linha);
+    lista.appendChild(linha);
   });
-
-  // Salvar dia escolhido
-  localStorage.setItem("diaAtual", dataISO);
 }
 
-function fecharPopupDia(){
-  document.getElementById("popup-dia-bg").style.display = "none";
-}
-
-/* =============================================
-   NOVO LANÇAMENTO DIRETO DO DIA
-============================================= */
-function novoLancamentoDia(){
-  const dia = localStorage.getItem("diaAtual");
-  if(!dia) return alert("Erro ao definir data.");
-
-  const data = prompt("Data:", dia);
-  const tipo = prompt("Tipo (Receita / Despesa):");
-  const categoria = prompt("Categoria:");
+/* ================================
+   LANÇAMENTOS
+================================ */
+function novoLancamentoMes(mes){
+  const data = prompt("Data (AAAA-MM-DD):", `${anoAtual}-${String(mes).padStart(2,"0")}-01`);
+  const tipo = prompt("Tipo (Receita/Despesa):");
+  const cat = prompt("Categoria:");
   const sub = prompt("Subcategoria:");
   const desc = prompt("Descrição:");
-  const valor = prompt("Valor (EX: 1000.50):");
+  const val = prompt("Valor:");
 
-  if(!data||!tipo||!categoria||!sub||!desc||!valor){
-    alert("Preencha todos os campos.");
-    return;
-  }
-
-  fetch(`${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${categoria}&subcategoria=${sub}&descricao=${desc}&valor=${valor}`)
-    .then(r=>r.json())
-    .then(j=>{
-      if(j.status==="ok"){
-        atualizarSegundoPlano();
-        abrirDia(data);
-      }else{
-        alert("Erro ao salvar.");
-      }
-    });
+  fetch(`${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`)
+    .then(r=>r.json()).then(()=>atualizarBG());
 }
 
-/* =============================================
-   EDITAR LANÇAMENTO
-============================================= */
-function editarLanc(id){
-  const l = dadosLanc.find(x=>x[0]==id);
-  if(!l) return;
+function novoLancamentoDia(iso){
+  const tipo = prompt("Tipo (Receita/Despesa):");
+  const cat = prompt("Categoria:");
+  const sub = prompt("Subcategoria:");
+  const desc = prompt("Descrição:");
+  const val = prompt("Valor:");
 
-  const data = prompt("Data:", l[1]);
-  const tipo = prompt("Tipo (Receita / Despesa):", l[2]);
-  const categoria = prompt("Categoria:", l[3]);
-  const sub = prompt("Subcategoria:", l[4]);
-  const desc = prompt("Descrição:", l[5]);
-  const valor = prompt("Valor:", l[6]);
-
-  const campos = JSON.stringify({data,tipo,categoria,subcategoria:sub,descricao:desc,valor});
-
-  fetch(`${API}?action=editLancamento&id=${id}&campos=${encodeURIComponent(campos)}`)
-    .then(r=>r.json())
-    .then(j=>{
-      if(j.status==="ok"){
-        atualizarSegundoPlano();
-        abrirDia(data);
-      }else{
-        alert("Erro ao editar.");
-      }
-    });
+  fetch(`${API}?action=createLancamento&data=${iso}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`)
+    .then(r=>r.json()).then(()=>atualizarBG());
 }
 
-/* =============================================
-   EXCLUIR LANÇAMENTO
-============================================= */
-function excluirLanc(id, dia){
-  if(!confirm("Excluir lançamento?")) return;
-
-  fetch(`${API}?action=deleteLancamento&id=${id}`)
-    .then(r=>r.json())
-    .then(j=>{
-      atualizarSegundoPlano();
-      abrirDia(dia);
-    });
+/* ================================
+   FECHAR POPUP
+================================ */
+function fecharPopup(){
+  document.getElementById("popup-bg").style.display="none";
 }
 
-/* =============================================
-   INICIALIZAÇÃO
-============================================= */
-async function iniciar(){
-  carregarLocal();
-  montarAno();
+/* ================================
+   INICIAR
+================================ */
+carregarLocal();
+montarAno();
+atualizarBG();
 
-  // Atualiza em segundo plano
-  atualizarSegundoPlano();
-}
-
-iniciar();
 </script>
 
 </body>
