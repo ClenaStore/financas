@@ -6,6 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* ============================
+   PALETA & VISUAL PREMIUM
+============================ */
 :root{
   --azul:#1F4E78;
   --bg:#f4f6f9;
@@ -13,9 +16,11 @@
   --red:#e74c3c;
   --gray:#999;
   --shadow:0 6px 22px rgba(0,0,0,0.15);
+  --radius:16px;
+  --card:#ffffff;
 }
 
-/* GERAL */
+/* BASE */
 body{
   margin:0;
   padding:25px;
@@ -24,19 +29,50 @@ body{
 }
 
 h2{
-  margin-bottom:18px;
+  margin-bottom:10px;
   color:var(--azul);
   font-size:32px;
+  font-weight:bold;
+}
+
+.section-title{
+  margin-top:35px;
+  font-size:24px;
+  color:#2c3e50;
+  font-weight:bold;
+}
+
+/* CARDS DE TOTAL */
+.card-total{
+  background:var(--card);
+  padding:15px 20px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  margin:12px 0;
+}
+
+.card-total h3{
+  margin:0;
+  font-size:20px;
+  color:var(--azul);
+}
+
+.card-total p{
+  margin:6px 0 0;
+  font-size:17px;
+  color:#333;
 }
 
 /* Botões */
 .btn{
   padding:12px 18px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   color:white;
   font-size:16px;
   cursor:pointer;
+  box-shadow:var(--shadow);
+  margin-bottom:10px;
 }
 .btn-green{ background:var(--green); }
 .btn-gray{ background:var(--gray); }
@@ -54,21 +90,20 @@ h2{
   animation:pulse 1.2s infinite;
   z-index:900;
 }
-
 @keyframes pulse{
   0%{opacity:.5; transform:scale(.95);}
   50%{opacity:1; transform:scale(1);}
   100%{opacity:.5; transform:scale(.95);}
 }
 
-/* TABELA */
+/* TABELAS */
 table{
   width:100%;
   background:white;
   border-collapse:collapse;
   border-radius:12px;
   overflow:hidden;
-  margin-top:20px;
+  margin-top:10px;
   box-shadow:var(--shadow);
 }
 th{
@@ -93,7 +128,6 @@ td{
   backdrop-filter:blur(3px);
   z-index:2000;
 }
-
 .modal{
   width:420px;
   background:white;
@@ -106,7 +140,6 @@ td{
   from{transform:scale(.85); opacity:.3;}
   to{transform:scale(1); opacity:1;}
 }
-
 .modal input{
   width:100%;
   border:1px solid #ccc;
@@ -124,6 +157,27 @@ td{
   opacity:1 !important;
   box-shadow:0 0 6px #0003;
 }
+
+/* GRUPOS */
+.grupoMes{
+  margin-top:30px;
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+
+.grupoHeader{
+  background:var(--azul);
+  color:white;
+  padding:12px 16px;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.grupoBody{
+  display:none;
+  padding-bottom:10px;
+}
+
 </style>
 </head>
 
@@ -136,20 +190,7 @@ td{
 
 <button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
 
-<table>
-  <thead>
-    <tr>
-      <th>Data</th>
-      <th>Tipo</th>
-      <th>Categoria</th>
-      <th>Subcategoria</th>
-      <th>Descrição</th>
-      <th>Valor</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody id="lista"></tbody>
-</table>
+<div id="conteudo"></div>
 
 <!-- MODAL -->
 <div id="modal-bg">
@@ -166,11 +207,9 @@ td{
 
     <input type="hidden" id="mTipo">
 
-    <!-- Categoria com filtro inteligente -->
     <input list="listaCat" id="mCat" placeholder="Categoria" autocomplete="off">
     <datalist id="listaCat"></datalist>
 
-    <!-- Subcategoria com filtro inteligente -->
     <input list="listaSub" id="mSub" placeholder="Subcategoria" autocomplete="off">
     <datalist id="listaSub"></datalist>
 
@@ -179,7 +218,6 @@ td{
 
     <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
     <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
-
   </div>
 </div>
 
@@ -196,8 +234,6 @@ function formatarData(iso){
          d.getFullYear();
 }
 
-/* ELEMENTOS */
-const lista = document.getElementById("lista");
 const modalBg = document.getElementById("modal-bg");
 const msg = document.getElementById("msg");
 
@@ -208,13 +244,16 @@ const mSub = document.getElementById("mSub");
 const mDesc = document.getElementById("mDesc");
 const mValor = document.getElementById("mValor");
 
+const listaCat = document.getElementById("listaCat");
+const listaSub = document.getElementById("listaSub");
+
 const btnReceita = document.getElementById("btnReceita");
 const btnDespesa = document.getElementById("btnDespesa");
 const tituloModal = document.getElementById("tituloModal");
 
 let editandoID = null;
 
-/* Loading */
+/* LOADING */
 function load(v){
   document.getElementById("loading").style.display = v ? "flex" : "none";
 }
@@ -231,35 +270,113 @@ mValor.addEventListener("input",()=>{
 });
 
 /* RECEITA / DESPESA */
-btnReceita.onclick = ()=>{
+btnReceita.onclick=()=>{
   mTipo.value="Receita";
   btnReceita.classList.add("activeSel");
   btnDespesa.classList.remove("activeSel");
 };
-btnDespesa.onclick = ()=>{
+btnDespesa.onclick=()=>{
   mTipo.value="Despesa";
   btnDespesa.classList.add("activeSel");
   btnReceita.classList.remove("activeSel");
 };
 
-/* ===== FILTRO INTELIGENTE ===== */
+/* FILTRO */
 function filtroInteligente(input, datalist){
   const valores = [...datalist.options].map(o=>o.value);
 
   input.addEventListener("input",()=>{
-
     const txt = input.value.toLowerCase();
-
     datalist.innerHTML = valores
       .filter(v => v.toLowerCase().includes(txt))
       .map(v => `<option value="${v}">`)
       .join("");
+  });
+}
 
-    input.dataset.valid = valores.includes(input.value) ? "1" : "0";
+/* RENDERIZAÇÃO POR MÊS */
+function renderizar(dados){
+  const conteudo = document.getElementById("conteudo");
+  conteudo.innerHTML="";
+
+  const hoje = new Date();
+
+  const grupos = {};
+
+  dados.forEach(l=>{
+    const data = new Date(l[1]);
+    const mes = data.toLocaleString("pt-BR",{month:"long"}) + " / " + data.getFullYear();
+
+    if(!grupos[mes]) grupos[mes] = {lista:[], receita:0, despesa:0};
+    grupos[mes].lista.push(l);
+
+    if(l[2]==="Receita") grupos[mes].receita += Number(l[6]);
+    else grupos[mes].despesa += Number(l[6]);
   });
 
-  input.addEventListener("blur",()=>{
-    if(input.dataset.valid !== "1") input.value="";
+  /* ORDENAR MESES DO MAIS RECENTE PARA O MAIS ANTIGO */
+  const mesesOrdenados = Object.keys(grupos).sort((a,b)=>{
+    const [ma,aa] = a.split(" / ");
+    const [mb,ab] = b.split(" / ");
+    return new Date(aa, new Date(Date.parse(ma+" 1")).getMonth()) -
+           new Date(ab, new Date(Date.parse(mb+" 1")).getMonth());
+  }).reverse();
+
+  mesesOrdenados.forEach(mes=>{
+    const g = grupos[mes];
+
+    const div = document.createElement("div");
+    div.className="grupoMes";
+
+    const h = document.createElement("div");
+    h.className="grupoHeader";
+    h.innerHTML = `${mes} — Receita: R$ ${g.receita.toFixed(2)} | Despesa: R$ ${g.despesa.toFixed(2)}`;
+    h.onclick = ()=>{ body.style.display = body.style.display==="none"?"block":"none"; };
+
+    const body = document.createElement("div");
+    body.className="grupoBody";
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Categoria</th>
+            <th>Subcategoria</th>
+            <th>Descrição</th>
+            <th>Valor</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    g.lista.forEach(l=>{
+      html += `
+        <tr>
+          <td>${formatarData(l[1])}</td>
+          <td>${l[2]}</td>
+          <td>${l[3]}</td>
+          <td>${l[4]}</td>
+          <td>${l[5]}</td>
+          <td>R$ ${Number(l[6]).toFixed(2)}</td>
+          <td>
+            <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
+            <button onclick="excluir('${l[0]}')">Excluir</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += "</tbody></table>";
+
+    body.innerHTML = html;
+
+    div.appendChild(h);
+    div.appendChild(body);
+
+    conteudo.appendChild(div);
   });
 }
 
@@ -269,26 +386,12 @@ async function listar(){
   const r = await fetch(API+"?action=listLancamentos");
   const dados = await r.json();
 
-  lista.innerHTML = dados.map(l=>`
-    <tr>
-      <td>${formatarData(l[1])}</td>
-      <td>${l[2]}</td>
-      <td>${l[3]}</td>
-      <td>${l[4]}</td>
-      <td>${l[5]}</td>
-      <td>R$ ${Number(l[6]).toFixed(2)}</td>
-      <td>
-        <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
-        <button onclick="excluir('${l[0]}')">Excluir</button>
-      </td>
-    </tr>
-  `).join("");
-
   await carregarCategorias();
+  renderizar(dados);
   load(false);
 }
 
-/* CARREGAR LISTAS */
+/* CATEGORIAS */
 async function carregarCategorias(){
   const r = await fetch(API+"?action=listCadastros");
   const dados = await r.json();
@@ -317,7 +420,6 @@ function abrirModal(id=null){
 
   tituloModal.innerText="Novo Lançamento";
 }
-
 function fecharModal(){ modalBg.style.display="none"; }
 
 /* EDITAR */
@@ -350,12 +452,6 @@ async function salvar(){
     erro("Preencha tudo!");
     return;
   }
-
-  const cats = [...listaCat.options].map(o=>o.value);
-  const subs = [...listaSub.options].map(o=>o.value);
-
-  if(!cats.includes(cat)){ erro("Categoria inválida!"); return; }
-  if(!subs.includes(sub)){ erro("Subcategoria inválida!"); return; }
 
   load(true);
 
