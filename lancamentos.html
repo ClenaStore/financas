@@ -13,7 +13,7 @@
   --azul:#1F4E78;
   --bg:#f4f6f9;
   --green:#2ecc71;
-  --red:#e74c3c;
+  --orange:#ff9f43;
   --gray:#999;
   --shadow:0 6px 22px rgba(0,0,0,0.15);
   --radius:16px;
@@ -116,6 +116,26 @@ td{
   padding:12px;
   border-bottom:1px solid #e4e4e4;
 }
+
+/* Colorir linhas */
+.receita-row td{
+  background:#e8f8ee !important;
+  color:#1c7a3c;
+  font-weight:bold;
+}
+.despesa-row td{
+  background:#fff3e6 !important;
+  color:#bf6d1d;
+  font-weight:bold;
+}
+
+/* Ícones */
+.statusIcon{
+  font-size:18px;
+  margin-right:6px;
+}
+.passado{ color:#2ecc71; }  /* Verde */
+.futuro{ color:#e74c3c; }   /* Vermelho */
 
 /* MODAL */
 #modal-bg{
@@ -226,12 +246,18 @@ const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasn
 
 /* ===== FORMATAR DATA ===== */
 function formatarData(iso){
-  if(!iso) return "";
   const d = new Date(iso);
   if(isNaN(d)) return iso;
-  return String(d.getDate()).padStart(2,'0') + "/" +
-         String(d.getMonth()+1).padStart(2,'0') + "/" +
-         d.getFullYear();
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+const hoje = new Date();
+
+function getStatusIcon(dataISO){
+  const d = new Date(dataISO);
+  if(d < hoje) return `<span class="statusIcon passado">✔</span>`;
+  if(d > hoje) return `<span class="statusIcon futuro">✖</span>`;
+  return "";
 }
 
 const modalBg = document.getElementById("modal-bg");
@@ -243,13 +269,6 @@ const mCat = document.getElementById("mCat");
 const mSub = document.getElementById("mSub");
 const mDesc = document.getElementById("mDesc");
 const mValor = document.getElementById("mValor");
-
-const listaCat = document.getElementById("listaCat");
-const listaSub = document.getElementById("listaSub");
-
-const btnReceita = document.getElementById("btnReceita");
-const btnDespesa = document.getElementById("btnDespesa");
-const tituloModal = document.getElementById("tituloModal");
 
 let editandoID = null;
 
@@ -281,27 +300,12 @@ btnDespesa.onclick=()=>{
   btnReceita.classList.remove("activeSel");
 };
 
-/* FILTRO */
-function filtroInteligente(input, datalist){
-  const valores = [...datalist.options].map(o=>o.value);
-
-  input.addEventListener("input",()=>{
-    const txt = input.value.toLowerCase();
-    datalist.innerHTML = valores
-      .filter(v => v.toLowerCase().includes(txt))
-      .map(v => `<option value="${v}">`)
-      .join("");
-  });
-}
-
-/* RENDERIZAÇÃO POR MÊS */
+/* ===== RENDERIZAÇÃO POR MÊS ===== */
 function renderizar(dados){
   const conteudo = document.getElementById("conteudo");
   conteudo.innerHTML="";
 
-  const hoje = new Date();
-
-  const grupos = {};
+  const grupos={};
 
   dados.forEach(l=>{
     const data = new Date(l[1]);
@@ -314,13 +318,7 @@ function renderizar(dados){
     else grupos[mes].despesa += Number(l[6]);
   });
 
-  /* ORDENAR MESES DO MAIS RECENTE PARA O MAIS ANTIGO */
-  const mesesOrdenados = Object.keys(grupos).sort((a,b)=>{
-    const [ma,aa] = a.split(" / ");
-    const [mb,ab] = b.split(" / ");
-    return new Date(aa, new Date(Date.parse(ma+" 1")).getMonth()) -
-           new Date(ab, new Date(Date.parse(mb+" 1")).getMonth());
-  }).reverse();
+  const mesesOrdenados = Object.keys(grupos).sort().reverse();
 
   mesesOrdenados.forEach(mes=>{
     const g = grupos[mes];
@@ -340,6 +338,7 @@ function renderizar(dados){
       <table>
         <thead>
           <tr>
+            <th>Status</th>
             <th>Data</th>
             <th>Tipo</th>
             <th>Categoria</th>
@@ -353,8 +352,12 @@ function renderizar(dados){
     `;
 
     g.lista.forEach(l=>{
+      const classe = l[2]==="Receita" ? "receita-row" : "despesa-row";
+      const status = getStatusIcon(l[1]);
+
       html += `
-        <tr>
+        <tr class="${classe}">
+          <td>${status}</td>
           <td>${formatarData(l[1])}</td>
           <td>${l[2]}</td>
           <td>${l[3]}</td>
@@ -380,7 +383,7 @@ function renderizar(dados){
   });
 }
 
-/* LISTAR */
+/* ===== LISTAR ===== */
 async function listar(){
   load(true);
   const r = await fetch(API+"?action=listLancamentos");
