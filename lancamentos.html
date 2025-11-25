@@ -96,8 +96,8 @@ h2{
   font-size:18px;
   margin-right:6px;
 }
-.passado{ color:#2ecc71; }
-.futuro{ color:#e74c3c; }
+.passado{ color:#2ecc71; }   /* Verde */
+.futuro{ color:#e74c3c; }    /* Vermelho */
 
 /* BOTÕES */
 .btn{
@@ -217,7 +217,6 @@ h2{
 /* ===============================
    CONFIG
 =============================== */
-
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
 
 /* FORMATAR DATA */
@@ -249,16 +248,32 @@ const conteudo = document.getElementById("conteudo");
 
 let editandoID = null;
 
-/* LOCAL CACHE */
-function loadCache(){
-  const c = localStorage.getItem("lancamentosCache");
-  return c ? JSON.parse(c) : [];
-}
-function saveCache(data){
-  localStorage.setItem("lancamentosCache", JSON.stringify(data));
-}
+function load(v){ document.getElementById("loading").style.display = v ? "flex":"none"; }
+function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
+function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
 
-/* RENDERIZAÇÃO */
+/* MASCARA INPUT */
+mValor.addEventListener("input",()=>{
+  let v = mValor.value.replace(/\D/g,"");
+  if(!v) v="0";
+  mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
+});
+
+/* BOTÕES RECEITA / DESPESA */
+btnReceita.onclick=()=>{
+  mTipo.value="Receita";
+  btnReceita.classList.add("activeSel");
+  btnDespesa.classList.remove("activeSel");
+};
+btnDespesa.onclick=()=>{
+  mTipo.value="Despesa";
+  btnDespesa.classList.add("activeSel");
+  btnReceita.classList.remove("activeSel");
+};
+
+/* ===============================
+   RENDERIZAÇÃO POR MÊS
+=============================== */
 function renderizar(dados){
   conteudo.innerHTML="";
 
@@ -280,7 +295,7 @@ function renderizar(dados){
   meses.forEach(mes=>{
     const g = grupos[mes];
 
-    /* ORDENAR POR DATA CRESCENTE */
+    /* ===== ORDENAR POR DATA (CRESCENTE) ===== */
     g.lista.sort((a,b)=> new Date(a[1]) - new Date(b[1]));
 
     const bloco = document.createElement("div");
@@ -342,43 +357,14 @@ function renderizar(dados){
   });
 }
 
-/* ===============================
-   SYNC COM BACKEND (10 MIN)
-=============================== */
-async function syncBackend(){
-  try{
-    const r = await fetch(API+"?action=listLancamentos");
-    const dados = await r.json();
-
-    saveCache(dados);
-    renderizar(dados);
-
-  } catch(e){
-    console.warn("Falha ao sincronizar:", e);
-  }
-}
-
-/* INTERVALO DE 10 MINUTOS */
-setInterval(syncBackend, 10 * 60 * 1000);
-
-/* ===============================
-   CARREGAR (LOCAL FIRST)
-=============================== */
-async function start(){
+/* LISTAR */
+async function listar(){
   load(true);
-
-  const cache = loadCache();
-
-  if(cache.length > 0){
-    renderizar(cache); // instantâneo
-    load(false);
-    syncBackend(); // sincroniza em segundo plano
-  } else {
-    await syncBackend();
-    load(false);
-  }
-
-  carregarCategorias();
+  const r = await fetch(API+"?action=listLancamentos");
+  const dados = await r.json();
+  renderizar(dados);
+  await carregarCategorias();
+  load(false);
 }
 
 /* CATEGORIAS */
@@ -407,6 +393,7 @@ function abrirModal(id=null){
 
   tituloModal.innerText = id ? "Editar" : "Novo Lançamento";
 }
+
 function fecharModal(){ modalBg.style.display="none"; }
 
 /* EDITAR */
@@ -419,7 +406,7 @@ function editar(id,data,tipo,cat,sub,desc,val){
   mCat.value = cat;
   mSub.value = sub;
   mDesc.value = desc;
-  mValor.value = maskMoney(val);
+  mValor.value = maskMoney(val).replace(".",",");
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
@@ -432,6 +419,7 @@ async function salvar(){
   let cat = mCat.value;
   let sub = mSub.value;
   let desc = mDesc.value;
+
   let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
@@ -439,63 +427,38 @@ async function salvar(){
     return;
   }
 
-  const local = loadCache();
+  load(true);
 
-  /* Se for edição */
+  let url;
   if(editandoID){
-
-    // Atualiza localStorage imediatamente
-    const idx = local.findIndex(i => i[0] == editandoID);
-    if(idx >= 0){
-      local[idx][1] = data;
-      local[idx][2] = tipo;
-      local[idx][3] = cat;
-      local[idx][4] = sub;
-      local[idx][5] = desc;
-      local[idx][6] = val;
-    }
-
-    saveCache(local);
-    renderizar(local);
-
-    // Envia para o backend
-    const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
-    fetch(`${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`)
-      .then(syncBackend);
-
+    const campos = JSON.stringify({
+      data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val
+    });
+    url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
   } else {
-
-    /* Novo */
-    const tempId = "temp-" + Date.now();
-
-    const novo = [tempId, data, tipo, cat, sub, desc, val];
-
-    local.push(novo);
-    saveCache(local);
-    renderizar(local);
-
-    fetch(`${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`)
-      .then(syncBackend);
+    url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
   }
 
+  let r = await fetch(url);
+  const resp = await r.json();
+
+  if(resp.status!=="ok"){ erro("Erro ao salvar!"); }
+  else ok("Salvo!");
+
   fecharModal();
+  listar();
+  load(false);
 }
 
 /* EXCLUIR */
 async function excluir(id){
   if(!confirm("Excluir?")) return;
-
-  const local = loadCache().filter(i => i[0] != id);
-  saveCache(local);
-  renderizar(local);
-
-  fetch(API+"?action=deleteLancamento&id="+id)
-    .then(syncBackend);
+  await fetch(API+"?action=deleteLancamento&id="+id);
+  listar();
 }
 
 /* START */
-start();
-
+listar();
 </script>
 
 </body>
