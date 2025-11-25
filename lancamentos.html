@@ -6,24 +6,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ====================================
-   PALETA + VISUAL PREMIUM + PERFORMANCE
-==================================== */
 :root{
   --azul:#1F4E78;
   --bg:#f4f6f9;
   --green:#2ecc71;
-  --orange:#ff9f43;
   --red:#e74c3c;
   --gray:#999;
   --shadow:0 6px 22px rgba(0,0,0,0.15);
-  --radius:14px;
 }
 
-/* BASE */
+/* GERAL */
 body{
   margin:0;
-  padding:22px;
+  padding:25px;
   background:var(--bg);
   font-family:Arial, sans-serif;
 }
@@ -32,74 +27,9 @@ h2{
   margin-bottom:18px;
   color:var(--azul);
   font-size:32px;
-  font-weight:bold;
 }
 
-.grupoMes{
-  margin-top:28px;
-  border-radius:var(--radius);
-  overflow:hidden;
-  box-shadow:var(--shadow);
-  background:white;
-}
-
-.grupoHeader{
-  background:var(--azul);
-  color:white;
-  padding:14px 16px;
-  font-size:20px;
-  cursor:pointer;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.grupoBody{
-  display:none;
-  padding:8px 0 18px;
-}
-
-/* TABELAS BONITAS */
-.table-custom{
-  width:100%;
-  border-collapse:collapse;
-}
-
-.table-custom th{
-  background:#1F4E78;
-  color:white;
-  padding:12px;
-  text-align:left;
-}
-
-.table-custom td{
-  padding:11px;
-  border-bottom:1px solid #ddd;
-  font-size:15px;
-}
-
-/* LINHAS COLORIDAS */
-.receita-row td{
-  background:#e8f8ef !important;
-  color:#15733e;
-  font-weight:bold;
-}
-
-.despesa-row td{
-  background:#fff2e6 !important;
-  color:#b05a14;
-  font-weight:bold;
-}
-
-/* ÍCONES DE STATUS */
-.statusIcon{
-  font-size:18px;
-  margin-right:6px;
-}
-.passado{ color:#2ecc71; }
-.futuro{ color:#e74c3c; }
-
-/* BOTÕES */
+/* Botões */
 .btn{
   padding:12px 18px;
   border:none;
@@ -111,7 +41,7 @@ h2{
 .btn-green{ background:var(--green); }
 .btn-gray{ background:var(--gray); }
 
-/* LOADING */
+/* Loading */
 #loading{
   position:fixed;
   bottom:20px;
@@ -124,10 +54,32 @@ h2{
   animation:pulse 1.2s infinite;
   z-index:900;
 }
+
 @keyframes pulse{
   0%{opacity:.5; transform:scale(.95);}
   50%{opacity:1; transform:scale(1);}
   100%{opacity:.5; transform:scale(.95);}
+}
+
+/* TABELA */
+table{
+  width:100%;
+  background:white;
+  border-collapse:collapse;
+  border-radius:12px;
+  overflow:hidden;
+  margin-top:20px;
+  box-shadow:var(--shadow);
+}
+th{
+  padding:13px;
+  background:var(--azul);
+  color:white;
+  text-align:left;
+}
+td{
+  padding:12px;
+  border-bottom:1px solid #e4e4e4;
 }
 
 /* MODAL */
@@ -150,6 +102,10 @@ h2{
   animation:pop .25s ease;
   box-shadow:0 12px 35px rgba(0,0,0,0.25);
 }
+@keyframes pop{
+  from{transform:scale(.85); opacity:.3;}
+  to{transform:scale(1); opacity:1;}
+}
 
 .modal input{
   width:100%;
@@ -159,7 +115,7 @@ h2{
   margin-bottom:12px;
 }
 
-/* TIPO */
+/* Tipo */
 #tipoBtns button{
   flex:1;
   opacity:.4;
@@ -168,7 +124,6 @@ h2{
   opacity:1 !important;
   box-shadow:0 0 6px #0003;
 }
-
 </style>
 </head>
 
@@ -181,7 +136,20 @@ h2{
 
 <button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
 
-<div id="conteudo"></div>
+<table>
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Tipo</th>
+      <th>Categoria</th>
+      <th>Subcategoria</th>
+      <th>Descrição</th>
+      <th>Valor</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody id="lista"></tbody>
+</table>
 
 <!-- MODAL -->
 <div id="modal-bg">
@@ -198,10 +166,12 @@ h2{
 
     <input type="hidden" id="mTipo">
 
-    <input list="listaCat" id="mCat" placeholder="Categoria">
+    <!-- Categoria com filtro inteligente -->
+    <input list="listaCat" id="mCat" placeholder="Categoria" autocomplete="off">
     <datalist id="listaCat"></datalist>
 
-    <input list="listaSub" id="mSub" placeholder="Subcategoria">
+    <!-- Subcategoria com filtro inteligente -->
+    <input list="listaSub" id="mSub" placeholder="Subcategoria" autocomplete="off">
     <datalist id="listaSub"></datalist>
 
     <input id="mDesc" placeholder="Descrição">
@@ -214,203 +184,125 @@ h2{
 </div>
 
 <script>
-/* ===============================
-   CONFIG
-=============================== */
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
-const LS_KEY = "dv_financeiro_cache"; // localStorage
 
-/* FORMATAR DATA */
+/* ===== FORMATAR DATA ===== */
 function formatarData(iso){
+  if(!iso) return "";
   const d = new Date(iso);
   if(isNaN(d)) return iso;
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-}
-
-/* MÁSCARA DE VALOR GLOBAL COM PONTO */
-function maskMoney(v){
-  let n = Number(v);
-  return "R$ " + n
-    .toFixed(2)
-    .replace(".", ",")
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
-/* STATUS */
-const hoje = new Date();
-function getStatusIcon(dataISO){
-  const d = new Date(dataISO);
-  if(d < hoje) return `<span class="statusIcon passado">✔</span>`;
-  if(d > hoje) return `<span class="statusIcon futuro">✖</span>`;
-  return "";
+  return String(d.getDate()).padStart(2,'0') + "/" +
+         String(d.getMonth()+1).padStart(2,'0') + "/" +
+         d.getFullYear();
 }
 
 /* ELEMENTOS */
+const lista = document.getElementById("lista");
 const modalBg = document.getElementById("modal-bg");
 const msg = document.getElementById("msg");
-const conteudo = document.getElementById("conteudo");
+
+const mData = document.getElementById("mData");
+const mTipo = document.getElementById("mTipo");
+const mCat = document.getElementById("mCat");
+const mSub = document.getElementById("mSub");
+const mDesc = document.getElementById("mDesc");
+const mValor = document.getElementById("mValor");
+
+const btnReceita = document.getElementById("btnReceita");
+const btnDespesa = document.getElementById("btnDespesa");
+const tituloModal = document.getElementById("tituloModal");
 
 let editandoID = null;
 
-function load(v){ document.getElementById("loading").style.display = v ? "flex":"none"; }
+/* Loading */
+function load(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
+}
+
+/* ALERTAS */
 function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
 function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
 
-/* ===============================
-     MASCARA NO INPUT
-=============================== */
+/* MÁSCARA */
 mValor.addEventListener("input",()=>{
   let v = mValor.value.replace(/\D/g,"");
   if(!v) v="0";
-  mValor.value="R$ "+(v/100)
-    .toFixed(2)
-    .replace(".",",")
-    .replace(/\B(?=(\d{3})+(?!\d))/g,".");
+  mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
 });
 
-/* ===============================
-   RENDERIZAÇÃO POR MÊS
-=============================== */
-function renderizar(dados){
-  conteudo.innerHTML="";
+/* RECEITA / DESPESA */
+btnReceita.onclick = ()=>{
+  mTipo.value="Receita";
+  btnReceita.classList.add("activeSel");
+  btnDespesa.classList.remove("activeSel");
+};
+btnDespesa.onclick = ()=>{
+  mTipo.value="Despesa";
+  btnDespesa.classList.add("activeSel");
+  btnReceita.classList.remove("activeSel");
+};
 
-  const grupos = {};
+/* ===== FILTRO INTELIGENTE ===== */
+function filtroInteligente(input, datalist){
+  const valores = [...datalist.options].map(o=>o.value);
 
-  dados.forEach(l=>{
-    const data = new Date(l[1]);
-    const mes = data.toLocaleString("pt-BR",{month:"long"}) + " / " + data.getFullYear();
+  input.addEventListener("input",()=>{
 
-    if(!grupos[mes]) grupos[mes] = {lista:[], receita:0, despesa:0};
-    grupos[mes].lista.push(l);
+    const txt = input.value.toLowerCase();
 
-    if(l[2]==="Receita") grupos[mes].receita += Number(l[6]);
-    else grupos[mes].despesa += Number(l[6]);
+    datalist.innerHTML = valores
+      .filter(v => v.toLowerCase().includes(txt))
+      .map(v => `<option value="${v}">`)
+      .join("");
+
+    input.dataset.valid = valores.includes(input.value) ? "1" : "0";
   });
 
-  const meses = Object.keys(grupos).sort().reverse();
-
-  meses.forEach(mes=>{
-    const g = grupos[mes];
-
-    g.lista.sort((a,b)=> new Date(a[1]) - new Date(b[1]));
-
-    const saldo = g.receita - g.despesa;
-
-    const bloco = document.createElement("div");
-    bloco.className="grupoMes";
-
-    bloco.innerHTML = `
-      <div class="grupoHeader">
-        <span>${mes}</span>
-        <span>
-          Receita: <b style="color:var(--green)">${maskMoney(g.receita)}</b> —
-          Despesa: <b style="color:var(--orange)">${maskMoney(g.despesa)}</b> —
-          <b style="color:white">Fechamento: ${maskMoney(saldo)}</b>
-        </span>
-      </div>
-
-      <div class="grupoBody">
-        <table class="table-custom">
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Data</th>
-              <th>Tipo</th>
-              <th>Categoria</th>
-              <th>Subcategoria</th>
-              <th>Descrição</th>
-              <th>Valor</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${g.lista.map(l=>{
-              const cls = l[2]==="Receita" ? "receita-row" : "despesa-row";
-              return `
-                <tr class="${cls}">
-                  <td>${getStatusIcon(l[1])}</td>
-                  <td>${formatarData(l[1])}</td>
-                  <td>${l[2]}</td>
-                  <td>${l[3]}</td>
-                  <td>${l[4]}</td>
-                  <td>${l[5]}</td>
-                  <td>${maskMoney(l[6])}</td>
-                  <td>
-                    <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
-                    <button onclick="excluir('${l[0]}')">Excluir</button>
-                  </td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    bloco.querySelector(".grupoHeader").onclick = ()=>{
-      const b = bloco.querySelector(".grupoBody");
-      b.style.display = b.style.display==="none" ? "block" : "none";
-    };
-
-    conteudo.appendChild(bloco);
+  input.addEventListener("blur",()=>{
+    if(input.dataset.valid !== "1") input.value="";
   });
 }
 
-/* ===============================
-    SINCRONIZAÇÃO EM SEGUNDO PLANO
-=============================== */
-async function syncBackground(){
-  try{
-    const r = await fetch(API+"?action=listLancamentos");
-    const dados = await r.json();
-
-    localStorage.setItem(LS_KEY, JSON.stringify(dados));
-    renderizar(dados); // Atualiza sem recarregar
-  } catch(e){
-    console.warn("Erro ao sincronizar:", e);
-  }
-}
-
-/* roda a cada 10 min */
-setInterval(syncBackground, 10 * 60 * 1000);
-
-/* ===============================
-   LISTAR
-=============================== */
+/* LISTAR */
 async function listar(){
-  let cache = localStorage.getItem(LS_KEY);
-
-  if(cache){
-    renderizar(JSON.parse(cache));
-    syncBackground(); // atualiza em paralelo
-    carregarCategorias();
-    return;
-  }
-
   load(true);
   const r = await fetch(API+"?action=listLancamentos");
   const dados = await r.json();
 
-  localStorage.setItem(LS_KEY, JSON.stringify(dados));
-  renderizar(dados);
+  lista.innerHTML = dados.map(l=>`
+    <tr>
+      <td>${formatarData(l[1])}</td>
+      <td>${l[2]}</td>
+      <td>${l[3]}</td>
+      <td>${l[4]}</td>
+      <td>${l[5]}</td>
+      <td>R$ ${Number(l[6]).toFixed(2)}</td>
+      <td>
+        <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
+        <button onclick="excluir('${l[0]}')">Excluir</button>
+      </td>
+    </tr>
+  `).join("");
 
   await carregarCategorias();
   load(false);
 }
 
-/* ===============================
-   CRUD
-=============================== */
+/* CARREGAR LISTAS */
 async function carregarCategorias(){
   const r = await fetch(API+"?action=listCadastros");
   const dados = await r.json();
 
   listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
+
+  filtroInteligente(mCat, listaCat);
+  filtroInteligente(mSub, listaSub);
 }
 
+/* MODAL */
 function abrirModal(id=null){
-  editandoID = id;
+  editandoID=id;
   modalBg.style.display="flex";
 
   mData.value=new Date().toISOString().split("T")[0];
@@ -423,42 +315,51 @@ function abrirModal(id=null){
   btnReceita.classList.remove("activeSel");
   btnDespesa.classList.remove("activeSel");
 
-  tituloModal.innerText = id ? "Editar" : "Novo Lançamento";
+  tituloModal.innerText="Novo Lançamento";
 }
 
 function fecharModal(){ modalBg.style.display="none"; }
 
+/* EDITAR */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
-  mData.value = data.split("T")[0];
-  mTipo.value = tipo;
-  mCat.value = cat;
-  mSub.value = sub;
-  mDesc.value = desc;
+  tituloModal.innerText="Editar Lançamento";
 
-  mValor.value = maskMoney(val);
+  mData.value=data.split("T")[0];
+  mTipo.value=tipo;
+  mCat.value=cat;
+  mSub.value=sub;
+  mDesc.value=desc;
+  mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
 }
 
+/* SALVAR */
 async function salvar(){
-
   let data = mData.value;
   let tipo = mTipo.value;
   let cat = mCat.value;
   let sub = mSub.value;
   let desc = mDesc.value;
-  let val = mValor.value.replace("R$","").replace(/\./g,"").replace(",",".").trim();
+  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
     erro("Preencha tudo!");
     return;
   }
 
-  let url;
+  const cats = [...listaCat.options].map(o=>o.value);
+  const subs = [...listaSub.options].map(o=>o.value);
 
+  if(!cats.includes(cat)){ erro("Categoria inválida!"); return; }
+  if(!subs.includes(sub)){ erro("Subcategoria inválida!"); return; }
+
+  load(true);
+
+  let url;
   if(editandoID){
     const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
     url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
@@ -466,51 +367,26 @@ async function salvar(){
     url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
   }
 
-  /* atualização instantânea local */
-  let cache = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+  let r = await fetch(url);
+  let resp = await r.json();
 
-  if(editandoID){
-    const idx = cache.findIndex(i => i[0] == editandoID);
-    if(idx >= 0){
-      cache[idx][1]=data;
-      cache[idx][2]=tipo;
-      cache[idx][3]=cat;
-      cache[idx][4]=sub;
-      cache[idx][5]=desc;
-      cache[idx][6]=val;
-    }
-  } else {
-    cache.push(["temp-"+Date.now(), data, tipo, cat, sub, desc, val]);
-  }
-
-  localStorage.setItem(LS_KEY, JSON.stringify(cache));
-  renderizar(cache);
+  if(resp.status!=="ok") erro("Erro ao salvar!");
+  else ok("Salvo!");
 
   fecharModal();
-
-  /* envia ao servidor */
-  await fetch(url);
-  syncBackground(); // força sincronização silenciosa
+  listar();
+  load(false);
 }
 
+/* EXCLUIR */
 async function excluir(id){
   if(!confirm("Excluir?")) return;
-
-  let cache = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
-
-  cache = cache.filter(l => l[0] != id);
-
-  localStorage.setItem(LS_KEY, JSON.stringify(cache));
-  renderizar(cache);
-
   await fetch(API+"?action=deleteLancamento&id="+id);
-
-  syncBackground();
+  listar();
 }
 
 /* START */
 listar();
-
 </script>
 
 </body>
