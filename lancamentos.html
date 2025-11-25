@@ -226,15 +226,9 @@ function formatarData(iso){
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
-/* MÁSCARA DE VALOR GLOBAL (PONTO + VÍRGULA) */
+/* MÁSCARA DE VALOR GLOBAL */
 function maskMoney(v){
-  let n = Number(v);
-  if(isNaN(n)) return "R$ 0,00";
-
-  return "R$ " + n
-    .toFixed(2)             // 1234.56
-    .replace(".", ",")      // 1234,56
-    .replace(/\B(?=(\d{3})+(?!\d))/g, "."); // 1.234,56
+  return "R$ " + Number(v).toFixed(2).replace(".",",");
 }
 
 const hoje = new Date();
@@ -258,18 +252,14 @@ function load(v){ document.getElementById("loading").style.display = v ? "flex":
 function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
 function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
 
-/* MÁSCARA NO INPUT */
-mValor.addEventListener("input", () => {
-  let v = mValor.value.replace(/\D/g, "");
-  if (!v) v = "0";
-
-  mValor.value = "R$ " + (v / 100)
-    .toFixed(2)
-    .replace(".", ",")
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+/* MASCARA INPUT */
+mValor.addEventListener("input",()=>{
+  let v = mValor.value.replace(/\D/g,"");
+  if(!v) v="0";
+  mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
 });
 
-/* RECEITA / DESPESA */
+/* BOTÕES RECEITA / DESPESA */
 btnReceita.onclick=()=>{
   mTipo.value="Receita";
   btnReceita.classList.add("activeSel");
@@ -282,7 +272,7 @@ btnDespesa.onclick=()=>{
 };
 
 /* ===============================
-   RENDERIZAR AGRUPANDO E ORDENANDO
+   RENDERIZAÇÃO POR MÊS
 =============================== */
 function renderizar(dados){
   conteudo.innerHTML="";
@@ -305,7 +295,7 @@ function renderizar(dados){
   meses.forEach(mes=>{
     const g = grupos[mes];
 
-    /* ===== DATAS EM ORDEM CRESCENTE ===== */
+    /* ===== ORDENAR POR DATA (CRESCENTE) ===== */
     g.lista.sort((a,b)=> new Date(a[1]) - new Date(b[1]));
 
     const bloco = document.createElement("div");
@@ -367,9 +357,7 @@ function renderizar(dados){
   });
 }
 
-/* ===============================
-   LISTAR
-=============================== */
+/* LISTAR */
 async function listar(){
   load(true);
   const r = await fetch(API+"?action=listLancamentos");
@@ -378,6 +366,35 @@ async function listar(){
   await carregarCategorias();
   load(false);
 }
+
+/* CATEGORIAS */
+async function carregarCategorias(){
+  const r = await fetch(API+"?action=listCadastros");
+  const dados = await r.json();
+
+  listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
+  listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
+}
+
+/* MODAL */
+function abrirModal(id=null){
+  editandoID = id;
+  modalBg.style.display="flex";
+
+  mData.value=new Date().toISOString().split("T")[0];
+  mTipo.value="";
+  mCat.value="";
+  mSub.value="";
+  mDesc.value="";
+  mValor.value="R$ 0,00";
+
+  btnReceita.classList.remove("activeSel");
+  btnDespesa.classList.remove("activeSel");
+
+  tituloModal.innerText = id ? "Editar" : "Novo Lançamento";
+}
+
+function fecharModal(){ modalBg.style.display="none"; }
 
 /* EDITAR */
 function editar(id,data,tipo,cat,sub,desc,val){
@@ -389,15 +406,60 @@ function editar(id,data,tipo,cat,sub,desc,val){
   mCat.value = cat;
   mSub.value = sub;
   mDesc.value = desc;
-
-  /* máscara correta */
-  mValor.value = maskMoney(val);
+  mValor.value = maskMoney(val).replace(".",",");
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
 }
-</script>
 
+/* SALVAR */
+async function salvar(){
+  let data = mData.value;
+  let tipo = mTipo.value;
+  let cat = mCat.value;
+  let sub = mSub.value;
+  let desc = mDesc.value;
+
+  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
+
+  if(!data||!tipo||!cat||!sub||!desc||!val){
+    erro("Preencha tudo!");
+    return;
+  }
+
+  load(true);
+
+  let url;
+  if(editandoID){
+    const campos = JSON.stringify({
+      data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val
+    });
+    url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
+  } else {
+    url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
+  }
+
+  let r = await fetch(url);
+  const resp = await r.json();
+
+  if(resp.status!=="ok"){ erro("Erro ao salvar!"); }
+  else ok("Salvo!");
+
+  fecharModal();
+  listar();
+  load(false);
+}
+
+/* EXCLUIR */
+async function excluir(id){
+  if(!confirm("Excluir?")) return;
+  await fetch(API+"?action=deleteLancamento&id="+id);
+  listar();
+}
+
+/* START */
+listar();
+</script>
 
 </body>
 </html>
