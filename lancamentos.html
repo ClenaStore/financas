@@ -6,17 +6,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* ================================
+   PALETA + VISUAL PREMIUM
+================================ */
 :root{
   --azul:#1F4E78;
+  --azul-claro:#265a92;
   --bg:#f4f6f9;
   --green:#2ecc71;
   --orange:#ff9f43;
   --red:#e74c3c;
-  --gray:#999;
-  --shadow:0 6px 22px rgba(0,0,0,0.15);
-  --radius:14px;
+  --shadow:0 6px 22px rgba(0,0,0,0.12);
+  --radius:16px;
 }
 
+/* BASE */
 body{
   margin:0;
   padding:22px;
@@ -31,97 +35,39 @@ h2{
   font-weight:bold;
 }
 
-.grupoMes{
-  margin-top:28px;
-  border-radius:var(--radius);
-  overflow:hidden;
-  box-shadow:var(--shadow);
-  background:white;
-}
-
-.grupoHeader{
+/* ================================
+   CARD DOS MESES (MODELO B)
+================================ */
+.cardMes{
   background:var(--azul);
   color:white;
-  padding:14px 16px;
-  font-size:20px;
-  cursor:pointer;
+  padding:14px 20px;
+  margin-bottom:16px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
   display:flex;
   justify-content:space-between;
   align-items:center;
-}
-
-.grupoBody{
-  display:none;
-  padding:8px 0 18px;
-}
-
-.table-custom{
-  width:100%;
-  border-collapse:collapse;
-}
-
-.table-custom th{
-  background:#1F4E78;
-  color:white;
-  padding:12px;
-  text-align:left;
-}
-
-.table-custom td{
-  padding:11px;
-  border-bottom:1px solid #ddd;
-  font-size:15px;
-}
-
-.receita-row td{
-  background:#e8f8ef !important;
-  color:#15733e;
-  font-weight:bold;
-}
-
-.despesa-row td{
-  background:#fff2e6 !important;
-  color:#b05a14;
-  font-weight:bold;
-}
-
-.statusIcon{
-  font-size:18px;
-  margin-right:6px;
-}
-.passado{ color:#2ecc71; }
-.futuro{ color:#e74c3c; }
-
-.btn{
-  padding:12px 18px;
-  border:none;
-  border-radius:10px;
-  color:white;
-  font-size:16px;
   cursor:pointer;
-}
-.btn-green{ background:var(--green); }
-.btn-gray{ background:var(--gray); }
-
-#loading{
-  position:fixed;
-  bottom:20px;
-  left:20px;
-  background:#1F4E78;
-  padding:12px 20px;
-  border-radius:10px;
-  color:white;
-  display:none;
-  animation:pulse 1.2s infinite;
-  z-index:900;
+  transition:.2s;
 }
 
-@keyframes pulse{
-  0%{opacity:.5; transform:scale(.95);}
-  50%{opacity:1; transform:scale(1);}
-  100%{opacity:.5; transform:scale(.95);}
+.cardMes:hover{
+  background:var(--azul-claro);
+  transform:scale(1.01);
 }
 
+.cardInfo{
+  font-size:15px;
+  opacity:.9;
+}
+
+.cardSaldoPositivo{ color:#4ade80; font-weight:bold; }
+.cardSaldoNegativo{ color:#ff5757; font-weight:bold; }
+
+/* ================================
+   MODAL
+================================ */
 #modal-bg{
   position:fixed;
   inset:0;
@@ -134,30 +80,99 @@ h2{
 }
 
 .modal{
-  width:420px;
+  width:92%;
+  max-width:900px;
+  max-height:90%;
+  overflow:auto;
   background:white;
   padding:25px;
-  border-radius:15px;
-  animation:pop .25s ease;
+  border-radius:20px;
   box-shadow:0 12px 35px rgba(0,0,0,0.25);
+  animation:pop .25s ease;
 }
 
-.modal input{
+@keyframes pop{
+  from{ transform:scale(.85); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+
+.closeBtn{
+  float:right;
+  font-size:20px;
+  cursor:pointer;
+  color:#444;
+}
+
+/* ================================
+   TABELA DO MODAL
+================================ */
+.table-custom{
   width:100%;
-  border:1px solid #ccc;
-  border-radius:10px;
-  padding:11px;
-  margin-bottom:12px;
+  border-collapse:collapse;
+  margin-top:20px;
 }
 
-#tipoBtns button{
-  flex:1;
-  opacity:.4;
+.table-custom th{
+  background:var(--azul);
+  color:white;
+  padding:12px;
+  text-align:left;
 }
-.activeSel{
-  opacity:1 !important;
-  box-shadow:0 0 6px #0003;
+
+.table-custom td{
+  padding:10px;
+  border-bottom:1px solid #ddd;
+  font-size:14px;
 }
+
+.receita-row td{
+  background:#e8f8ef;
+  color:#15733e;
+  font-weight:bold;
+}
+
+.despesa-row td{
+  background:#fff2e6;
+  color:#b05a14;
+  font-weight:bold;
+}
+
+/* BOTÃO NOVO */
+.btn{
+  padding:12px 18px;
+  border:none;
+  border-radius:10px;
+  color:white;
+  cursor:pointer;
+}
+.btn-green{ background:var(--green); }
+
+/* STATUS */
+.statusIcon{
+  font-size:18px;
+}
+.passado{ color:#2ecc71; }
+.futuro{ color:#e74c3c; }
+
+/* LOADING */
+#loading{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  background:var(--azul);
+  padding:12px 20px;
+  border-radius:10px;
+  color:white;
+  display:none;
+  animation:pulse 1.2s infinite;
+  z-index:9999;
+}
+@keyframes pulse{
+  0%{opacity:.4;}
+  50%{opacity:1;}
+  100%{opacity:.4;}
+}
+
 </style>
 </head>
 
@@ -166,35 +181,23 @@ h2{
 <div id="loading">Carregando...</div>
 
 <h2>Lançamentos</h2>
-<div id="msg"></div>
 
-<button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
+<div id="cards"></div>
 
-<div id="conteudo"></div>
-
-<!-- MODAL -->
+<!-- ==========================
+       MODAL
+========================== -->
 <div id="modal-bg">
   <div class="modal">
-    <h3 id="tituloModal">Novo Lançamento</h3>
 
-    <input id="mData" type="date">
-    <div id="tipoBtns" style="display:flex; gap:10px; margin-bottom:12px;">
-      <button id="btnReceita" class="btn btn-gray">Receita</button>
-      <button id="btnDespesa" class="btn btn-gray">Despesa</button>
-    </div>
+    <span class="closeBtn" onclick="fecharModal()">✖</span>
 
-    <input type="hidden" id="mTipo">
-    <input list="listaCat" id="mCat" placeholder="Categoria">
-    <datalist id="listaCat"></datalist>
+    <h3 id="tituloMes"></h3>
 
-    <input list="listaSub" id="mSub" placeholder="Subcategoria">
-    <datalist id="listaSub"></datalist>
+    <button class="btn btn-green" onclick="novoLanc()">+ Novo Lançamento</button>
 
-    <input id="mDesc" placeholder="Descrição">
-    <input id="mValor" placeholder="R$ 0,00">
+    <div id="modalConteudo"></div>
 
-    <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
-    <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
   </div>
 </div>
 
@@ -205,20 +208,17 @@ h2{
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
 const LS_KEY = "dv_financeiro_cache";
 
-/* FORMATAR DATA */
-function formatarData(iso){
-  const d = new Date(iso);
-  if(isNaN(d)) return iso;
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-}
-
-/* MÁSCARA */
+/* FUNÇÕES DE FORMATAÇÃO */
 function maskMoney(v){
-  let n = Number(v);
-  return "R$ " + n
+  return "R$ " + Number(v)
     .toFixed(2)
     .replace(".",",")
     .replace(/\B(?=(\d{3})+(?!\d))/g,".");
+}
+
+function formatarData(iso){
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
 const hoje = new Date();
@@ -229,233 +229,142 @@ function getStatusIcon(dataISO){
   return "";
 }
 
-/* ELEMENTOS */
-const modalBg = document.getElementById("modal-bg");
-const msg = document.getElementById("msg");
-const conteudo = document.getElementById("conteudo");
-
 /* ===============================
-   MÁSCARA AO DIGITAR
+   RENDERIZA CARDS (MODELO B)
 =============================== */
-mValor.addEventListener("input",()=>{
-  let v = mValor.value.replace(/\D/g,"");
-  if(!v) v="0";
-  mValor.value="R$ "+(v/100)
-    .toFixed(2)
-    .replace(".",",")
-    .replace(/\B(?=(\d{3})+(?!\d))/g,".");
-});
+function renderizarCards(dados){
+  const cards = document.getElementById("cards");
+  cards.innerHTML = "";
 
-/* ===============================
-   ABRIR / FECHAR MODAL
-=============================== */
-function abrirModal(id=null){
-  editandoID = id;
-  modalBg.style.display="flex";
-}
-
-function fecharModal(){
-  modalBg.style.display="none";
-}
-
-/* ===============================
-   RENDERIZAÇÃO
-=============================== */
-function renderizar(dados){
-  conteudo.innerHTML="";
-
-  const grupos={};
+  const grupos = {};
 
   dados.forEach(l=>{
-    const data=new Date(l[1]);
-    const mes=data.toLocaleString("pt-BR",{month:"long"})+" / "+data.getFullYear();
+    const data = new Date(l[1]);
+    const mes = data.toLocaleString("pt-BR",{month:"long"})+" / "+data.getFullYear();
 
-    if(!grupos[mes]) grupos[mes]={lista:[], receita:0, despesa:0};
+    if(!grupos[mes]) grupos[mes] = {lista:[], receita:0, despesa:0};
     grupos[mes].lista.push(l);
 
-    if(l[2]==="Receita") grupos[mes].receita+=Number(l[6]);
-    else grupos[mes].despesa+=Number(l[6]);
+    if(l[2]==="Receita") grupos[mes].receita += Number(l[6]);
+    else grupos[mes].despesa += Number(l[6]);
   });
 
-  Object.keys(grupos).sort().reverse().forEach(mes=>{
-    const g=grupos[mes];
-    g.lista.sort((a,b)=> new Date(a[1]) - new Date(b[1]));
+  const meses = Object.keys(grupos).sort().reverse();
 
-    const saldo=g.receita-g.despesa;
+  meses.forEach(mes=>{
+    const g = grupos[mes];
+    const saldo = g.receita - g.despesa;
 
-    const bloco=document.createElement("div");
-    bloco.className="grupoMes";
+    const card = document.createElement("div");
+    card.className = "cardMes";
+    card.onclick = ()=>abrirMes(mes, g.lista);
 
-    bloco.innerHTML=`
-      <div class="grupoHeader">
-        <span>${mes}</span>
-        <span>
-          Receita: <b style="color:#2ecc71">${maskMoney(g.receita)}</b> —
-          Despesa: <b style="color:#ff9f43">${maskMoney(g.despesa)}</b> —
-          <b style="color:white">Fechamento: ${maskMoney(saldo)}</b>
+    card.innerHTML = `
+      <div style="font-size:20px; font-weight:bold;">${mes}</div>
+
+      <div class="cardInfo">
+        Receita: ${maskMoney(g.receita)} —
+        Despesa: ${maskMoney(g.despesa)} —
+        Saldo: <span class="${saldo>=0?'cardSaldoPositivo':'cardSaldoNegativo'}">
+          ${maskMoney(saldo)}
         </span>
-      </div>
-
-      <div class="grupoBody">
-        <table class="table-custom">
-          <thead>
-            <tr>
-              <th>Status</th><th>Data</th><th>Tipo</th>
-              <th>Categoria</th><th>Subcategoria</th>
-              <th>Descrição</th><th>Valor</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${g.lista.map(l=>{
-              return `
-                <tr class="${l[2]==="Receita"?"receita-row":"despesa-row"}">
-                  <td>${getStatusIcon(l[1])}</td>
-                  <td>${formatarData(l[1])}</td>
-                  <td>${l[2]}</td>
-                  <td>${l[3]}</td>
-                  <td>${l[4]}</td>
-                  <td>${l[5]}</td>
-                  <td>${maskMoney(l[6])}</td>
-                  <td>
-                    <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
-                    <button onclick="excluir('${l[0]}')">Excluir</button>
-                  </td>
-                </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
       </div>
     `;
 
-    bloco.querySelector(".grupoHeader").onclick=()=>{
-      const body=bloco.querySelector(".grupoBody");
-      body.style.display= body.style.display==="none" ? "block":"none";
-    };
-
-    conteudo.appendChild(bloco);
+    cards.appendChild(card);
   });
 }
 
 /* ===============================
-   SINCRONIZAÇÃO EM SEGUNDO PLANO
+   ABRIR POPUP DO MÊS
+=============================== */
+function abrirMes(mes, lista){
+  document.getElementById("modal-bg").style.display="flex";
+  document.getElementById("tituloMes").innerText = mes;
+
+  lista.sort((a,b)=>new Date(a[1]) - new Date(b[1]));
+
+  let html = `
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Status</th><th>Data</th><th>Tipo</th>
+          <th>Categoria</th><th>Subcategoria</th>
+          <th>Descrição</th><th>Valor</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  lista.forEach(l=>{
+    const cls = l[2]==="Receita" ? "receita-row" : "despesa-row";
+
+    html += `
+      <tr class="${cls}">
+        <td>${getStatusIcon(l[1])}</td>
+        <td>${formatarData(l[1])}</td>
+        <td>${l[2]}</td>
+        <td>${l[3]}</td>
+        <td>${l[4]}</td>
+        <td>${l[5]}</td>
+        <td>${maskMoney(l[6])}</td>
+        <td>
+          <button onclick="editar('${l[0]}')">Editar</button>
+          <button onclick="excluir('${l[0]}')">Excluir</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += "</tbody></table>";
+
+  document.getElementById("modalConteudo").innerHTML = html;
+}
+
+function fecharModal(){
+  document.getElementById("modal-bg").style.display="none";
+}
+
+/* ===============================
+   LOCAL STORAGE + SYNC
 =============================== */
 async function syncBackground(){
   try{
-    const r=await fetch(API+"?action=listLancamentos");
-    const dados=await r.json();
-    localStorage.setItem(LS_KEY,JSON.stringify(dados));
-    renderizar(dados);
+    const r = await fetch(API+"?action=listLancamentos");
+    const dados = await r.json();
+    localStorage.setItem(LS_KEY, JSON.stringify(dados));
+    renderizarCards(dados);
   }catch(e){}
 }
-setInterval(syncBackground,600000);
+
+setInterval(syncBackground, 10*60*1000);
 
 /* ===============================
    LISTAR
 =============================== */
 async function listar(){
-  let cache=localStorage.getItem(LS_KEY);
+  let cache = localStorage.getItem(LS_KEY);
+
   if(cache){
-    renderizar(JSON.parse(cache));
+    const dados = JSON.parse(cache);
+    renderizarCards(dados);
     syncBackground();
-    carregarCategorias();
     return;
   }
 
-  const r=await fetch(API+"?action=listLancamentos");
-  const dados=await r.json();
-  localStorage.setItem(LS_KEY,JSON.stringify(dados));
-  renderizar(dados);
-  carregarCategorias();
+  document.getElementById("loading").style.display="flex";
+
+  const r = await fetch(API+"?action=listLancamentos");
+  const dados = await r.json();
+
+  localStorage.setItem(LS_KEY, JSON.stringify(dados));
+  renderizarCards(dados);
+
+  document.getElementById("loading").style.display="none";
 }
 
-/* ===============================
-   CRUD
-=============================== */
-async function carregarCategorias(){
-  const r=await fetch(API+"?action=listCadastros");
-  const dados=await r.json();
-
-  listaCat.innerHTML=[...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
-  listaSub.innerHTML=[...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
-}
-
-function editar(id,data,tipo,cat,sub,desc,val){
-  abrirModal(id);
-
-  tituloModal.innerText="Editar Lançamento";
-  mData.value=data.split("T")[0];
-  mTipo.value=tipo;
-  mCat.value=cat;
-  mSub.value=sub;
-  mDesc.value=desc;
-  mValor.value=maskMoney(val);
-
-  tipo==="Receita" ? btnReceita.click() : btnDespesa.click();
-}
-
-async function salvar(){
-  let data=mData.value;
-  let tipo=mTipo.value;
-  let cat=mCat.value;
-  let sub=mSub.value;
-  let desc=mDesc.value;
-  let val=mValor.value.replace("R$","").replace(/\./g,"").replace(",",".").trim();
-
-  if(!data||!tipo||!cat||!sub||!desc||!val){
-    erro("Preencha tudo!");
-    return;
-  }
-
-  const cache=JSON.parse(localStorage.getItem(LS_KEY)||"[]");
-
-  if(editandoID){
-    const idx=cache.findIndex(i=>i[0]==editandoID);
-    if(idx>=0){
-      cache[idx][1]=data;
-      cache[idx][2]=tipo;
-      cache[idx][3]=cat;
-      cache[idx][4]=sub;
-      cache[idx][5]=desc;
-      cache[idx][6]=val;
-    }
-  }else{
-    cache.push(["temp-"+Date.now(),data,tipo,cat,sub,desc,val]);
-  }
-
-  localStorage.setItem(LS_KEY,JSON.stringify(cache));
-  renderizar(cache);
-  fecharModal();
-
-  let url;
-
-  if(editandoID){
-    const campos=JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
-    url=`${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
-  }else{
-    url=`${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
-  }
-
-  await fetch(url);
-  syncBackground();
-}
-
-
-
-async function excluir(id){
-  if(!confirm("Excluir?")) return;
-
-  let cache=JSON.parse(localStorage.getItem(LS_KEY)||"[]");
-  cache=cache.filter(l=>l[0]!=id);
-
-  localStorage.setItem(LS_KEY,JSON.stringify(cache));
-  renderizar(cache);
-
-  await fetch(API+"?action=deleteLancamento&id="+id);
-  syncBackground();
-}
-
-/* START */
 listar();
+
 </script>
 
 </body>
