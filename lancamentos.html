@@ -181,7 +181,6 @@ h2{
 
 <button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
 
-<!-- AQUI É RENDERIZADO TUDO POR MÊS -->
 <div id="conteudo"></div>
 
 <!-- MODAL -->
@@ -227,6 +226,11 @@ function formatarData(iso){
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
+/* MÁSCARA DE VALOR GLOBAL */
+function maskMoney(v){
+  return "R$ " + Number(v).toFixed(2).replace(".",",");
+}
+
 const hoje = new Date();
 
 /* ÍCONES DE STATUS */
@@ -248,7 +252,7 @@ function load(v){ document.getElementById("loading").style.display = v ? "flex":
 function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
 function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
 
-/* MÁSCARA */
+/* MASCARA INPUT */
 mValor.addEventListener("input",()=>{
   let v = mValor.value.replace(/\D/g,"");
   if(!v) v="0";
@@ -280,7 +284,6 @@ function renderizar(dados){
     const mes = data.toLocaleString("pt-BR",{month:"long"}) + " / " + data.getFullYear();
 
     if(!grupos[mes]) grupos[mes] = {lista:[], receita:0, despesa:0};
-
     grupos[mes].lista.push(l);
 
     if(l[2]==="Receita") grupos[mes].receita += Number(l[6]);
@@ -292,6 +295,9 @@ function renderizar(dados){
   meses.forEach(mes=>{
     const g = grupos[mes];
 
+    /* ===== ORDENAR POR DATA (CRESCENTE) ===== */
+    g.lista.sort((a,b)=> new Date(a[1]) - new Date(b[1]));
+
     const bloco = document.createElement("div");
     bloco.className="grupoMes";
 
@@ -299,8 +305,8 @@ function renderizar(dados){
       <div class="grupoHeader">
         <span>${mes}</span>
         <span>
-          Receita: <b style="color:var(--green)">R$ ${g.receita.toFixed(2)}</b> —
-          Despesa: <b style="color:var(--orange)">R$ ${g.despesa.toFixed(2)}</b>
+          Receita: <b style="color:var(--green)">${maskMoney(g.receita)}</b> —
+          Despesa: <b style="color:var(--orange)">${maskMoney(g.despesa)}</b>
         </span>
       </div>
 
@@ -321,7 +327,6 @@ function renderizar(dados){
           <tbody>
             ${g.lista.map(l=>{
               const cls = l[2]==="Receita" ? "receita-row" : "despesa-row";
-
               return `
                 <tr class="${cls}">
                   <td>${getStatusIcon(l[1])}</td>
@@ -330,7 +335,7 @@ function renderizar(dados){
                   <td>${l[3]}</td>
                   <td>${l[4]}</td>
                   <td>${l[5]}</td>
-                  <td>R$ ${Number(l[6]).toFixed(2)}</td>
+                  <td>${maskMoney(l[6])}</td>
                   <td>
                     <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
                     <button onclick="excluir('${l[0]}')">Excluir</button>
@@ -352,9 +357,7 @@ function renderizar(dados){
   });
 }
 
-/* ===============================
-   LISTAR
-=============================== */
+/* LISTAR */
 async function listar(){
   load(true);
   const r = await fetch(API+"?action=listLancamentos");
@@ -364,9 +367,7 @@ async function listar(){
   load(false);
 }
 
-/* ===============================
-   CATEGORIAS
-=============================== */
+/* CATEGORIAS */
 async function carregarCategorias(){
   const r = await fetch(API+"?action=listCadastros");
   const dados = await r.json();
@@ -405,7 +406,7 @@ function editar(id,data,tipo,cat,sub,desc,val){
   mCat.value = cat;
   mSub.value = sub;
   mDesc.value = desc;
-  mValor.value = "R$ " + Number(val).toFixed(2).replace(".",",");
+  mValor.value = maskMoney(val).replace(".",",");
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
@@ -418,6 +419,7 @@ async function salvar(){
   let cat = mCat.value;
   let sub = mSub.value;
   let desc = mDesc.value;
+
   let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
