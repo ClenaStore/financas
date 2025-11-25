@@ -59,22 +59,46 @@ h2{
   100%{opacity:.5; transform:scale(.95);}
 }
 
-/* ===== CALENDÁRIO ===== */
-#calendario{
+/* ==========================
+      CALENDÁRIO (FIXO)
+========================== */
+
+#calendarioWrapper{
   background:white;
   padding:20px;
   border-radius:15px;
   box-shadow:var(--shadow);
   margin-bottom:25px;
+  height:420px;
+  overflow-y:auto;
 }
 
-#calendario h3{
-  color:var(--azul);
+/* VISÃO ANUAL */
+#gradeMeses{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+.mesCard{
+  background:#fff;
+  padding:15px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  cursor:pointer;
+  transition:.2s;
   text-align:center;
-  margin-bottom:10px;
-  font-size:22px;
+}
+.mesCard:hover{
+  background:#1F4E78;
+  color:white;
+  transform:scale(1.05);
+}
+.mesValor{
+  margin-top:5px;
+  font-weight:bold;
 }
 
+/* VISÃO MENSAL */
 #mesNav{
   display:flex;
   justify-content:space-between;
@@ -88,7 +112,6 @@ h2{
   display:grid;
   grid-template-columns:repeat(7, 1fr);
   gap:10px;
-  margin-top:15px;
 }
 
 .dia{
@@ -96,9 +119,10 @@ h2{
   background:#fff;
   text-align:center;
   border-radius:10px;
-  cursor:pointer;
   border:1px solid #ddd;
+  cursor:pointer;
   transition:.2s;
+  position:relative;
 }
 .dia:hover{
   background:#1F4E78;
@@ -108,6 +132,18 @@ h2{
 .diaHoje{
   background:#1F4E78 !important;
   color:white !important;
+}
+
+/* Badge total do dia */
+.badgeDia{
+  position:absolute;
+  bottom:4px;
+  right:4px;
+  background:#0002;
+  padding:2px 6px;
+  font-size:11px;
+  border-radius:8px;
+  font-weight:bold;
 }
 
 /* TABELA */
@@ -183,25 +219,12 @@ td{
 <h2>Lançamentos</h2>
 <div id="msg"></div>
 
-<!-- BOTÃO -->
 <button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
 
 <!-- ===========================
-     CALENDÁRIO
+     CALENDÁRIO (ANUAL → MENSAL)
 =========================== -->
-<div id="calendario">
-  <div id="mesNav">
-    <span onclick="mudarMes(-1)" style="cursor:pointer">◀</span>
-    <span id="mesAno"></span>
-    <span onclick="mudarMes(1)" style="cursor:pointer">▶</span>
-  </div>
-
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-weight:bold;color:#555;">
-    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
-  </div>
-
-  <div id="gradeDias"></div>
-</div>
+<div id="calendarioWrapper"></div>
 
 <!-- LISTA -->
 <table>
@@ -219,9 +242,7 @@ td{
   <tbody id="lista"></tbody>
 </table>
 
-<!-- ===========================
-     MODAL
-=========================== -->
+<!-- MODAL -->
 <div id="modal-bg">
   <div class="modal">
 
@@ -236,10 +257,10 @@ td{
 
     <input type="hidden" id="mTipo">
 
-    <input list="listaCat" id="mCat" placeholder="Categoria" autocomplete="off">
+    <input list="listaCat" id="mCat" placeholder="Categoria">
     <datalist id="listaCat"></datalist>
 
-    <input list="listaSub" id="mSub" placeholder="Subcategoria" autocomplete="off">
+    <input list="listaSub" id="mSub" placeholder="Subcategoria">
     <datalist id="listaSub"></datalist>
 
     <input id="mDesc" placeholder="Descrição">
@@ -254,39 +275,19 @@ td{
 <script>
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
 
-function formatarData(iso){
-  if(!iso) return "";
-  const d = new Date(iso);
-  if(isNaN(d)) return iso;
-  return String(d.getDate()).padStart(2,'0') + "/" +
-         String(d.getMonth()+1).padStart(2,'0') + "/" +
-         d.getFullYear();
-}
-
-/* ELEMENTOS */
-const lista = document.getElementById("lista");
-const modalBg = document.getElementById("modal-bg");
-const msg = document.getElementById("msg");
-
-const mData = document.getElementById("mData");
-const mTipo = document.getElementById("mTipo");
-const mCat = document.getElementById("mCat");
-const mSub = document.getElementById("mSub");
-const mDesc = document.getElementById("mDesc");
-const mValor = document.getElementById("mValor");
-
-const btnReceita = document.getElementById("btnReceita");
-const btnDespesa = document.getElementById("btnDespesa");
-
-let editandoID = null;
 let dadosLanc = [];
+let tela = "ano"; // ano → mês → dias
 let mesAtual = new Date().getMonth();
 let anoAtual = new Date().getFullYear();
 
-/* Loading */
-function load(v){
-  document.getElementById("loading").style.display = v ? "flex" : "none";
+/* UTIL */
+function formatarData(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
+
+function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
 
 function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
 function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
@@ -298,21 +299,7 @@ mValor.addEventListener("input",()=>{
   mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
 });
 
-/* RECEITA / DESPESA */
-btnReceita.onclick = ()=>{ mTipo.value="Receita"; btnReceita.classList.add("activeSel"); btnDespesa.classList.remove("activeSel"); };
-btnDespesa.onclick = ()=>{ mTipo.value="Despesa"; btnDespesa.classList.add("activeSel"); btnReceita.classList.remove("activeSel"); };
-
-/* LISTAR */
-async function listar(){
-  load(true);
-  const r = await fetch(API+"?action=listLancamentos");
-  dadosLanc = await r.json();
-  renderLista(dadosLanc);
-  await carregarCategorias();
-  renderCalendario();
-  load(false);
-}
-
+/* RENDER LISTA */
 function renderLista(filtrado){
   lista.innerHTML = filtrado.map(l=>`
     <tr>
@@ -330,71 +317,112 @@ function renderLista(filtrado){
   `).join("");
 }
 
-/* FILTRO DIÁRIO */
-function filtrarPorDia(dia){
-  const diaISO = `${anoAtual}-${String(mesAtual+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-  const filtrado = dadosLanc.filter(l => l[1].startsWith(diaISO));
-  renderLista(filtrado);
+/* ========= VISÃO ANUAL ========== */
+function renderAno(){
+  tela = "ano";
+
+  let html = `<div id="gradeMeses">`;
+
+  const nomesMes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+  for(let m=0;m<12;m++){
+
+    const lancMes = dadosLanc.filter(l=>{
+      const d = new Date(l[1]);
+      return d.getMonth()==m && d.getFullYear()==anoAtual;
+    });
+
+    let total = lancMes.reduce((acc,l)=>acc + Number(l[6])*(l[2]=="Receita"?1:-1),0);
+
+    let cor = total>0? "green" : total<0?"red":"#555";
+
+    html += `
+      <div class="mesCard" onclick="abrirMes(${m})">
+        <div style="font-size:20px;font-weight:bold">${nomesMes[m]}</div>
+        <div class="mesValor" style="color:${cor}">${total.toFixed(2)}</div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+
+  calendarioWrapper.innerHTML = html;
 }
 
-/* CALENDÁRIO */
-function renderCalendario(){
-  const mesAno = document.getElementById("mesAno");
-  const grade = document.getElementById("gradeDias");
+/* ========= VISÃO MENSAL ========== */
+function abrirMes(m){
+  tela = "mes";
+  mesAtual = m;
 
   const nomesMes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-  mesAno.innerText = `${nomesMes[mesAtual]} de ${anoAtual}`;
 
+  let html = `
+    <div id="mesNav">
+      <span onclick="renderAno()" style="cursor:pointer">◀ Voltar</span>
+      <span>${nomesMes[m]} de ${anoAtual}</span>
+      <span></span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-weight:bold;color:#555;">
+      <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+    </div>
+
+    <div id="gradeDias"></div>
+  `;
+
+  calendarioWrapper.innerHTML = html;
+
+  renderDias();
+}
+
+/* ========= VISÃO DIAS DO MÊS ========== */
+function renderDias(){
+  const grade = document.getElementById("gradeDias");
   grade.innerHTML = "";
 
   const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
   const totalDias = new Date(anoAtual, mesAtual+1, 0).getDate();
 
-  for(let i=0; i<primeiroDia; i++){
+  for(let i=0;i<primeiroDia;i++){
     grade.innerHTML += `<div></div>`;
   }
 
   const hoje = new Date();
 
   for(let d=1; d<=totalDias; d++){
-    const id = `${anoAtual}-${String(mesAtual+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    const idDia = `${anoAtual}-${String(mesAtual+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    const lancDia = dadosLanc.filter(l => l[1].startsWith(idDia));
+
+    const total = lancDia.reduce((acc,l)=>acc + Number(l[6])*(l[2]=="Receita"?1:-1),0);
+
+    let corBadge = total>0?"#2ecc71": total<0?"#e74c3c":"#999";
+
     const isHoje = hoje.getFullYear()==anoAtual && hoje.getMonth()==mesAtual && hoje.getDate()==d;
 
     grade.innerHTML += `
-      <div class="dia ${isHoje?'diaHoje':''}" onclick="filtrarPorDia(${d})">${d}</div>
+      <div class="dia ${isHoje?"diaHoje":""}" onclick="filtrarPorDia('${idDia}')">
+        ${d}
+        ${lancDia.length>0?`<div class="badgeDia" style="background:${corBadge};color:white">${total.toFixed(0)}</div>`:""}
+      </div>
     `;
   }
 }
 
-function mudarMes(v){
-  mesAtual += v;
-  if(mesAtual<0){ mesAtual=11; anoAtual--; }
-  if(mesAtual>11){ mesAtual=0; anoAtual++; }
-  renderCalendario();
+/* FILTRAR POR DIA */
+function filtrarPorDia(idDia){
+  const filtrado = dadosLanc.filter(l=>l[1].startsWith(idDia));
+  renderLista(filtrado);
 }
 
-/* CARREGAR LISTAS */
+/* ====== CARREGAR CATEGORIAS ====== */
 async function carregarCategorias(){
   const r = await fetch(API+"?action=listCadastros");
   const dados = await r.json();
 
   listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
-
-  filtroInteligente(mCat, listaCat);
-  filtroInteligente(mSub, listaSub);
-}
-
-function filtroInteligente(input, datalist){
-  const valores = [...datalist.options].map(o=>o.value);
-
-  input.addEventListener("input",()=>{
-    const txt = input.value.toLowerCase();
-    datalist.innerHTML = valores.filter(v=>v.toLowerCase().includes(txt)).map(v=>`<option value="${v}">`).join("");
-    input.dataset.valid = valores.includes(input.value) ? "1" : "0";
-  });
-
-  input.addEventListener("blur",()=>{ if(input.dataset.valid!=="1") input.value=""; });
 }
 
 /* MODAL */
@@ -414,9 +442,9 @@ function abrirModal(id=null){
 
   tituloModal.innerText="Novo Lançamento";
 }
-
 function fecharModal(){ modalBg.style.display="none"; }
 
+/* EDITAR */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
@@ -447,12 +475,6 @@ async function salvar(){
     return;
   }
 
-  const cats = [...listaCat.options].map(o=>o.value);
-  const subs = [...listaSub.options].map(o=>o.value);
-
-  if(!cats.includes(cat)){ erro("Categoria inválida!"); return; }
-  if(!subs.includes(sub)){ erro("Subcategoria inválida!"); return; }
-
   load(true);
 
   let url;
@@ -482,6 +504,16 @@ async function excluir(id){
 }
 
 /* START */
+async function listar(){
+  load(true);
+  const r = await fetch(API+"?action=listLancamentos");
+  dadosLanc = await r.json();
+  renderLista(dadosLanc);
+  await carregarCategorias();
+  renderAno(); // inicia pela visão anual
+  load(false);
+}
+
 listar();
 </script>
 
