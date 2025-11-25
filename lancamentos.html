@@ -159,7 +159,6 @@ h2{
   margin-bottom:12px;
 }
 
-/* TIPO */
 #tipoBtns button{
   flex:1;
   opacity:.4;
@@ -226,9 +225,12 @@ function formatarData(iso){
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
-/* MÁSCARA DE VALOR GLOBAL */
+/* MÁSCARA DE VALOR COMPLETA COM PONTO NOS MILHARES */
 function maskMoney(v){
-  return "R$ " + Number(v).toFixed(2).replace(".",",");
+  return "R$ " + Number(v)
+    .toFixed(2)
+    .replace(".",",")
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 const hoje = new Date();
@@ -241,7 +243,6 @@ function getStatusIcon(dataISO){
   return "";
 }
 
-/* ELEMENTOS */
 const modalBg = document.getElementById("modal-bg");
 const msg = document.getElementById("msg");
 const conteudo = document.getElementById("conteudo");
@@ -256,7 +257,9 @@ function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
 mValor.addEventListener("input",()=>{
   let v = mValor.value.replace(/\D/g,"");
   if(!v) v="0";
-  mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
+  mValor.value="R$ "+(v/100).toFixed(2)
+    .replace(".",",")
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 });
 
 /* BOTÕES RECEITA / DESPESA */
@@ -295,8 +298,11 @@ function renderizar(dados){
   meses.forEach(mes=>{
     const g = grupos[mes];
 
-    /* ===== ORDENAR POR DATA (CRESCENTE) ===== */
+    /* ORDENAR POR DATA (CRESCENTE) */
     g.lista.sort((a,b)=> new Date(a[1]) - new Date(b[1]));
+
+    const saldo = g.receita - g.despesa;
+    const corSaldo = saldo >= 0 ? "var(--green)" : "var(--red)";
 
     const bloco = document.createElement("div");
     bloco.className="grupoMes";
@@ -306,7 +312,8 @@ function renderizar(dados){
         <span>${mes}</span>
         <span>
           Receita: <b style="color:var(--green)">${maskMoney(g.receita)}</b> —
-          Despesa: <b style="color:var(--orange)">${maskMoney(g.despesa)}</b>
+          Despesa: <b style="color:var(--orange)">${maskMoney(g.despesa)}</b> —
+          Saldo: <b style="color:${corSaldo}">${maskMoney(saldo)}</b>
         </span>
       </div>
 
@@ -406,7 +413,7 @@ function editar(id,data,tipo,cat,sub,desc,val){
   mCat.value = cat;
   mSub.value = sub;
   mDesc.value = desc;
-  mValor.value = maskMoney(val).replace(".",",");
+  mValor.value = maskMoney(val);
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
@@ -420,7 +427,8 @@ async function salvar(){
   let sub = mSub.value;
   let desc = mDesc.value;
 
-  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
+  let val = mValor.value.replace(/\D/g,"");
+  val = (Number(val)/100).toFixed(2);
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
     erro("Preencha tudo!");
