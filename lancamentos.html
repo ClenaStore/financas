@@ -5,6 +5,9 @@
 <title>Financeiro • Calendário Premium</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- ========= CHART.JS ========= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 /* ================================
    PALETA PREMIUM – AZUL + DOURADO
@@ -25,208 +28,168 @@
   --radius:18px;
 }
 
-/* BASE */
 body{
   margin:0;
   padding:20px;
   background:var(--bg);
   font-family:Arial, sans-serif;
-  color:#222;
 }
 
+/* Título */
 h1{
-  color:var(--azul);
   text-align:center;
-  font-size:36px;
-  margin-bottom:25px;
-  font-weight:800;
+  font-size:28px;
+  color:var(--azul);
+  font-weight:900;
+  margin-bottom:20px;
 }
 
-/* GRID ANUAL */
+/* Grade anual */
 #ano{
   display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap:25px;
-  margin-top:20px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap:20px;
 }
 
-/* CARD DO MÊS */
+/* Card do mês */
 .card-mes{
-  background:var(--card);
+  background:white;
+  padding:18px;
   border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:18px 20px;
+  border:2px solid var(--azul);
   cursor:pointer;
   transition:.2s;
-  border:2px solid var(--azul);
 }
-.card-mes:hover{
-  transform:scale(1.02);
-}
+.card-mes:hover{ transform:scale(1.03); }
 
-/* TÍTULO DO MÊS */
 .card-mes h2{
   margin:0;
-  font-size:22px;
+  font-size:20px;
   color:var(--azul);
-  font-weight:700;
 }
-
-/* RESUMO FINANCEIRO */
 .resumo-mes{
-  margin-top:12px;
-  font-size:15px;
-  line-height:1.55;
+  margin-top:10px;
+  font-size:14px;
 }
-.resumo-mes span{
-  display:block;
-  margin-top:4px;
-}
+.resumo-mes span{ display:block; }
 
-/* POPUP CENTRAL */
+/* POPUP central */
 #popup-bg{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.55);
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:99999;
-  backdrop-filter:blur(3px);
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(4px);
+  z-index:9999;
 }
 
 .popup{
-  width:650px;
+  width:680px;
   max-height:90vh;
   overflow-y:auto;
   background:white;
-  padding:22px 26px;
-  border-radius:22px;
-  box-shadow:0 18px 48px rgba(0,0,0,0.35);
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 22px 60px rgba(0,0,0,0.35);
   animation:pop .25s ease;
 }
-
 @keyframes pop{
-  from{transform:scale(.85); opacity:.3;}
-  to{transform:scale(1); opacity:1;}
+  from{ transform:scale(.85); opacity:.3; }
+  to{ transform:scale(1); opacity:1; }
 }
 
 .popup h2{
-  margin:0 0 12px 0;
-  font-size:26px;
-  color:var(--azul);
+  margin:0;
   text-align:center;
+  font-size:24px;
+  color:var(--azul);
 }
 
-/* CALENDÁRIO MENSAL */
+/* Calendário mensal */
 .grid-mes{
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:7px;
-  margin-top:15px;
+  gap:8px;
+  margin-top:20px;
 }
 
 .dia{
   background:white;
-  border-radius:16px;
+  border-radius:14px;
   padding:10px;
-  min-height:95px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.07);
+  min-height:80px;
+  border:1px solid #ddd;
   cursor:pointer;
   transition:.2s;
-  border:1px solid #eee;
 }
-.dia:hover{
-  transform:scale(1.05);
-  border-color:var(--dourado);
-}
+.dia:hover{ transform:scale(1.05); border-color:var(--dourado); }
 
-.dia-num{
-  font-weight:700;
-  color:var(--azul);
-  font-size:17px;
-}
+.dia-num{ font-size:16px; font-weight:bold; color:var(--azul); }
 
-.dia-rec{ font-size:13px; margin-top:5px; color:var(--green); }
-.dia-desp{ font-size:13px; color:var(--orange); }
-.dia-fech{ margin-top:4px; font-size:13px; font-weight:700; color:var(--azul); }
-
-/* LISTA DE LANÇAMENTOS NO POPUP DO DIA */
+/* Popup do dia */
 .linha{
   background:white;
-  padding:14px;
-  margin-bottom:10px;
+  padding:12px;
   border-radius:12px;
+  margin-bottom:10px;
   border-left:6px solid var(--azul);
-  box-shadow:0 4px 18px rgba(0,0,0,0.10);
 }
-
 .linha.receita{ border-color:var(--green); }
 .linha.despesa{ border-color:var(--orange); }
-.linha strong{ font-size:15px; }
 
-/* BOTÕES */
+.statusIcon{ font-size:18px; margin-right:6px; }
+.passado{ color:var(--green); }
+.futuro{ color:var(--red); }
+
 .btn{
-  padding:12px 18px;
+  width:100%;
+  margin-top:12px;
+  padding:12px;
   border:none;
-  border-radius:12px;
-  font-size:15px;
+  border-radius:10px;
+  font-size:16px;
   cursor:pointer;
   color:white;
   background:var(--azul);
-  margin-top:14px;
-  width:100%;
 }
-.btn:hover{ opacity:.85; }
-
 .btn-gold{
   background:var(--dourado);
   color:var(--azul-escuro);
 }
-.btn-close{
-  background:#666;
-}
-
-/* ÍCONES DE STATUS */
-.statusIcon{
-  font-size:18px;
-  margin-right:6px;
-}
-.passado{ color:var(--green); }
-.futuro{ color:var(--red); }
-
+.btn-close{ background:#666; }
 </style>
 </head>
 
 <body>
 
-<h1>Calendário Financeiro • 2025</h1>
+<h1>Calendário Financeiro Premium</h1>
 
 <div id="ano"></div>
 
-<!-- POPUP GERAL -->
+<!-- POPUP -->
 <div id="popup-bg">
   <div class="popup" id="popup"></div>
 </div>
 
 <script>
-/* =============================================
-   CONFIG
-============================================= */
+/* ============================================
+   CONFIGURAÇÃO
+============================================ */
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
-let anoAtual = 2025;
 let dadosLanc = [];
+let anoAtual = 2025;
+const META_GASTOS = 2000;
 
-/* Máscara R$ 1.000,00 */
+/* Formatador R$ 1.000,00 */
 function maskMoney(v){
   return "R$ "+Number(v).toFixed(2)
-        .replace(".",",")
-        .replace(/\B(?=(\d{3})+(?!\d))/g,".");
+         .replace(".",",")
+         .replace(/\B(?=(\d{3})+(?!\d))/g,".");
 }
 
-/* ================================
-   LOCAL STORAGE
-================================ */
+/* localStorage */
 function carregarLocal(){
   const l = localStorage.getItem("lancamentos");
   if(l) dadosLanc = JSON.parse(l);
@@ -235,146 +198,172 @@ function salvarLocal(){
   localStorage.setItem("lancamentos", JSON.stringify(dadosLanc));
 }
 
-/* ================================
-   ATUALIZAÇÃO EM SEGUNDO PLANO
-================================ */
+/* Atualização silenciosa */
 async function atualizarBG(){
   try{
     const r = await fetch(API+"?action=listLancamentos");
-    const dados = await r.json();
-    dadosLanc = dados;
+    dadosLanc = await r.json();
     salvarLocal();
     montarAno();
   }catch(e){}
 }
 setInterval(atualizarBG, 600000);
 
-/* ================================
-   ANO COMPLETO
-================================ */
+/* ============================================
+   MONTAR ANO
+============================================ */
 function montarAno(){
-  const meses = [
-    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
-  ];
-
+  const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                 "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
   const ano = document.getElementById("ano");
-  ano.innerHTML = "";
+  ano.innerHTML="";
 
   meses.forEach((m,i)=>{
-    const card = document.createElement("div");
-    card.className="card-mes";
-    const mes = i+1;
-
+    const mesN = i+1;
     const lanc = dadosLanc.filter(l=>{
-      const d = new Date(l[1]);
-      return d.getFullYear()==anoAtual && (d.getMonth()+1)==mes;
+      const d=new Date(l[1]);
+      return d.getFullYear()==anoAtual && (d.getMonth()+1)==mesN;
     });
 
-    const rec = lanc.filter(l=>l[2]==="Receita").reduce((t,x)=>t+Number(x[6]),0);
-    const desp = lanc.filter(l=>l[2]==="Despesa").reduce((t,x)=>t+Number(x[6]),0);
+    const rec = lanc.filter(l=>l[2]=="Receita").reduce((t,x)=>t+Number(x[6]),0);
+    const desp = lanc.filter(l=>l[2]=="Despesa").reduce((t,x)=>t+Number(x[6]),0);
 
-    card.innerHTML = `
+    const card=document.createElement("div");
+    card.className="card-mes";
+    card.innerHTML=`
       <h2>${m}</h2>
       <div class="resumo-mes">
         <span style="color:var(--green)">Receitas: ${maskMoney(rec)}</span>
         <span style="color:var(--orange)">Despesas: ${maskMoney(desp)}</span>
-        <span style="color:var(--azul); font-weight:700">Fechamento: ${maskMoney(rec-desp)}</span>
+        <span style="color:var(--azul);font-weight:bold;">Fechamento: ${maskMoney(rec-desp)}</span>
       </div>
     `;
-
-    card.onclick = ()=> abrirMesPopup(m, mes);
-
+    card.onclick=()=>abrirMes(m, mesN);
     ano.appendChild(card);
   });
 }
 
-/* ================================
+/* ============================================
    POPUP DO MÊS
-================================ */
-function abrirMesPopup(nomeMes, mes){
-  const popup = document.getElementById("popup");
-  const bg = document.getElementById("popup-bg");
+============================================ */
+function abrirMes(nomeMes, mesNum){
+  const popup=document.getElementById("popup");
+  const bg=document.getElementById("popup-bg");
+  popup.innerHTML="";
+  bg.style.display="flex";
 
-  popup.innerHTML = "";
-  bg.style.display = "flex";
-
-  const lancMes = dadosLanc.filter(l=>{
+  const lanc = dadosLanc.filter(l=>{
     const d=new Date(l[1]);
-    return d.getFullYear()==anoAtual && (d.getMonth()+1)==mes;
+    return d.getFullYear()==anoAtual && (d.getMonth()+1)==mesNum;
   });
 
-  const rec = lancMes.filter(l=>l[2]=="Receita").reduce((t,x)=>t+Number(x[6]),0);
-  const desp = lancMes.filter(l=>l[2]=="Despesa").reduce((t,x)=>t+Number(x[6]),0);
+  const rec = lanc.filter(l=>l[2]=="Receita").reduce((t,x)=>t+Number(x[6]),0);
+  const desp = lanc.filter(l=>l[2]=="Despesa").reduce((t,x)=>t+Number(x[6]),0);
   const fech = rec - desp;
 
   popup.innerHTML = `
     <h2>${nomeMes} de ${anoAtual}</h2>
 
-    <div class="resumo-mes" style="text-align:center; margin-bottom:20px;">
-      <span style="color:var(--green)">Receitas: ${maskMoney(rec)}</span>
-      <span style="color:var(--orange)">Despesas: ${maskMoney(desp)}</span>
-      <span style="color:var(--azul); font-weight:700">Fechamento: ${maskMoney(fech)}</span>
+    <div style="text-align:center;margin-top:15px;">
+      <b style="color:var(--green)">Receitas:</b> ${maskMoney(rec)}<br>
+      <b style="color:var(--orange)">Despesas:</b> ${maskMoney(desp)}<br>
+      <b style="color:var(--azul)">Fechamento:</b> ${maskMoney(fech)}<br>
+      <b style="color:var(--red)">Meta de Gastos:</b> ${maskMoney(META_GASTOS)}<br>
+      <b style="color:${desp > META_GASTOS ? 'var(--red)' : 'var(--green)'}">
+        ${desp > META_GASTOS ? 'Acima da Meta' : 'Dentro da Meta'}
+      </b>
     </div>
 
-    <button class="btn-gold" onclick="novoLancamentoMes(${mes})">+ Novo Lançamento para este mês</button>
+    <h3 style="text-align:center;margin-top:20px;color:var(--azul)">Gráficos</h3>
+    <canvas id="grafPizza" height="160"></canvas>
+    <canvas id="grafLinha" height="160"></canvas>
 
-    <h3 style="text-align:center; color:var(--azul); margin-top:25px;">Calendário</h3>
-    <div id="gridMes"></div>
+    <h3 style="text-align:center;margin-top:20px;color:var(--azul)">Calendário</h3>
+    <div id="gridMes" class="grid-mes"></div>
 
     <button class="btn-close" onclick="fecharPopup()">Fechar</button>
   `;
 
-  gerarCalendarMes(mes);
+  gerarGrafPizza(rec,desp);
+  gerarGrafLinha(lanc);
+  gerarCalendarioMes(mesNum);
 }
 
-/* ================================
+/* ============================================
+   GRÁFICOS
+============================================ */
+function gerarGrafPizza(rec,desp){
+  new Chart(document.getElementById("grafPizza"),{
+    type:"pie",
+    data:{
+      labels:["Receitas","Despesas"],
+      datasets:[{
+        data:[rec,desp],
+        backgroundColor:["#2ecc71","#ff9f43"]
+      }]
+    }
+  });
+}
+
+function gerarGrafLinha(lanc){
+  const dias = lanc.map(l=>l[1].split("T")[0].slice(8));
+  const valores = lanc.map(l=>Number(l[6]) * (l[2]=="Receita"?1:-1));
+
+  new Chart(document.getElementById("grafLinha"),{
+    type:"line",
+    data:{
+      labels:dias,
+      datasets:[{
+        label:"Fluxo Diário",
+        data:valores,
+        borderColor:"#0b1e39",
+        tension:.3
+      }]
+    }
+  });
+}
+
+/* ============================================
    CALENDÁRIO DO MÊS
-================================ */
-function gerarCalendarMes(mes){
-  const alvo = document.getElementById("gridMes");
-  alvo.className = "grid-mes";
+============================================ */
+function gerarCalendarioMes(mes){
+  const alvo=document.getElementById("gridMes");
   alvo.innerHTML="";
 
-  const primeiro = new Date(anoAtual, mes-1, 1);
-  const ultimo = new Date(anoAtual, mes, 0);
+  const primeiro=new Date(anoAtual,mes-1,1);
+  const ultimo=new Date(anoAtual,mes,0);
 
-  const inicio = primeiro.getDay();
-  const total = ultimo.getDate();
+  const inicio=primeiro.getDay();
+  const total=ultimo.getDate();
 
-  for(let i=0;i<inicio;i++){
-    alvo.appendChild(document.createElement("div"));
-  }
+  for(let i=0;i<inicio;i++) alvo.appendChild(document.createElement("div"));
 
-  for(let d=1; d<=total; d++){
-    const iso = `${anoAtual}-${String(mes).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const diaDiv=document.createElement("div");
-    diaDiv.className="dia";
+  for(let d=1;d<=total;d++){
+    const iso=`${anoAtual}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 
-    const lanc = dadosLanc.filter(x=>x[1].startsWith(iso));
+    const ld = dadosLanc.filter(x=>x[1].startsWith(iso));
 
-    const rec = lanc.filter(l=>l[2]=="Receita").reduce((t,x)=>t+Number(x[6]),0);
-    const desp= lanc.filter(l=>l[2]=="Despesa").reduce((t,x)=>t+Number(x[6]),0);
+    const rec = ld.filter(l=>l[2]=="Receita").reduce((t,x)=>t+Number(x[6]),0);
+    const desp = ld.filter(l=>l[2]=="Despesa").reduce((t,x)=>t+Number(x[6]),0);
 
-    diaDiv.innerHTML=`
-      <div class='dia-num'>${d}</div>
-      <div class='dia-rec'>R: ${maskMoney(rec)}</div>
-      <div class='dia-desp'>D: ${maskMoney(desp)}</div>
-      <div class='dia-fech'>${maskMoney(rec-desp)}</div>
+    const div=document.createElement("div");
+    div.className="dia";
+    div.innerHTML=`
+      <div class="dia-num">${d}</div>
+      <div class="dia-rec">R: ${maskMoney(rec)}</div>
+      <div class="dia-desp">D: ${maskMoney(desp)}</div>
     `;
-    diaDiv.onclick = ()=> abrirDiaPopup(iso);
-
-    alvo.appendChild(diaDiv);
+    div.onclick=()=>abrirDia(iso);
+    alvo.appendChild(div);
   }
 }
 
-/* ================================
+/* ============================================
    POPUP DO DIA
-================================ */
-function abrirDiaPopup(iso){
-  const popup = document.getElementById("popup");
-  const bg = document.getElementById("popup-bg");
-
+============================================ */
+function abrirDia(iso){
+  const popup=document.getElementById("popup");
+  const bg=document.getElementById("popup-bg");
   popup.innerHTML="";
   bg.style.display="flex";
 
@@ -382,86 +371,69 @@ function abrirDiaPopup(iso){
   const nomeMes=d.toLocaleString("pt-BR",{month:"long"});
   const hoje=new Date();
 
+  const lanc = dadosLanc.filter(x=>x[1].startsWith(iso));
+
   popup.innerHTML=`
     <h2>${d.getDate()} de ${nomeMes}</h2>
-
-    <div id="listaDia"></div>
-
-    <button class="btn-gold" onclick="novoLancamentoDia('${iso}')">+ Novo Lançamento</button>
+    <div id="listaDia" style="margin-top:20px;"></div>
+    <button class="btn-gold" onclick="novoDia('${iso}')">Novo Lançamento</button>
     <button class="btn-close" onclick="fecharPopup()">Fechar</button>
   `;
 
-  const lanc = dadosLanc.filter(x=>x[1].startsWith(iso));
-  const lista = document.getElementById("listaDia");
+  const lista=document.getElementById("listaDia");
 
   if(lanc.length==0){
     lista.innerHTML="<p style='text-align:center;color:#777'>Nenhum lançamento.</p>";
   }
 
-  lanc.sort((a,b)=>Number(a[0])-Number(b[0]));
-
-  lanc.forEach(l=>{
+  lanc.sort((a,b)=>a[0]-b[0]).forEach(l=>{
     const linha=document.createElement("div");
     linha.className="linha "+(l[2]=="Receita"?"receita":"despesa");
 
-    const dataLanc = new Date(l[1]);
-    const status = dataLanc < hoje 
-        ? "<span class='statusIcon passado'>✔</span>" 
-        : "<span class='statusIcon futuro'>✖</span>";
+    const dataLanc=new Date(l[1]);
+    const status = dataLanc < hoje
+      ? "<span class='statusIcon passado'>✔</span>"
+      : "<span class='statusIcon futuro'>✖</span>";
 
     linha.innerHTML=`
       ${status}
       <strong>${l[2]}</strong><br>
-      Categoria: ${l[3]}<br>
-      Sub: ${l[4]}<br>
-      Desc: ${l[5]}<br>
-      Valor: ${maskMoney(l[6])}
+      ${l[3]} • ${l[4]}<br>
+      ${l[5]}<br>
+      ${maskMoney(l[6])}
     `;
 
     lista.appendChild(linha);
   });
 }
 
-/* ================================
-   LANÇAMENTOS
-================================ */
-function novoLancamentoMes(mes){
-  const data = prompt("Data (AAAA-MM-DD):", `${anoAtual}-${String(mes).padStart(2,"0")}-01`);
-  const tipo = prompt("Tipo (Receita/Despesa):");
-  const cat = prompt("Categoria:");
-  const sub = prompt("Subcategoria:");
-  const desc = prompt("Descrição:");
-  const val = prompt("Valor:");
-
-  fetch(`${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`)
-    .then(r=>r.json()).then(()=>atualizarBG());
-}
-
-function novoLancamentoDia(iso){
-  const tipo = prompt("Tipo (Receita/Despesa):");
-  const cat = prompt("Categoria:");
-  const sub = prompt("Subcategoria:");
-  const desc = prompt("Descrição:");
-  const val = prompt("Valor:");
+/* ============================================
+   LANÇAR VIA POPUP
+============================================ */
+function novoDia(iso){
+  const tipo=prompt("Tipo (Receita/Despesa):");
+  const cat=prompt("Categoria:");
+  const sub=prompt("Subcategoria:");
+  const desc=prompt("Descrição:");
+  const val=prompt("Valor:");
 
   fetch(`${API}?action=createLancamento&data=${iso}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`)
     .then(r=>r.json()).then(()=>atualizarBG());
 }
 
-/* ================================
+/* ============================================
    FECHAR POPUP
-================================ */
+============================================ */
 function fecharPopup(){
   document.getElementById("popup-bg").style.display="none";
 }
 
-/* ================================
+/* ============================================
    INICIAR
-================================ */
+============================================ */
 carregarLocal();
 montarAno();
 atualizarBG();
-
 </script>
 
 </body>
