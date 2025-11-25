@@ -96,8 +96,8 @@ h2{
   font-size:18px;
   margin-right:6px;
 }
-.passado{ color:#2ecc71; }   /* Verde */
-.futuro{ color:#e74c3c; }    /* Vermelho */
+.passado{ color:#2ecc71; }
+.futuro{ color:#e74c3c; }
 
 /* BOTÕES */
 .btn{
@@ -159,6 +159,7 @@ h2{
   margin-bottom:12px;
 }
 
+/* TIPO */
 #tipoBtns button{
   flex:1;
   opacity:.4;
@@ -197,10 +198,10 @@ h2{
 
     <input type="hidden" id="mTipo">
 
-    <input list="listaCat" id="mCat" placeholder="Categoria" autocomplete="off">
+    <input list="listaCat" id="mCat" placeholder="Categoria">
     <datalist id="listaCat"></datalist>
 
-    <input list="listaSub" id="mSub" placeholder="Subcategoria" autocomplete="off">
+    <input list="listaSub" id="mSub" placeholder="Subcategoria">
     <datalist id="listaSub"></datalist>
 
     <input id="mDesc" placeholder="Descrição">
@@ -217,6 +218,7 @@ h2{
    CONFIG
 =============================== */
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
+const LS_KEY = "dv_financeiro_cache"; // localStorage
 
 /* FORMATAR DATA */
 function formatarData(iso){
@@ -225,17 +227,17 @@ function formatarData(iso){
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
-/* MÁSCARA DE VALOR COMPLETA COM PONTO NOS MILHARES */
+/* MÁSCARA DE VALOR GLOBAL COM PONTO */
 function maskMoney(v){
-  return "R$ " + Number(v)
+  let n = Number(v);
+  return "R$ " + n
     .toFixed(2)
-    .replace(".",",")
+    .replace(".", ",")
     .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
+/* STATUS */
 const hoje = new Date();
-
-/* ÍCONES DE STATUS */
 function getStatusIcon(dataISO){
   const d = new Date(dataISO);
   if(d < hoje) return `<span class="statusIcon passado">✔</span>`;
@@ -243,6 +245,7 @@ function getStatusIcon(dataISO){
   return "";
 }
 
+/* ELEMENTOS */
 const modalBg = document.getElementById("modal-bg");
 const msg = document.getElementById("msg");
 const conteudo = document.getElementById("conteudo");
@@ -253,26 +256,17 @@ function load(v){ document.getElementById("loading").style.display = v ? "flex":
 function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
 function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
 
-/* MASCARA INPUT */
+/* ===============================
+     MASCARA NO INPUT
+=============================== */
 mValor.addEventListener("input",()=>{
   let v = mValor.value.replace(/\D/g,"");
   if(!v) v="0";
-  mValor.value="R$ "+(v/100).toFixed(2)
+  mValor.value="R$ "+(v/100)
+    .toFixed(2)
     .replace(".",",")
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    .replace(/\B(?=(\d{3})+(?!\d))/g,".");
 });
-
-/* BOTÕES RECEITA / DESPESA */
-btnReceita.onclick=()=>{
-  mTipo.value="Receita";
-  btnReceita.classList.add("activeSel");
-  btnDespesa.classList.remove("activeSel");
-};
-btnDespesa.onclick=()=>{
-  mTipo.value="Despesa";
-  btnDespesa.classList.add("activeSel");
-  btnReceita.classList.remove("activeSel");
-};
 
 /* ===============================
    RENDERIZAÇÃO POR MÊS
@@ -298,11 +292,9 @@ function renderizar(dados){
   meses.forEach(mes=>{
     const g = grupos[mes];
 
-    /* ORDENAR POR DATA (CRESCENTE) */
     g.lista.sort((a,b)=> new Date(a[1]) - new Date(b[1]));
 
     const saldo = g.receita - g.despesa;
-    const corSaldo = saldo >= 0 ? "var(--green)" : "var(--red)";
 
     const bloco = document.createElement("div");
     bloco.className="grupoMes";
@@ -313,7 +305,7 @@ function renderizar(dados){
         <span>
           Receita: <b style="color:var(--green)">${maskMoney(g.receita)}</b> —
           Despesa: <b style="color:var(--orange)">${maskMoney(g.despesa)}</b> —
-          Saldo: <b style="color:${corSaldo}">${maskMoney(saldo)}</b>
+          <b style="color:white">Fechamento: ${maskMoney(saldo)}</b>
         </span>
       </div>
 
@@ -364,17 +356,51 @@ function renderizar(dados){
   });
 }
 
-/* LISTAR */
+/* ===============================
+    SINCRONIZAÇÃO EM SEGUNDO PLANO
+=============================== */
+async function syncBackground(){
+  try{
+    const r = await fetch(API+"?action=listLancamentos");
+    const dados = await r.json();
+
+    localStorage.setItem(LS_KEY, JSON.stringify(dados));
+    renderizar(dados); // Atualiza sem recarregar
+  } catch(e){
+    console.warn("Erro ao sincronizar:", e);
+  }
+}
+
+/* roda a cada 10 min */
+setInterval(syncBackground, 10 * 60 * 1000);
+
+/* ===============================
+   LISTAR
+=============================== */
 async function listar(){
+  let cache = localStorage.getItem(LS_KEY);
+
+  if(cache){
+    renderizar(JSON.parse(cache));
+    syncBackground(); // atualiza em paralelo
+    carregarCategorias();
+    return;
+  }
+
   load(true);
   const r = await fetch(API+"?action=listLancamentos");
   const dados = await r.json();
+
+  localStorage.setItem(LS_KEY, JSON.stringify(dados));
   renderizar(dados);
+
   await carregarCategorias();
   load(false);
 }
 
-/* CATEGORIAS */
+/* ===============================
+   CRUD
+=============================== */
 async function carregarCategorias(){
   const r = await fetch(API+"?action=listCadastros");
   const dados = await r.json();
@@ -383,7 +409,6 @@ async function carregarCategorias(){
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
 }
 
-/* MODAL */
 function abrirModal(id=null){
   editandoID = id;
   modalBg.style.display="flex";
@@ -403,70 +428,89 @@ function abrirModal(id=null){
 
 function fecharModal(){ modalBg.style.display="none"; }
 
-/* EDITAR */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
-  tituloModal.innerText="Editar Lançamento";
 
   mData.value = data.split("T")[0];
   mTipo.value = tipo;
   mCat.value = cat;
   mSub.value = sub;
   mDesc.value = desc;
+
   mValor.value = maskMoney(val);
 
   if(tipo==="Receita") btnReceita.click();
   else btnDespesa.click();
 }
 
-/* SALVAR */
 async function salvar(){
+
   let data = mData.value;
   let tipo = mTipo.value;
   let cat = mCat.value;
   let sub = mSub.value;
   let desc = mDesc.value;
-
-  let val = mValor.value.replace(/\D/g,"");
-  val = (Number(val)/100).toFixed(2);
+  let val = mValor.value.replace("R$","").replace(/\./g,"").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
     erro("Preencha tudo!");
     return;
   }
 
-  load(true);
-
   let url;
+
   if(editandoID){
-    const campos = JSON.stringify({
-      data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val
-    });
+    const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
     url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
   } else {
     url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
   }
 
-  let r = await fetch(url);
-  const resp = await r.json();
+  /* atualização instantânea local */
+  let cache = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
 
-  if(resp.status!=="ok"){ erro("Erro ao salvar!"); }
-  else ok("Salvo!");
+  if(editandoID){
+    const idx = cache.findIndex(i => i[0] == editandoID);
+    if(idx >= 0){
+      cache[idx][1]=data;
+      cache[idx][2]=tipo;
+      cache[idx][3]=cat;
+      cache[idx][4]=sub;
+      cache[idx][5]=desc;
+      cache[idx][6]=val;
+    }
+  } else {
+    cache.push(["temp-"+Date.now(), data, tipo, cat, sub, desc, val]);
+  }
+
+  localStorage.setItem(LS_KEY, JSON.stringify(cache));
+  renderizar(cache);
 
   fecharModal();
-  listar();
-  load(false);
+
+  /* envia ao servidor */
+  await fetch(url);
+  syncBackground(); // força sincronização silenciosa
 }
 
-/* EXCLUIR */
 async function excluir(id){
   if(!confirm("Excluir?")) return;
+
+  let cache = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+
+  cache = cache.filter(l => l[0] != id);
+
+  localStorage.setItem(LS_KEY, JSON.stringify(cache));
+  renderizar(cache);
+
   await fetch(API+"?action=deleteLancamento&id="+id);
-  listar();
+
+  syncBackground();
 }
 
 /* START */
 listar();
+
 </script>
 
 </body>
