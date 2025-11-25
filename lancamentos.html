@@ -2,506 +2,546 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Lançamentos</title>
+<title>Financeiro • Calendário Premium</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* ================================
+   PALETA PREMIUM – AZUL + DOURADO
+================================ */
 :root{
-  --azul:#1F4E78;
-  --bg:#f4f6f9;
+  --azul:#0b1e39;
+  --azul-escuro:#091627;
+  --dourado:#c9a86c;
+  --dourado-claro:#e2c78c;
+
   --green:#2ecc71;
   --orange:#ff9f43;
   --red:#e74c3c;
-  --gray:#999;
-  --shadow:0 6px 22px rgba(0,0,0,0.15);
-  --radius:14px;
+
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --shadow:0 8px 26px rgba(0,0,0,0.15);
+  --radius:18px;
 }
 
 /* BASE */
 body{
   margin:0;
-  padding:22px;
+  padding:20px;
   background:var(--bg);
   font-family:Arial, sans-serif;
+  color:#222;
 }
 
-h2{
-  margin-bottom:18px;
+h1{
   color:var(--azul);
-  font-size:32px;
-  font-weight:bold;
+  text-align:center;
+  font-size:36px;
+  margin-bottom:25px;
+  font-weight:800;
 }
 
-/* GRUPO MENSAL */
-.grupoMes{
-  margin-top:28px;
+/* GRID ANUAL */
+#ano{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap:25px;
+  margin-top:20px;
+}
+
+/* CARD DO MÊS */
+.card-mes{
+  background:var(--card);
   border-radius:var(--radius);
-  overflow:hidden;
   box-shadow:var(--shadow);
-  background:white;
-}
-
-.grupoHeader{
-  background:var(--azul);
-  color:white;
-  padding:14px 16px;
-  font-size:20px;
+  padding:18px 20px;
   cursor:pointer;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  transition:.2s;
+  border:2px solid var(--azul);
+}
+.card-mes:hover{
+  transform:scale(1.02);
 }
 
-.grupoBody{
-  display:none;
-  padding:8px 0 18px;
+/* TÍTULO DO MÊS */
+.card-mes h2{
+  margin:0;
+  font-size:22px;
+  color:var(--azul);
+  font-weight:700;
 }
 
-/* TABELA */
-.table-custom{
-  width:100%;
-  border-collapse:collapse;
-}
-.table-custom th{
-  background:#1F4E78;
-  color:white;
-  padding:12px;
-  text-align:left;
-}
-.table-custom td{
-  padding:11px;
-  border-bottom:1px solid #ddd;
+/* RESUMO FINANCEIRO */
+.resumo-mes{
+  margin-top:12px;
   font-size:15px;
+  line-height:1.55;
+}
+.resumo-mes span{
+  display:block;
+  margin-top:4px;
 }
 
-/* COR DAS LINHAS */
-.receita-row td{
-  background:#e8f8ef !important;
-  color:#15733e;
-  font-weight:bold;
-}
-.despesa-row td{
-  background:#fff2e6 !important;
-  color:#b05a14;
-  font-weight:bold;
-}
-
-/* STATUS */
-.statusIcon{
-  font-size:18px;
-  margin-right:6px;
-}
-.passado{ color:#2ecc71; }
-.futuro{ color:#e74c3c; }
-
-/* BOTÕES */
-.btn{
-  padding:12px 18px;
-  border:none;
-  border-radius:10px;
-  color:white;
-  font-size:16px;
-  cursor:pointer;
-}
-.btn-green{ background:var(--green); }
-.btn-gray{ background:var(--gray); }
-
-/* LOADING */
-#loading{
-  position:fixed;
-  bottom:20px;
-  left:20px;
-  background:#1F4E78;
-  padding:12px 20px;
-  border-radius:10px;
-  color:white;
+/* CALENDÁRIO MENSAL */
+.calendario-mes{
+  margin-top:22px;
+  border-top:2px solid var(--dourado);
+  padding-top:18px;
   display:none;
-  animation:pulse 1.2s infinite;
-  z-index:900;
-}
-@keyframes pulse{
-  0%{opacity:.5; transform:scale(.95);}
-  50%{opacity:1; transform:scale(1);}
-  100%{opacity:.5; transform:scale(.95);}
 }
 
-/* MODAL */
-#modal-bg{
+.grid-mes{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:7px;
+}
+
+/* DIA */
+.dia{
+  background:white;
+  border-radius:14px;
+  padding:10px;
+  min-height:95px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.07);
+  cursor:pointer;
+  transition:.2s;
+  border:1px solid #eee;
+}
+.dia:hover{
+  transform:scale(1.04);
+  border-color:var(--dourado);
+}
+
+/* NÚMERO DO DIA */
+.dia-num{
+  font-weight:700;
+  color:var(--azul);
+  font-size:17px;
+}
+
+/* VALORES */
+.dia-rec{
+  font-size:13px;
+  margin-top:5px;
+  color:var(--green);
+}
+.dia-desp{
+  font-size:13px;
+  color:var(--orange);
+}
+
+.dia-fech{
+  margin-top:4px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--azul);
+}
+
+/* POPUP DIA */
+#popup-dia-bg{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.55);
   display:none;
   align-items:center;
   justify-content:center;
+  z-index:9999;
   backdrop-filter:blur(3px);
-  z-index:2000;
 }
 
-.modal{
-  width:420px;
+.popup-dia{
+  width:520px;
+  max-height:85vh;
+  overflow-y:auto;
   background:white;
-  padding:25px;
-  border-radius:15px;
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 14px 40px rgba(0,0,0,0.3);
   animation:pop .25s ease;
-  box-shadow:0 12px 35px rgba(0,0,0,0.25);
 }
+
 @keyframes pop{
   from{transform:scale(.85); opacity:.3;}
   to{transform:scale(1); opacity:1;}
 }
 
-.modal input{
-  width:100%;
-  border:1px solid #ccc;
-  border-radius:10px;
-  padding:11px;
-  margin-bottom:12px;
+.popup-dia h2{
+  margin:0;
+  font-size:22px;
+  color:var(--azul);
+  text-align:center;
+  margin-bottom:15px;
 }
 
-#tipoBtns button{
-  flex:1;
-  opacity:.4;
+/* LANÇAMENTOS DO DIA */
+.linha{
+  background:#fdfdfd;
+  border-radius:12px;
+  padding:12px 14px;
+  margin-bottom:10px;
+  border-left:6px solid var(--azul);
+  box-shadow:0 4px 16px rgba(0,0,0,0.08);
 }
-.activeSel{
-  opacity:1 !important;
-  box-shadow:0 0 6px #0003;
+
+.linha.receita{ border-color:var(--green); }
+.linha.despesa{ border-color:var(--orange); }
+
+.linha strong{ font-size:15px; }
+
+/* BOTÕES */
+.btn{
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  font-size:15px;
+  cursor:pointer;
+  color:white;
+  background:var(--azul);
+  margin-top:10px;
+  width:100%;
 }
+.btn:hover{
+  opacity:.85;
+}
+
+.btn-gold{
+  background:var(--dourado);
+  color:var(--azul-escuro);
+}
+.btn-close{
+  background:#888;
+  margin-top:14px;
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="loading">Carregando...</div>
+<h1>Calendário Financeiro • 2025</h1>
 
-<h2>Lançamentos</h2>
-<div id="msg"></div>
+<div id="ano"></div>
 
-<button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
+<!-- POPUP DO DIA -->
+<div id="popup-dia-bg">
+  <div class="popup-dia" id="popup-dia">
+    <h2 id="tituloDia"></h2>
 
-<div id="conteudo"></div>
+    <div id="listaDia"></div>
 
-<!-- MODAL -->
-<div id="modal-bg">
-  <div class="modal">
-
-    <h3 id="tituloModal">Novo Lançamento</h3>
-
-    <input id="mData" type="date">
-
-    <div id="tipoBtns" style="display:flex; gap:10px; margin-bottom:12px;">
-      <button id="btnReceita" class="btn btn-gray">Receita</button>
-      <button id="btnDespesa" class="btn btn-gray">Despesa</button>
-    </div>
-
-    <input type="hidden" id="mTipo">
-
-    <input list="listaCat" id="mCat" placeholder="Categoria">
-    <datalist id="listaCat"></datalist>
-
-    <input list="listaSub" id="mSub" placeholder="Subcategoria">
-    <datalist id="listaSub"></datalist>
-
-    <input id="mDesc" placeholder="Descrição">
-    <input id="mValor" placeholder="R$ 0,00">
-
-    <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
-    <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
-
+    <button class="btn btn-gold" onclick="novoLancamentoDia()">+ Novo Lançamento</button>
+    <button class="btn btn-close" onclick="fecharPopupDia()">Fechar</button>
   </div>
 </div>
 
 <script>
-/* ===============================
-   CONFIG
-=============================== */
+/* =============================================
+   API + STORAGE + FUNÇÕES GERAIS
+============================================= */
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
-const LS_KEY = "dv_lancamentos_cache";
 
-/* FORMATAR DATA */
-function formatarData(iso){
-  const d = new Date(iso);
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-}
+let dadosLanc = [];
+let dadosCat = [];
+let anoAtual = 2025;
 
-/* MÁSCARA DE VALOR COM PONTO */
+/* Máscara R$ 1.000,00 */
 function maskMoney(v){
-  let n = Number(v);
-  return "R$ " + n
-    .toFixed(2)
-    .replace(".", ",")
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return "R$ "+Number(v).toFixed(2)
+        .replace(".",",")
+        .replace(/\B(?=(\d{3})+(?!\d))/g,".");
 }
 
-const hoje = new Date();
-
-/* STATUS */
-function getStatusIcon(dataISO){
-  const d = new Date(dataISO);
-  if(d < hoje) return `<span class="statusIcon passado">✔</span>`;
-  if(d > hoje) return `<span class="statusIcon futuro">✖</span>`;
-  return "";
+/* Carrega localStorage */
+function carregarLocal(){
+  const l = localStorage.getItem("lancamentos");
+  if(l){ dadosLanc = JSON.parse(l); }
 }
 
-const conteudo = document.getElementById("conteudo");
-const msg = document.getElementById("msg");
-let editandoID = null;
-
-function load(v){ document.getElementById("loading").style.display = v ? "flex":"none"; }
-function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
-function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
-
-/* MÁSCARA DO INPUT */
-mValor.addEventListener("input",()=>{
-  let v = mValor.value.replace(/\D/g,"");
-  if(!v) v="0";
-  mValor.value="R$ "+(v/100)
-    .toFixed(2)
-    .replace(".",",")
-    .replace(/\B(?=(\d{3})+(?!\d))/g,".");
-});
-
-/* ======================================
-   RENDERIZAÇÃO AGRUPADA POR MÊS
-====================================== */
-function renderizar(dados){
-  conteudo.innerHTML = "";
-
-  const grupos = {};
-
-  dados.forEach(l=>{
-    const data = new Date(l[1]);
-    const mes = data.toLocaleString("pt-BR",{month:"long"}) + " / " + data.getFullYear();
-
-    if(!grupos[mes])
-      grupos[mes] = {lista:[], receita:0, despesa:0};
-
-    grupos[mes].lista.push(l);
-
-    if(l[2]==="Receita") grupos[mes].receita += Number(l[6]);
-    else grupos[mes].despesa += Number(l[6]);
-  });
-
-  /* ORDENAR POR MÊS */
-  const meses = Object.keys(grupos).sort().reverse();
-
-  meses.forEach(mes=>{
-    const g = grupos[mes];
-    const saldo = g.receita - g.despesa;
-
-    /* ordenar os registros por data */
-    g.lista.sort((a,b)=> new Date(a[1]) - new Date(b[1]));
-
-    /* criar bloco visual */
-    const bloco = document.createElement("div");
-    bloco.className="grupoMes";
-
-    bloco.innerHTML = `
-      <div class="grupoHeader">
-        <span>${mes}</span>
-        <span>
-          Receita: <b style="color:var(--green)">${maskMoney(g.receita)}</b> —
-          Despesa: <b style="color:var(--orange)">${maskMoney(g.despesa)}</b> —
-          Fechamento: <b style="color:white">${maskMoney(saldo)}</b>
-        </span>
-      </div>
-
-      <div class="grupoBody">
-        <table class="table-custom">
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Data</th>
-              <th>Tipo</th>
-              <th>Categoria</th>
-              <th>Subcategoria</th>
-              <th>Descrição</th>
-              <th>Valor</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-          ${g.lista.map(l=>{
-            const cls = l[2]==="Receita" ? "receita-row" : "despesa-row";
-
-            return `
-              <tr class="${cls}">
-                <td>${getStatusIcon(l[1])}</td>
-                <td>${formatarData(l[1])}</td>
-                <td>${l[2]}</td>
-                <td>${l[3]}</td>
-                <td>${l[4]}</td>
-                <td>${l[5]}</td>
-                <td>${maskMoney(l[6])}</td>
-                <td>
-                  <button onclick="editar('${l[0]}','${l[1]}','${l[2]}','${l[3]}','${l[4]}','${l[5]}','${l[6]}')">Editar</button>
-                  <button onclick="excluir('${l[0]}')">Excluir</button>
-                </td>
-              </tr>
-            `;
-          }).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    bloco.querySelector(".grupoHeader").onclick = ()=>{
-      const b = bloco.querySelector(".grupoBody");
-      b.style.display = b.style.display === "none" ? "block" : "none";
-    };
-
-    conteudo.appendChild(bloco);
-  });
+/* Salva localStorage */
+function salvarLocal(){
+  localStorage.setItem("lancamentos", JSON.stringify(dadosLanc));
 }
 
-/* ======================================
-   SINCRONIZAÇÃO EM SEGUNDO PLANO
-====================================== */
-async function syncBackground(){
+/* Atualizar em segundo plano */
+async function atualizarSegundoPlano(){
   try{
     const r = await fetch(API+"?action=listLancamentos");
     const dados = await r.json();
-    localStorage.setItem(LS_KEY, JSON.stringify(dados));
-    renderizar(dados);
-  }catch(e){}
+    dadosLanc = dados;
+    salvarLocal();
+    montarAno();
+  }catch(e){ console.log("Erro atualização BG", e); }
 }
-setInterval(syncBackground, 10 * 60 * 1000);
 
-/* ======================================
-   LISTAR
-====================================== */
-async function listar(){
-  let cache = localStorage.getItem(LS_KEY);
+/* Atuliza a cada 10 min */
+setInterval(atualizarSegundoPlano, 600000);
 
-  if(cache){
-    renderizar(JSON.parse(cache));
-    syncBackground();
-    carregarCategorias();
+/* =============================================
+   ANO COMPLETO
+============================================= */
+function montarAno(){
+  const anoDiv = document.getElementById("ano");
+  anoDiv.innerHTML = "";
+
+  const meses = [
+    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+  ];
+
+  meses.forEach((m,i)=>{
+    const card = document.createElement("div");
+    card.className="card-mes";
+    const indiceMes = i+1;
+
+    const lancMes = dadosLanc.filter(l=>{
+      const d = new Date(l[1]);
+      return d.getFullYear()==anoAtual && (d.getMonth()+1)==indiceMes;
+    });
+
+    const rec = lancMes.filter(l=>l[2]==="Receita")
+                       .reduce((t,x)=>t+Number(x[6]),0);
+    const desp = lancMes.filter(l=>l[2]==="Despesa")
+                        .reduce((t,x)=>t+Number(x[6]),0);
+
+    const fech = rec - desp;
+
+    card.innerHTML = `
+      <h2>${m}</h2>
+      <div class="resumo-mes">
+        <span style="color:var(--green)">Receitas: ${maskMoney(rec)}</span>
+        <span style="color:var(--orange)">Despesas: ${maskMoney(desp)}</span>
+        <span style="color:var(--azul); font-weight:700;">Fechamento: ${maskMoney(fech)}</span>
+      </div>
+      <div class="calendario-mes" id="cal-${indiceMes}"></div>
+    `;
+
+    card.onclick = ()=> abrirMes(indiceMes);
+
+    anoDiv.appendChild(card);
+  });
+}
+
+/* =============================================
+   CONTINUA NA PRÓXIMA RESPOSTA…
+============================================= */
+<script>
+/* =============================================
+   FUNÇÃO PARA ABRIR O MÊS (GERAR CALENDÁRIO)
+============================================= */
+function abrirMes(mes){
+  const alvo = document.getElementById("cal-"+mes);
+
+  // Fecha se já está aberto
+  if(alvo.style.display === "block"){
+    alvo.style.display = "none";
+    alvo.innerHTML = "";
     return;
   }
 
-  load(true);
-  const r = await fetch(API+"?action=listLancamentos");
-  const dados = await r.json();
-  localStorage.setItem(LS_KEY, JSON.stringify(dados));
-  renderizar(dados);
-  await carregarCategorias();
-  load(false);
+  // Fecha todos os outros
+  document.querySelectorAll(".calendario-mes").forEach(c=>{
+    c.style.display="none";
+    c.innerHTML="";
+  });
+
+  alvo.style.display = "block";
+
+  gerarCalendarioMes(mes, alvo);
 }
 
-/* ======================================
-   CRUD + CATEGORIAS
-====================================== */
-async function carregarCategorias(){
-  const r = await fetch(API+"?action=listCadastros");
-  const dados = await r.json();
+/* =============================================
+   GERAR CALENDÁRIO DO MÊS
+============================================= */
+function gerarCalendarioMes(mes, alvo){
+  alvo.innerHTML = "";
 
-  listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))]
-      .map(v=>`<option value="${v}">`).join("");
+  const nomeMes = [
+    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+  ][mes-1];
 
-  listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))]
-      .map(v=>`<option value="${v}">`).join("");
+  const titulo = document.createElement("h3");
+  titulo.style.color = "var(--azul)";
+  titulo.style.margin = "0 0 15px 0";
+  titulo.style.textAlign = "center";
+  titulo.style.fontSize = "20px";
+  titulo.innerText = nomeMes + " de " + anoAtual;
+
+  const grid = document.createElement("div");
+  grid.className = "grid-mes";
+
+  const primeiroDia = new Date(anoAtual, mes-1, 1);
+  const ultimoDia = new Date(anoAtual, mes, 0);
+
+  const inicioSemana = primeiroDia.getDay();
+  const totalDias = ultimoDia.getDate();
+
+  // Espaços vazios antes do dia 1
+  for(let i=0;i<inicioSemana;i++){
+    const vazio = document.createElement("div");
+    grid.appendChild(vazio);
+  }
+
+  // Dias do mês
+  for(let d=1; d<=totalDias; d++){
+    const dataISO = `${anoAtual}-${String(mes).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const diaDiv = document.createElement("div");
+    diaDiv.className = "dia";
+
+    const lanc = dadosLanc.filter(x => x[1].startsWith(dataISO));
+    const rec = lanc.filter(x=>x[2]==="Receita").reduce((t,x)=>t+Number(x[6]),0);
+    const desp = lanc.filter(x=>x[2]==="Despesa").reduce((t,x)=>t+Number(x[6]),0);
+    const fech = rec - desp;
+
+    diaDiv.innerHTML = `
+      <div class="dia-num">${d}</div>
+      <div class="dia-rec">R: ${maskMoney(rec)}</div>
+      <div class="dia-desp">D: ${maskMoney(desp)}</div>
+      <div class="dia-fech">${maskMoney(fech)}</div>
+    `;
+
+    diaDiv.onclick = ()=> abrirDia(dataISO);
+
+    grid.appendChild(diaDiv);
+  }
+
+  alvo.appendChild(titulo);
+  alvo.appendChild(grid);
 }
 
-function abrirModal(id=null){
-  editandoID = id;
-  modalBg.style.display="flex";
+/* =============================================
+   POPUP DO DIA
+============================================= */
+function abrirDia(dataISO){
+  const bg = document.getElementById("popup-dia-bg");
+  const listaDia = document.getElementById("listaDia");
+  const tituloDia = document.getElementById("tituloDia");
 
-  mData.value=new Date().toISOString().split("T")[0];
-  mTipo.value="";
-  mCat.value="";
-  mSub.value="";
-  mDesc.value="";
-  mValor.value="R$ 0,00";
+  bg.style.display = "flex";
 
-  btnReceita.classList.remove("activeSel");
-  btnDespesa.classList.remove("activeSel");
+  const d = new Date(dataISO);
+  const nomeMes = d.toLocaleString("pt-BR",{month:"long"});
+  tituloDia.innerText = `${d.getDate()} de ${nomeMes} de ${d.getFullYear()}`;
 
-  tituloModal.innerText = id ? "Editar" : "Novo Lançamento";
+  const lanc = dadosLanc.filter(x=>x[1].startsWith(dataISO));
+
+  listaDia.innerHTML = "";
+
+  if(lanc.length === 0){
+    listaDia.innerHTML = `<p style="text-align:center; color:#777;">Nenhum lançamento neste dia.</p>`;
+  }
+
+  lanc.sort((a,b)=> Number(a[0]) - Number(b[0]));
+
+  lanc.forEach(l=>{
+    const linha = document.createElement("div");
+    linha.className = "linha " + (l[2]==="Receita" ? "receita" : "despesa");
+
+    linha.innerHTML = `
+      <strong>${l[2]}</strong><br>
+      Categoria: ${l[3]}<br>
+      Sub: ${l[4]}<br>
+      Desc: ${l[5]}<br>
+      Valor: ${maskMoney(l[6])}<br><br>
+      <button class="btn" onclick="editarLanc('${l[0]}')">Editar</button>
+      <button class="btn" style="background:var(--red)" onclick="excluirLanc('${l[0]}','${dataISO}')">Excluir</button>
+    `;
+
+    listaDia.appendChild(linha);
+  });
+
+  // Salvar dia escolhido
+  localStorage.setItem("diaAtual", dataISO);
 }
 
-function fecharModal(){
-  modalBg.style.display="none";
+function fecharPopupDia(){
+  document.getElementById("popup-dia-bg").style.display = "none";
 }
 
-function editar(id,data,tipo,cat,sub,desc,val){
-  abrirModal(id);
+/* =============================================
+   NOVO LANÇAMENTO DIRETO DO DIA
+============================================= */
+function novoLancamentoDia(){
+  const dia = localStorage.getItem("diaAtual");
+  if(!dia) return alert("Erro ao definir data.");
 
-  mData.value = data.split("T")[0];
-  mTipo.value = tipo;
-  mCat.value = cat;
-  mSub.value = sub;
-  mDesc.value = desc;
-  mValor.value = maskMoney(val);
+  const data = prompt("Data:", dia);
+  const tipo = prompt("Tipo (Receita / Despesa):");
+  const categoria = prompt("Categoria:");
+  const sub = prompt("Subcategoria:");
+  const desc = prompt("Descrição:");
+  const valor = prompt("Valor (EX: 1000.50):");
 
-  if(tipo==="Receita") btnReceita.click();
-  else btnDespesa.click();
-}
-
-async function salvar(){
-
-  let data = mData.value;
-  let tipo = mTipo.value;
-  let cat = mCat.value;
-  let sub = mSub.value;
-  let desc = mDesc.value;
-  let val = mValor.value.replace("R$","").replace(/\./g,"").replace(",",".").trim();
-
-  if(!data||!tipo||!cat||!sub||!desc||!val){
-    erro("Preencha tudo!");
+  if(!data||!tipo||!categoria||!sub||!desc||!valor){
+    alert("Preencha todos os campos.");
     return;
   }
 
-  /* Atualização imediata local */
-  let cache = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
-
-  if(editandoID){
-    const idx = cache.findIndex(i=>i[0]==editandoID);
-    if(idx >= 0){
-      cache[idx][1]=data;
-      cache[idx][2]=tipo;
-      cache[idx][3]=cat;
-      cache[idx][4]=sub;
-      cache[idx][5]=desc;
-      cache[idx][6]=val;
-    }
-  } else {
-    cache.push(["temp-"+Date.now(),data,tipo,cat,sub,desc,val]);
-  }
-
-  localStorage.setItem(LS_KEY, JSON.stringify(cache));
-  renderizar(cache);
-
-  /* salvar na API */
-  let url;
-
-  if(editandoID){
-    const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
-    url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
-  } else {
-    url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
-  }
-
-  await fetch(url);
-  syncBackground();
-
-  fecharModal();
+  fetch(`${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${categoria}&subcategoria=${sub}&descricao=${desc}&valor=${valor}`)
+    .then(r=>r.json())
+    .then(j=>{
+      if(j.status==="ok"){
+        atualizarSegundoPlano();
+        abrirDia(data);
+      }else{
+        alert("Erro ao salvar.");
+      }
+    });
 }
 
-async function excluir(id){
-  if(!confirm("Excluir?")) return;
+/* =============================================
+   EDITAR LANÇAMENTO
+============================================= */
+function editarLanc(id){
+  const l = dadosLanc.find(x=>x[0]==id);
+  if(!l) return;
 
-  let cache = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
-  cache = cache.filter(l=>l[0] != id);
-  localStorage.setItem(LS_KEY, JSON.stringify(cache));
-  renderizar(cache);
+  const data = prompt("Data:", l[1]);
+  const tipo = prompt("Tipo (Receita / Despesa):", l[2]);
+  const categoria = prompt("Categoria:", l[3]);
+  const sub = prompt("Subcategoria:", l[4]);
+  const desc = prompt("Descrição:", l[5]);
+  const valor = prompt("Valor:", l[6]);
 
-  await fetch(API+"?action=deleteLancamento&id="+id);
-  syncBackground();
+  const campos = JSON.stringify({data,tipo,categoria,subcategoria:sub,descricao:desc,valor});
+
+  fetch(`${API}?action=editLancamento&id=${id}&campos=${encodeURIComponent(campos)}`)
+    .then(r=>r.json())
+    .then(j=>{
+      if(j.status==="ok"){
+        atualizarSegundoPlano();
+        abrirDia(data);
+      }else{
+        alert("Erro ao editar.");
+      }
+    });
 }
 
-/* START */
-listar();
+/* =============================================
+   EXCLUIR LANÇAMENTO
+============================================= */
+function excluirLanc(id, dia){
+  if(!confirm("Excluir lançamento?")) return;
+
+  fetch(`${API}?action=deleteLancamento&id=${id}`)
+    .then(r=>r.json())
+    .then(j=>{
+      atualizarSegundoPlano();
+      abrirDia(dia);
+    });
+}
+
+/* =============================================
+   INICIALIZAÇÃO
+============================================= */
+async function iniciar(){
+  carregarLocal();
+  montarAno();
+
+  // Atualiza em segundo plano
+  atualizarSegundoPlano();
+}
+
+iniciar();
 </script>
-
-</body>
-</html>
