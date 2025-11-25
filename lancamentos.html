@@ -15,21 +15,24 @@
   --shadow:0 6px 22px rgba(0,0,0,0.15);
 }
 
-/* GERAL */
+/* ===== BASE ===== */
 body{
   margin:0;
-  padding:25px;
+  padding:20px;
   background:var(--bg);
   font-family:Arial, sans-serif;
+  color:#222;
 }
 
+/* TÍTULO */
 h2{
-  margin-bottom:18px;
+  margin:10px 0 18px;
   color:var(--azul);
   font-size:32px;
+  text-align:left;
 }
 
-/* Botões */
+/* BOTÕES */
 .btn{
   padding:12px 18px;
   border:none;
@@ -41,6 +44,7 @@ h2{
 .btn-green{ background:var(--green); }
 .btn-gray{ background:var(--gray); }
 
+/* LOADING */
 #loading{
   position:fixed;
   bottom:20px;
@@ -59,9 +63,7 @@ h2{
   100%{opacity:.5; transform:scale(.95);}
 }
 
-/* ==========================
-      CALENDÁRIO (FIXO)
-========================== */
+/* ============ CALENDÁRIO ============ */
 
 #calendarioWrapper{
   background:white;
@@ -73,7 +75,7 @@ h2{
   overflow-y:auto;
 }
 
-/* VISÃO ANUAL */
+/* VISÃO ANO */
 #gradeMeses{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -87,6 +89,7 @@ h2{
   cursor:pointer;
   transition:.2s;
   text-align:center;
+  font-size:20px;
 }
 .mesCard:hover{
   background:#1F4E78;
@@ -102,8 +105,10 @@ h2{
 #mesNav{
   display:flex;
   justify-content:space-between;
-  margin-bottom:15px;
+  margin-bottom:10px;
   font-size:18px;
+  display:flex;
+  align-items:center;
   color:var(--azul);
   font-weight:bold;
 }
@@ -134,7 +139,6 @@ h2{
   color:white !important;
 }
 
-/* Badge total do dia */
 .badgeDia{
   position:absolute;
   bottom:4px;
@@ -146,7 +150,25 @@ h2{
   font-weight:bold;
 }
 
-/* TABELA */
+/* RESUMO MENSAL */
+#resumoMes{
+  background:#fff;
+  padding:18px;
+  border-radius:12px;
+  margin-top:15px;
+  box-shadow:var(--shadow);
+  display:flex;
+  justify-content:space-around;
+  font-size:18px;
+  font-weight:bold;
+}
+.resumoItem{
+  display:flex;
+  flex-direction:column;
+  text-align:center;
+}
+
+/* LISTA */
 table{
   width:100%;
   background:white;
@@ -165,6 +187,50 @@ th{
 td{
   padding:12px;
   border-bottom:1px solid #e4e4e4;
+}
+
+#searchBox{
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  margin:10px 0;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+
+/* MENU FLUTUANTE */
+#mesFloat{
+  position:fixed;
+  bottom:25px;
+  right:25px;
+  background:#1F4E78;
+  color:white;
+  padding:15px 18px;
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  font-size:26px;
+  z-index:999;
+}
+#menuMeses{
+  position:fixed;
+  bottom:90px;
+  right:25px;
+  background:white;
+  border-radius:12px;
+  padding:15px;
+  box-shadow:var(--shadow);
+  display:none;
+}
+#menuMeses div{
+  padding:10px;
+  border-radius:8px;
+  cursor:pointer;
+  transition:.2s;
+}
+#menuMeses div:hover{
+  background:#1F4E78;
+  color:white;
 }
 
 /* MODAL */
@@ -200,7 +266,6 @@ td{
   margin-bottom:12px;
 }
 
-/* Tipo */
 #tipoBtns button{
   flex:1;
   opacity:.4;
@@ -221,12 +286,16 @@ td{
 
 <button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
 
-<!-- ===========================
-     CALENDÁRIO (ANUAL → MENSAL)
-=========================== -->
+<!-- Calendário -->
 <div id="calendarioWrapper"></div>
 
-<!-- LISTA -->
+<!-- Resumo -->
+<div id="resumoMes"></div>
+
+<!-- Pesquisa -->
+<input id="searchBox" placeholder="Pesquisar por descrição, categoria ou subcategoria">
+
+<!-- Lista -->
 <table>
   <thead>
     <tr>
@@ -242,7 +311,13 @@ td{
   <tbody id="lista"></tbody>
 </table>
 
-<!-- MODAL -->
+<!-- Botão flutuante -->
+<div id="mesFloat" onclick="toggleMenuMes()">📅</div>
+
+<!-- Menu meses -->
+<div id="menuMeses"></div>
+
+<!-- Modal -->
 <div id="modal-bg">
   <div class="modal">
 
@@ -276,11 +351,12 @@ td{
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
 
 let dadosLanc = [];
-let tela = "ano"; // ano → mês → dias
+let tela = "ano";
 let mesAtual = new Date().getMonth();
 let anoAtual = new Date().getFullYear();
+let acumuladoAnterior = 0;
 
-/* UTIL */
+/* UTILS */
 function formatarData(iso){
   if(!iso) return "";
   const d = new Date(iso);
@@ -299,7 +375,7 @@ mValor.addEventListener("input",()=>{
   mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
 });
 
-/* RENDER LISTA */
+/* ====== LISTA ====== */
 function renderLista(filtrado){
   lista.innerHTML = filtrado.map(l=>`
     <tr>
@@ -317,13 +393,53 @@ function renderLista(filtrado){
   `).join("");
 }
 
-/* ========= VISÃO ANUAL ========== */
-function renderAno(){
-  tela = "ano";
+/* ====== RESUMO ====== */
+function calcularResumo(mes){
+  const lancMes = dadosLanc.filter(l=>{
+    const d = new Date(l[1]);
+    return d.getMonth()==mes && d.getFullYear()==anoAtual;
+  });
 
+  let receita = 0, despesa = 0;
+
+  lancMes.forEach(l=>{
+    const v = Number(l[6]);
+    if(l[2]=="Receita") receita+=v;
+    else despesa+=v;
+  });
+
+  const total = receita - despesa;
+  const totalAcumulado = acumuladoAnterior + total;
+  acumuladoAnterior = totalAcumulado;
+
+  resumoMes.innerHTML = `
+    <div class="resumoItem">
+      <span style="color:var(--green)">Receitas</span>
+      <span>${receita.toFixed(2)}</span>
+    </div>
+    <div class="resumoItem">
+      <span style="color:var(--red)">Despesas</span>
+      <span>${despesa.toFixed(2)}</span>
+    </div>
+    <div class="resumoItem">
+      <span>Total</span>
+      <span>${total.toFixed(2)}</span>
+    </div>
+    <div class="resumoItem">
+      <span>Acumulado</span>
+      <span>${totalAcumulado.toFixed(2)}</span>
+    </div>
+  `;
+}
+
+/* ====== VISÃO ANUAL ====== */
+function renderAno(){
+  tela="ano";
   let html = `<div id="gradeMeses">`;
 
   const nomesMes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+  acumuladoAnterior = 0;
 
   for(let m=0;m<12;m++){
 
@@ -334,25 +450,23 @@ function renderAno(){
 
     let total = lancMes.reduce((acc,l)=>acc + Number(l[6])*(l[2]=="Receita"?1:-1),0);
 
-    let cor = total>0? "green" : total<0?"red":"#555";
-
     html += `
       <div class="mesCard" onclick="abrirMes(${m})">
-        <div style="font-size:20px;font-weight:bold">${nomesMes[m]}</div>
-        <div class="mesValor" style="color:${cor}">${total.toFixed(2)}</div>
+        ${nomesMes[m]}
+        <div class="mesValor" style="color:${total>=0?'green':'red'}">${total.toFixed(2)}</div>
       </div>
     `;
   }
 
-  html += `</div>`;
-
+  html+=`</div>`;
   calendarioWrapper.innerHTML = html;
+  resumoMes.innerHTML = "";
 }
 
-/* ========= VISÃO MENSAL ========== */
+/* ====== VISÃO MENSAL ====== */
 function abrirMes(m){
-  tela = "mes";
-  mesAtual = m;
+  tela="mes";
+  mesAtual=m;
 
   const nomesMes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
@@ -373,59 +487,86 @@ function abrirMes(m){
   calendarioWrapper.innerHTML = html;
 
   renderDias();
+  calcularResumo(mesAtual);
+
+  filtrarMesPadrao();
 }
 
-/* ========= VISÃO DIAS DO MÊS ========== */
+/* ====== DIAS ====== */
 function renderDias(){
   const grade = document.getElementById("gradeDias");
-  grade.innerHTML = "";
+  grade.innerHTML="";
 
-  const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
-  const totalDias = new Date(anoAtual, mesAtual+1, 0).getDate();
+  const primeiroDia = new Date(anoAtual, mesAtual,1).getDay();
+  const totalDias = new Date(anoAtual, mesAtual+1,0).getDate();
 
-  for(let i=0;i<primeiroDia;i++){
-    grade.innerHTML += `<div></div>`;
-  }
+  for(let i=0;i<primeiroDia;i++) grade.innerHTML+=`<div></div>`;
 
   const hoje = new Date();
 
-  for(let d=1; d<=totalDias; d++){
-
-    const idDia = `${anoAtual}-${String(mesAtual+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
-    const lancDia = dadosLanc.filter(l => l[1].startsWith(idDia));
-
+  for(let d=1;d<=totalDias;d++){
+    const idDia=`${anoAtual}-${String(mesAtual+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const lancDia = dadosLanc.filter(l=>l[1].startsWith(idDia));
     const total = lancDia.reduce((acc,l)=>acc + Number(l[6])*(l[2]=="Receita"?1:-1),0);
-
-    let corBadge = total>0?"#2ecc71": total<0?"#e74c3c":"#999";
+    let corBadge = total>0?varGreen: total<0?varRed:"#999";
 
     const isHoje = hoje.getFullYear()==anoAtual && hoje.getMonth()==mesAtual && hoje.getDate()==d;
 
-    grade.innerHTML += `
-      <div class="dia ${isHoje?"diaHoje":""}" onclick="filtrarPorDia('${idDia}')">
+    grade.innerHTML+=`
+      <div class="dia ${isHoje?'diaHoje':''}" onclick="filtrarPorDia('${idDia}')">
         ${d}
-        ${lancDia.length>0?`<div class="badgeDia" style="background:${corBadge};color:white">${total.toFixed(0)}</div>`:""}
+        ${lancDia.length>0?`<div class="badgeDia" style="background:${total>0?'#2ecc71':total<0?'#e74c3c':'#999'};color:white">${total.toFixed(0)}</div>`:""}
       </div>
     `;
   }
 }
 
-/* FILTRAR POR DIA */
+/* ====== LISTA PADRÃO: MÊS ATUAL ====== */
+function filtrarMesPadrao(){
+  const filtrado = dadosLanc.filter(l=>{
+    const d=new Date(l[1]);
+    return d.getMonth()==mesAtual && d.getFullYear()==anoAtual;
+  });
+  renderLista(filtrado);
+}
+
+/* ====== FILTRO POR DIA ====== */
 function filtrarPorDia(idDia){
   const filtrado = dadosLanc.filter(l=>l[1].startsWith(idDia));
   renderLista(filtrado);
 }
 
-/* ====== CARREGAR CATEGORIAS ====== */
+/* ====== PESQUISA ====== */
+searchBox.addEventListener("input",()=>{
+  const txt = searchBox.value.toLowerCase();
+  const filtrado = dadosLanc.filter(l=>
+    l[5].toLowerCase().includes(txt) ||
+    l[3].toLowerCase().includes(txt) ||
+    l[4].toLowerCase().includes(txt)
+  );
+  renderLista(filtrado);
+});
+
+/* ====== MENU MESES ====== */
+function toggleMenuMes(){
+  menuMeses.style.display = menuMeses.style.display=="block" ? "none" : "block";
+}
+
+function carregarMenuMeses(){
+  const nomesMes=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  menuMeses.innerHTML = nomesMes.map((m,i)=>`<div onclick="abrirMes(${i});menuMeses.style.display='none'">${m}</div>`).join("");
+}
+
+/* ====== CATEGORIAS ====== */
 async function carregarCategorias(){
   const r = await fetch(API+"?action=listCadastros");
   const dados = await r.json();
 
-  listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
-  listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
+  listaCat.innerHTML=[...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
+  listaSub.innerHTML=[...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
 }
 
-/* MODAL */
+/* ====== MODAL ====== */
 function abrirModal(id=null){
   editandoID=id;
   modalBg.style.display="flex";
@@ -444,7 +585,6 @@ function abrirModal(id=null){
 }
 function fecharModal(){ modalBg.style.display="none"; }
 
-/* EDITAR */
 function editar(id,data,tipo,cat,sub,desc,val){
   abrirModal(id);
 
@@ -461,14 +601,14 @@ function editar(id,data,tipo,cat,sub,desc,val){
   else btnDespesa.click();
 }
 
-/* SALVAR */
+/* ====== SALVAR ====== */
 async function salvar(){
-  let data = mData.value;
-  let tipo = mTipo.value;
-  let cat = mCat.value;
-  let sub = mSub.value;
-  let desc = mDesc.value;
-  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
+  let data=mData.value;
+  let tipo=mTipo.value;
+  let cat=mCat.value;
+  let sub=mSub.value;
+  let desc=mDesc.value;
+  let val=mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
   if(!data||!tipo||!cat||!sub||!desc||!val){
     erro("Preencha tudo!");
@@ -479,14 +619,14 @@ async function salvar(){
 
   let url;
   if(editandoID){
-    const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
-    url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
+    const campos=JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
+    url=`${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
   } else {
-    url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
+    url=`${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
   }
 
-  let r = await fetch(url);
-  let resp = await r.json();
+  let r=await fetch(url);
+  let resp=await r.json();
 
   if(resp.status!=="ok") erro("Erro ao salvar!");
   else ok("Salvo!");
@@ -496,21 +636,26 @@ async function salvar(){
   load(false);
 }
 
-/* EXCLUIR */
+/* ====== EXCLUIR ====== */
 async function excluir(id){
   if(!confirm("Excluir?")) return;
   await fetch(API+"?action=deleteLancamento&id="+id);
   listar();
 }
 
-/* START */
+/* ====== START ====== */
 async function listar(){
   load(true);
   const r = await fetch(API+"?action=listLancamentos");
   dadosLanc = await r.json();
-  renderLista(dadosLanc);
-  await carregarCategorias();
-  renderAno(); // inicia pela visão anual
+
+  carregarCategorias();
+  carregarMenuMeses();
+
+  renderAno();       // inicia visão anual
+  abrirMes(mesAtual); // mas também abre o mês vigente
+  filtrarMesPadrao(); // lista mês atual por padrão
+
   load(false);
 }
 
