@@ -322,6 +322,8 @@ td{
 <script>
 const API = "https://script.google.com/macros/s/AKfycbzG3qNqEJommHuQSv_SerSr_TI-wCulKwKbglR3HyRmL31AoT2xVyW4ETDE7cW6xaX-zQ/exec";
 
+let DATA_ORIGINAL = []; // ← salva lançamentos brutos
+
 function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
 
 /* FORMATAR DATA */
@@ -335,10 +337,9 @@ function fm(v){
   return Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
 }
 
-/* ELEMENTOS */
 const lista = document.getElementById("lista");
 
-/* CATEGORIAS */
+/* ============================= CARREGAR CATEGORIAS ============================= */
 async function carregarCategorias(){
   const r = await fetch(API+"?action=listCadastros");
   const dados = await r.json();
@@ -347,15 +348,56 @@ async function carregarCategorias(){
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
 }
 
-/* LISTAR */
+/* ============================= LISTAR GERAL ============================= */
 async function listar(){
   load(true);
+
   const r = await fetch(API+"?action=listLancamentos");
-  const dados = await r.json();
+  DATA_ORIGINAL = await r.json();  // ← salva para filtros
 
+  aplicarFiltros();
+
+  load(false);
+}
+
+/* ============================= APLICAR FILTROS ============================= */
+function aplicarFiltros(){
+  let tipoF = fTipo.value;
+  let statusF = fStatus.value;
+  let mesF = fMes.value; // yyyy-mm
+
+  let dados = [...DATA_ORIGINAL];
+
+  // FILTRO TIPO
+  if(tipoF){
+    dados = dados.filter(l => l[2] === tipoF);
+  }
+
+  // FILTRO STATUS
+  if(statusF){
+    if(statusF === "VENCIDO"){
+      dados = dados.filter(l => {
+        const hoje = new Date();
+        const dt = new Date(l[1]);
+        return dt < hoje && (l[7] === "PENDENTE" || !l[7]);
+      });
+    } else {
+      dados = dados.filter(l => (l[7] || "PENDENTE") === statusF);
+    }
+  }
+
+  // FILTRO POR MÊS
+  if(mesF){
+    dados = dados.filter(l => String(l[1]).substring(0,7) === mesF);
+  }
+
+  renderTabela(dados);
   gerarDashboard(dados);
+}
 
-  lista.innerHTML = dados.map(l=>{
+/* ============================= RENDERIZA A TABELA ============================= */
+function renderTabela(data){
+  lista.innerHTML = data.map(l=>{
     const id = l[0];
     const data = fd(l[1]);
     const tipo = l[2];
@@ -379,11 +421,9 @@ async function listar(){
       </tr>
     `;
   }).join("");
-
-  load(false);
 }
 
-/* DASHBOARD */
+/* ============================= DASHBOARD ============================= */
 function gerarDashboard(data){
   let aReceber = 0, aPagar = 0, recebidos = 0, pagos = 0;
 
@@ -404,7 +444,7 @@ function gerarDashboard(data){
   vPagos.innerText = "R$ "+fm(pagos);
 }
 
-/* MODAL */
+/* ============================= MODAL ============================= */
 function abrirModal(){
   document.getElementById("modal-bg").style.display="flex";
   tituloModal.innerText="Novo Lançamento";
@@ -419,7 +459,7 @@ function abrirModal(){
 
 function fecharModal(){ document.getElementById("modal-bg").style.display="none"; }
 
-/* SALVAR */
+/* ============================= SALVAR ============================= */
 async function salvar(){
   let data=mData.value;
   let tipo=mTipo.value;
@@ -438,14 +478,20 @@ async function salvar(){
   load(false);
 }
 
-/* SELEÇÃO RECEITA / DESPESA */
+/* ============================= BUTTONS RECEITA/DESPESA ============================= */
 btnReceita.onclick=()=>{ mTipo.value="Receita"; btnReceita.classList.add("tipo-active"); btnDespesa.classList.remove("tipo-active"); }
 btnDespesa.onclick=()=>{ mTipo.value="Despesa"; btnDespesa.classList.add("tipo-active"); btnReceita.classList.remove("tipo-active"); }
 
-/* INÍCIO */
+/* ============================= EVENTOS DOS FILTROS ============================= */
+fTipo.onchange = aplicarFiltros;
+fStatus.onchange = aplicarFiltros;
+fMes.onchange = aplicarFiltros;
+
+/* ============================= START ============================= */
 carregarCategorias();
 listar();
 </script>
+
 
 </body>
 </html>
