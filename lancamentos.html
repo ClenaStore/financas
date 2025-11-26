@@ -6,253 +6,123 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ==================== VARIÁVEIS ==================== */
-:root {
+:root{
   --azul:#1F4E78;
-  --azul-escuro:#163A5A;
   --bg:#f4f6f9;
   --green:#2ecc71;
   --red:#e74c3c;
-  --gray:#707070;
-  --shadow:0 6px 22px rgba(0,0,0,0.18);
-  --radius:16px;
+  --gray:#999;
+  --shadow:0 6px 22px rgba(0,0,0,0.15);
 }
 
-/* ==================== BASE ==================== */
-html, body {
+/* GERAL */
+body{
   margin:0;
-  padding:0;
+  padding:25px;
   background:var(--bg);
   font-family:Arial, sans-serif;
-  color:#222;
-  overflow-x:hidden !important; /* 🔥 Sem scroll lateral */
 }
 
-body {
-  padding:20px;
-}
-
-h2 {
-  margin:10px 0 20px;
+h2{
+  margin-bottom:18px;
   color:var(--azul);
   font-size:32px;
-  font-weight:bold;
 }
 
-/* ==================== LOADING ==================== */
+/* Botões */
+.btn{
+  padding:12px 18px;
+  border:none;
+  border-radius:10px;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+.btn-green{ background:var(--green); }
+.btn-gray{ background:var(--gray); }
+
+/* Loading */
 #loading{
   position:fixed;
   bottom:20px;
   left:20px;
-  background:var(--azul);
+  background:#1F4E78;
   padding:12px 20px;
-  border-radius:12px;
+  border-radius:10px;
   color:white;
   display:none;
   animation:pulse 1.2s infinite;
   z-index:900;
 }
-@keyframes pulse {
+
+@keyframes pulse{
   0%{opacity:.5; transform:scale(.95);}
   50%{opacity:1; transform:scale(1);}
   100%{opacity:.5; transform:scale(.95);}
 }
 
-/* ==================== CALENDÁRIO ==================== */
-#calendarioWrapper {
-  background:white;
-  box-shadow:var(--shadow);
-  border-radius:var(--radius);
-  padding:20px;
-  height:420px;
-  overflow-y:auto;
-  margin-bottom:20px;
-}
-
-/* ANO */
-#gradeMeses {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:15px;
-}
-.mesCard {
-  background:white;
-  border:1px solid #ddd;
-  padding:20px;
-  border-radius:var(--radius);
-  text-align:center;
-  font-size:20px;
-  cursor:pointer;
-  transition:.2s;
-}
-.mesCard:hover {
-  background:var(--azul);
-  color:white;
-  transform:scale(1.05);
-}
-.mesValor {
-  margin-top:8px;
-  font-weight:bold;
-}
-
-/* MÊS */
-#mesNav {
-  display:flex;
-  justify-content:space-between;
-  font-size:18px;
-  color:var(--azul);
-  font-weight:bold;
-  margin-bottom:10px;
-}
-
-/* DIAS */
-#gradeDias {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:10px;
-}
-
-.dia {
-  background:white;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  cursor:pointer;
-  transition:.2s;
-  text-align:center;
-  position:relative;
-}
-.dia:hover {
-  background:var(--azul);
-  color:white;
-  transform:scale(1.05);
-}
-.diaHoje {
-  background:var(--azul) !important;
-  color:white !important;
-}
-
-.badgeDia {
-  position:absolute;
-  bottom:4px;
-  right:4px;
-  padding:3px 6px;
-  font-size:11px;
-  border-radius:8px;
-  font-weight:bold;
-  background:#ccc;
-  color:white;
-}
-
-/* ==================== RESUMO ==================== */
-#resumoMes {
-  background:white;
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:15px;
-  display:flex;
-  justify-content:space-around;
-  margin-bottom:15px;
-}
-.resumoBox {
-  text-align:center;
-  font-weight:bold;
-}
-.resumoTitulo {
-  font-size:14px;
-  opacity:.8;
-}
-.resumoValor {
-  font-size:20px;
-  margin-top:5px;
-}
-
-/* ==================== PESQUISA ==================== */
-#searchBox {
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  margin:10px 0 15px;
-  font-size:16px;
-}
-
-/* ==================== TABELA ==================== */
-table {
+/* TABELA */
+table{
   width:100%;
   background:white;
   border-collapse:collapse;
-  border-radius:var(--radius);
+  border-radius:12px;
   overflow:hidden;
+  margin-top:20px;
   box-shadow:var(--shadow);
 }
-th {
+th{
+  padding:13px;
   background:var(--azul);
   color:white;
-  padding:12px;
   text-align:left;
 }
-td {
+td{
   padding:12px;
-  border-bottom:1px solid #eee;
+  border-bottom:1px solid #e4e4e4;
 }
 
-/* ==================== BOTÃO FLUTUANTE NOVO ==================== */
-#btnAdd {
-  position:fixed;
-  bottom:22px;
-  right:22px;
-  width:70px;
-  height:70px;
-  background:var(--azul);
-  border-radius:50%;
-  box-shadow:var(--shadow);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  cursor:pointer;
-  z-index:990;
-}
-#btnAdd img {
-  width:32px;
-  height:32px;
-}
-
-/* ==================== MODAL ==================== */
-#modal-bg {
+/* MODAL */
+#modal-bg{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.5);
+  background:rgba(0,0,0,0.55);
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:999;
+  backdrop-filter:blur(3px);
+  z-index:2000;
 }
-.modal {
+
+.modal{
+  width:420px;
   background:white;
   padding:25px;
-  width:420px;
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
+  border-radius:15px;
+  animation:pop .25s ease;
+  box-shadow:0 12px 35px rgba(0,0,0,0.25);
 }
-.modal input {
+@keyframes pop{
+  from{transform:scale(.85); opacity:.3;}
+  to{transform:scale(1); opacity:1;}
+}
+
+.modal input{
   width:100%;
-  padding:12px;
-  border-radius:10px;
   border:1px solid #ccc;
+  border-radius:10px;
+  padding:11px;
   margin-bottom:12px;
 }
-#tipoBtns button {
+
+/* Tipo */
+#tipoBtns button{
   flex:1;
   opacity:.4;
-  border:none;
-  padding:12px;
-  border-radius:10px;
-  cursor:pointer;
 }
-.activeSel {
+.activeSel{
   opacity:1 !important;
-  box-shadow:0 0 6px #0004;
+  box-shadow:0 0 6px #0003;
 }
 </style>
 </head>
@@ -264,16 +134,8 @@ td {
 <h2>Lançamentos</h2>
 <div id="msg"></div>
 
-<!-- CALENDÁRIO -->
-<div id="calendarioWrapper"></div>
+<button class="btn btn-green" onclick="abrirModal()">+ Novo Lançamento</button>
 
-<!-- RESUMO -->
-<div id="resumoMes"></div>
-
-<!-- PESQUISA -->
-<input id="searchBox" placeholder="Pesquisar por descrição, categoria ou subcategoria">
-
-<!-- LISTA -->
 <table>
   <thead>
     <tr>
@@ -289,11 +151,6 @@ td {
   <tbody id="lista"></tbody>
 </table>
 
-<!-- BOTÃO FLUTUANTE DE NOVO CADASTRO -->
-<div id="btnAdd" onclick="abrirModal()">
-  <img src="https://cdn-icons-png.flaticon.com/512/1828/1828817.png">
-</div>
-
 <!-- MODAL -->
 <div id="modal-bg">
   <div class="modal">
@@ -302,60 +159,117 @@ td {
 
     <input id="mData" type="date">
 
-    <div id="tipoBtns" style="display:flex; gap:10px;">
-      <button id="btnReceita" class="btn">Receita</button>
-      <button id="btnDespesa" class="btn">Despesa</button>
+    <div id="tipoBtns" style="display:flex; gap:10px; margin-bottom:12px;">
+      <button id="btnReceita" class="btn btn-gray">Receita</button>
+      <button id="btnDespesa" class="btn btn-gray">Despesa</button>
     </div>
 
     <input type="hidden" id="mTipo">
 
-    <input list="listaCat" id="mCat" placeholder="Categoria">
+    <!-- Categoria com filtro inteligente -->
+    <input list="listaCat" id="mCat" placeholder="Categoria" autocomplete="off">
     <datalist id="listaCat"></datalist>
 
-    <input list="listaSub" id="mSub" placeholder="Subcategoria">
+    <!-- Subcategoria com filtro inteligente -->
+    <input list="listaSub" id="mSub" placeholder="Subcategoria" autocomplete="off">
     <datalist id="listaSub"></datalist>
 
     <input id="mDesc" placeholder="Descrição">
     <input id="mValor" placeholder="R$ 0,00">
 
-    <button class="btn btn-green" onclick="salvar()" style="width:100%;">Salvar</button>
+    <button class="btn btn-green" style="width:100%;" onclick="salvar()">Salvar</button>
+    <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModal()">Cancelar</button>
 
   </div>
 </div>
 
 <script>
-/* ====================== VARIÁVEIS GLOBAIS ====================== */
 const API = "https://script.google.com/macros/s/AKfycby8xeHkE0EwpMaVPOL6ggjgGasnMVa3piNIr6lCH8MdD7OZEsDA3-b5EjisScjfNLJGMw/exec";
 
-let dadosLanc = [];
-let mesAtual = new Date().getMonth();
-let anoAtual = new Date().getFullYear();
-
-let acumuladoAteMesAnterior = 0;
-
-/* ====================== FUNÇÕES BASE ====================== */
-function load(v){
-  loading.style.display = v ? "flex" : "none";
-}
-function erro(m){ msg.innerHTML = `<div style='color:red'>${m}</div>`; }
-function ok(m){ msg.innerHTML = `<div style='color:green'>${m}</div>`; }
-
+/* ===== FORMATAR DATA ===== */
 function formatarData(iso){
   if(!iso) return "";
   const d = new Date(iso);
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  if(isNaN(d)) return iso;
+  return String(d.getDate()).padStart(2,'0') + "/" +
+         String(d.getMonth()+1).padStart(2,'0') + "/" +
+         d.getFullYear();
 }
 
-/* ====================== MÁSCARA VALOR ====================== */
+/* ELEMENTOS */
+const lista = document.getElementById("lista");
+const modalBg = document.getElementById("modal-bg");
+const msg = document.getElementById("msg");
+
+const mData = document.getElementById("mData");
+const mTipo = document.getElementById("mTipo");
+const mCat = document.getElementById("mCat");
+const mSub = document.getElementById("mSub");
+const mDesc = document.getElementById("mDesc");
+const mValor = document.getElementById("mValor");
+
+const btnReceita = document.getElementById("btnReceita");
+const btnDespesa = document.getElementById("btnDespesa");
+const tituloModal = document.getElementById("tituloModal");
+
+let editandoID = null;
+
+/* Loading */
+function load(v){
+  document.getElementById("loading").style.display = v ? "flex" : "none";
+}
+
+/* ALERTAS */
+function erro(m){ msg.innerHTML=`<div style='color:red;'>${m}</div>`; }
+function ok(m){ msg.innerHTML=`<div style='color:green;'>${m}</div>`; }
+
+/* MÁSCARA */
 mValor.addEventListener("input",()=>{
-  let v=mValor.value.replace(/\D/g,"");
+  let v = mValor.value.replace(/\D/g,"");
   if(!v) v="0";
   mValor.value="R$ "+(v/100).toFixed(2).replace(".",",");
 });
 
-/* ====================== RENDER LISTA ====================== */
-function renderLista(arr){
-  lista.innerHTML = arr.map(l=>`
+/* RECEITA / DESPESA */
+btnReceita.onclick = ()=>{
+  mTipo.value="Receita";
+  btnReceita.classList.add("activeSel");
+  btnDespesa.classList.remove("activeSel");
+};
+btnDespesa.onclick = ()=>{
+  mTipo.value="Despesa";
+  btnDespesa.classList.add("activeSel");
+  btnReceita.classList.remove("activeSel");
+};
+
+/* ===== FILTRO INTELIGENTE ===== */
+function filtroInteligente(input, datalist){
+  const valores = [...datalist.options].map(o=>o.value);
+
+  input.addEventListener("input",()=>{
+
+    const txt = input.value.toLowerCase();
+
+    datalist.innerHTML = valores
+      .filter(v => v.toLowerCase().includes(txt))
+      .map(v => `<option value="${v}">`)
+      .join("");
+
+    input.dataset.valid = valores.includes(input.value) ? "1" : "0";
+  });
+
+  input.addEventListener("blur",()=>{
+    if(input.dataset.valid !== "1") input.value="";
+  });
+}
+
+/* LISTAR */
+async function listar(){
+  load(true);
+  const r = await fetch(API+"?action=listLancamentos");
+  const dados = await r.json();
+
+  lista.innerHTML = dados.map(l=>`
     <tr>
       <td>${formatarData(l[1])}</td>
       <td>${l[2]}</td>
@@ -369,159 +283,26 @@ function renderLista(arr){
       </td>
     </tr>
   `).join("");
+
+  await carregarCategorias();
+  load(false);
 }
 
-/* ====================== RESUMO DO MÊS ====================== */
-function gerarResumoMes(m){
-  let receita=0, despesa=0;
-
-  dadosLanc.forEach(l=>{
-    const d=new Date(l[1]);
-    if(d.getMonth()==m && d.getFullYear()==anoAtual){
-      if(l[2]=="Receita") receita+=Number(l[6]);
-      else despesa+=Number(l[6]);
-    }
-  });
-
-  resumoMes.innerHTML = `
-    <div class='resumoBox'>
-      <div class='resumoTitulo'>Receitas</div>
-      <div class='resumoValor' style='color:var(--green)'>${receita.toFixed(2)}</div>
-    </div>
-    <div class='resumoBox'>
-      <div class='resumoTitulo'>Despesas</div>
-      <div class='resumoValor' style='color:var(--red)'>${despesa.toFixed(2)}</div>
-    </div>
-    <div class='resumoBox'>
-      <div class='resumoTitulo'>Total</div>
-      <div class='resumoValor'>${(receita-despesa).toFixed(2)}</div>
-    </div>
-  `;
-}
-
-/* ====================== ANO ====================== */
-function renderAno(){
-  let html = `<div id="gradeMeses">`;
-  const nomes=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-
-  for(let m=0;m<12;m++){
-    const dadosMes = dadosLanc.filter(l=>{
-      const d=new Date(l[1]);
-      return d.getMonth()==m && d.getFullYear()==anoAtual;
-    });
-
-    const total = dadosMes.reduce((acc,l)=>
-      acc + Number(l[6])*(l[2]=="Receita"?1:-1)
-    ,0);
-
-    html+=`
-      <div class="mesCard" onclick="abrirMes(${m})">
-        ${nomes[m]}
-        <div class="mesValor" style="color:${total>=0?'var(--green)':'var(--red)'}">${total.toFixed(2)}</div>
-      </div>
-    `;
-  }
-
-  html+=`</div>`;
-  calendarioWrapper.innerHTML = html;
-}
-
-/* ====================== MÊS ====================== */
-function abrirMes(m){
-  mesAtual=m;
-
-  const nomes=["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-
-  calendarioWrapper.innerHTML = `
-    <div id="mesNav">
-      <span onclick="renderAno()" style="cursor:pointer;">◀ Ano</span>
-      <span>${nomes[m]} ${anoAtual}</span>
-      <span></span>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-weight:bold;margin-bottom:10px;">
-      <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
-    </div>
-
-    <div id="gradeDias"></div>
-  `;
-
-  gerarResumoMes(m);
-  renderDias();
-  filtrarMes();
-}
-
-/* ====================== DIAS ====================== */
-function renderDias(){
-  const g=document.getElementById("gradeDias");
-  g.innerHTML="";
-
-  const primeiroDia=new Date(anoAtual, mesAtual, 1).getDay();
-  const totalDias=new Date(anoAtual, mesAtual+1, 0).getDate();
-
-  for(let i=0;i<primeiroDia;i++) g.innerHTML+=`<div></div>`;
-
-  const hoje=new Date();
-
-  for(let d=1;d<=totalDias;d++){
-    const idDia=
-      `${anoAtual}-${String(mesAtual+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
-    const lancDia = dadosLanc.filter(l=>l[1].startsWith(idDia));
-    const totalDia = lancDia.reduce((acc,l)=>
-      acc + Number(l[6])*(l[2]=="Receita"?1:-1)
-    ,0);
-
-    g.innerHTML+=`
-      <div class="dia ${(hoje.getFullYear()==anoAtual && hoje.getMonth()==mesAtual && hoje.getDate()==d)?'diaHoje':''}"
-           onclick="filtrarDia('${idDia}')">
-        ${d}
-        ${lancDia.length>0?`
-          <div class="badgeDia" style="background:${totalDia>=0?'var(--green)':'var(--red)'}">
-            ${totalDia.toFixed(0)}
-          </div>`:""}
-      </div>
-    `;
-  }
-}
-
-/* ====================== FILTROS ====================== */
-function filtrarMes(){
-  const arr=dadosLanc.filter(l=>{
-    const d=new Date(l[1]);
-    return d.getMonth()==mesAtual && d.getFullYear()==anoAtual;
-  });
-  renderLista(arr);
-}
-
-function filtrarDia(idDia){
-  const arr=dadosLanc.filter(l=>l[1].startsWith(idDia));
-  renderLista(arr);
-}
-
-searchBox.addEventListener("input",()=>{
-  const q=searchBox.value.toLowerCase();
-  const arr=dadosLanc.filter(l=>
-    l[3].toLowerCase().includes(q) ||
-    l[4].toLowerCase().includes(q) ||
-    l[5].toLowerCase().includes(q)
-  );
-  renderLista(arr);
-});
-
-/* ====================== CATEGORIAS ====================== */
+/* CARREGAR LISTAS */
 async function carregarCategorias(){
-  const r=await fetch(API+"?action=listCadastros");
-  const dados=await r.json();
+  const r = await fetch(API+"?action=listCadastros");
+  const dados = await r.json();
 
-  listaCat.innerHTML=[...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
-  listaSub.innerHTML=[...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
+  listaCat.innerHTML = [...new Set(dados.map(l=>l[2]))].map(v=>`<option value="${v}">`).join("");
+  listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(v=>`<option value="${v}">`).join("");
+
+  filtroInteligente(mCat, listaCat);
+  filtroInteligente(mSub, listaSub);
 }
 
-/* ====================== MODAL ====================== */
-function abrirModal(){
-  editando=null;
+/* MODAL */
+function abrirModal(id=null){
+  editandoID=id;
   modalBg.style.display="flex";
 
   mData.value=new Date().toISOString().split("T")[0];
@@ -533,25 +314,15 @@ function abrirModal(){
 
   btnReceita.classList.remove("activeSel");
   btnDespesa.classList.remove("activeSel");
+
+  tituloModal.innerText="Novo Lançamento";
 }
 
 function fecharModal(){ modalBg.style.display="none"; }
 
-btnReceita.onclick=()=>{
-  mTipo.value="Receita";
-  btnReceita.classList.add("activeSel");
-  btnDespesa.classList.remove("activeSel");
-};
-
-btnDespesa.onclick=()=>{
-  mTipo.value="Despesa";
-  btnDespesa.classList.add("activeSel");
-  btnReceita.classList.remove("activeSel");
-};
-
+/* EDITAR */
 function editar(id,data,tipo,cat,sub,desc,val){
-  abrirModal();
-  editando=id;
+  abrirModal(id);
 
   tituloModal.innerText="Editar Lançamento";
 
@@ -562,38 +333,44 @@ function editar(id,data,tipo,cat,sub,desc,val){
   mDesc.value=desc;
   mValor.value="R$ "+Number(val).toFixed(2).replace(".",",");
 
-  if(tipo=="Receita") btnReceita.classList.add("activeSel");
-  else btnDespesa.classList.add("activeSel");
+  if(tipo==="Receita") btnReceita.click();
+  else btnDespesa.click();
 }
 
-/* ====================== SALVAR ====================== */
+/* SALVAR */
 async function salvar(){
-  let data=mData.value;
-  let tipo=mTipo.value;
-  let cat=mCat.value;
-  let sub=mSub.value;
-  let desc=mDesc.value;
-  let val=mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
+  let data = mData.value;
+  let tipo = mTipo.value;
+  let cat = mCat.value;
+  let sub = mSub.value;
+  let desc = mDesc.value;
+  let val = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
 
-  if(!data||!tipo||!cat||!sub||!desc){
+  if(!data||!tipo||!cat||!sub||!desc||!val){
     erro("Preencha tudo!");
     return;
   }
 
+  const cats = [...listaCat.options].map(o=>o.value);
+  const subs = [...listaSub.options].map(o=>o.value);
+
+  if(!cats.includes(cat)){ erro("Categoria inválida!"); return; }
+  if(!subs.includes(sub)){ erro("Subcategoria inválida!"); return; }
+
   load(true);
 
   let url;
-  if(editando){
-    const campos=JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
-    url=`${API}?action=editLancamento&id=${editando}&campos=${encodeURIComponent(campos)}`;
+  if(editandoID){
+    const campos = JSON.stringify({data,tipo,categoria:cat,subcategoria:sub,descricao:desc,valor:val});
+    url = `${API}?action=editLancamento&id=${editandoID}&campos=${encodeURIComponent(campos)}`;
   } else {
-    url=`${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
+    url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}`;
   }
 
-  let r=await fetch(url);
-  let resp=await r.json();
+  let r = await fetch(url);
+  let resp = await r.json();
 
-  if(resp.status!="ok") erro("Erro ao salvar!");
+  if(resp.status!=="ok") erro("Erro ao salvar!");
   else ok("Salvo!");
 
   fecharModal();
@@ -601,29 +378,14 @@ async function salvar(){
   load(false);
 }
 
-/* ====================== EXCLUIR ====================== */
+/* EXCLUIR */
 async function excluir(id){
   if(!confirm("Excluir?")) return;
   await fetch(API+"?action=deleteLancamento&id="+id);
   listar();
 }
 
-/* ====================== INICIAR ====================== */
-async function listar(){
-  load(true);
-
-  const r=await fetch(API+"?action=listLancamentos");
-  dadosLanc=await r.json();
-
-  carregarCategorias();
-
-  renderAno();
-  abrirMes(mesAtual);
-  filtrarMes();
-
-  load(false);
-}
-
+/* START */
 listar();
 </script>
 
