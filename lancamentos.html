@@ -320,9 +320,10 @@ td{
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzG3qNqEJommHuQSv_SerSr_TI-wCulKwKbglR3HyRmL31AoT2xVyW4ETDE7cW6xaX-zQ/exec";
+const API = "https://script.google.com/macros/s/AKfycbwj6b0Lpxcl6ELlX5SYO1ZKHmyphG7c4lyHUUVtmeBBuyJtWeyxV23hGl9bU8evYxDBJw/exec";
 
-let DATA_ORIGINAL = []; // ← salva lançamentos brutos
+let DATA_ORIGINAL = []; 
+let EDIT_ID = null;
 
 function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
 
@@ -353,7 +354,7 @@ async function listar(){
   load(true);
 
   const r = await fetch(API+"?action=listLancamentos");
-  DATA_ORIGINAL = await r.json();  // ← salva para filtros
+  DATA_ORIGINAL = await r.json();
 
   aplicarFiltros();
 
@@ -364,29 +365,23 @@ async function listar(){
 function aplicarFiltros(){
   let tipoF = fTipo.value;
   let statusF = fStatus.value;
-  let mesF = fMes.value; // yyyy-mm
+  let mesF = fMes.value;
 
   let dados = [...DATA_ORIGINAL];
 
-  // FILTRO TIPO
   if(tipoF){
     dados = dados.filter(l => l[2] === tipoF);
   }
 
-  // FILTRO STATUS
   if(statusF){
     if(statusF === "VENCIDO"){
-      dados = dados.filter(l => {
-        const hoje = new Date();
-        const dt = new Date(l[1]);
-        return dt < hoje && (l[7] === "PENDENTE" || !l[7]);
-      });
+      const hoje = new Date();
+      dados = dados.filter(l => new Date(l[1]) < hoje && (l[7] === "PENDENTE" || !l[7]));
     } else {
       dados = dados.filter(l => (l[7] || "PENDENTE") === statusF);
     }
   }
 
-  // FILTRO POR MÊS
   if(mesF){
     dados = dados.filter(l => String(l[1]).substring(0,7) === mesF);
   }
@@ -395,7 +390,7 @@ function aplicarFiltros(){
   gerarDashboard(dados);
 }
 
-/* ============================= RENDERIZA A TABELA ============================= */
+/* ============================= RENDERIZA TABELA ============================= */
 function renderTabela(data){
   lista.innerHTML = data.map(l=>{
     const id = l[0];
@@ -446,10 +441,16 @@ function gerarDashboard(data){
 
 /* ============================= MODAL ============================= */
 function abrirModal(){
+  EDIT_ID = null;
+
   document.getElementById("modal-bg").style.display="flex";
   tituloModal.innerText="Novo Lançamento";
+
   mData.value = new Date().toISOString().split("T")[0];
   mTipo.value="";
+  btnReceita.classList.remove("tipo-active");
+  btnDespesa.classList.remove("tipo-active");
+
   mCat.value="";
   mSub.value="";
   mDesc.value="";
@@ -457,7 +458,37 @@ function abrirModal(){
   mStatus.value="PENDENTE";
 }
 
-function fecharModal(){ document.getElementById("modal-bg").style.display="none"; }
+function fecharModal(){ 
+  document.getElementById("modal-bg").style.display="none"; 
+}
+
+/* ============================= EDITAR ============================= */
+function editar(id){
+  const lanc = DATA_ORIGINAL.find(l => l[0] == id);
+  if(!lanc){ alert("Lançamento não encontrado!"); return; }
+
+  EDIT_ID = id;
+
+  document.getElementById("modal-bg").style.display="flex";
+  tituloModal.innerText="Editar Lançamento";
+
+  mData.value = lanc[1];
+  mTipo.value = lanc[2];
+
+  if(lanc[2] === "Receita"){
+    btnReceita.classList.add("tipo-active");
+    btnDespesa.classList.remove("tipo-active");
+  } else {
+    btnDespesa.classList.add("tipo-active");
+    btnReceita.classList.remove("tipo-active");
+  }
+
+  mCat.value = lanc[3];
+  mSub.value = lanc[4];
+  mDesc.value = lanc[5];
+  mValor.value = lanc[6];
+  mStatus.value = lanc[7] || "PENDENTE";
+}
 
 /* ============================= SALVAR ============================= */
 async function salvar(){
@@ -469,16 +500,25 @@ async function salvar(){
   let val=mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
   let status=mStatus.value;
 
-  const url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}&status=${status}`;
+  let url = "";
+
+  if(EDIT_ID){
+    url = `${API}?action=updateLancamento&id=${EDIT_ID}&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}&status=${status}`;
+  } else {
+    url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}&status=${status}`;
+  }
 
   load(true);
   await fetch(url);
+
   fecharModal();
   listar();
   load(false);
+
+  EDIT_ID = null;
 }
 
-/* ============================= BUTTONS RECEITA/DESPESA ============================= */
+/* ============================= RECEITA/DESPESA ============================= */
 btnReceita.onclick=()=>{ mTipo.value="Receita"; btnReceita.classList.add("tipo-active"); btnDespesa.classList.remove("tipo-active"); }
 btnDespesa.onclick=()=>{ mTipo.value="Despesa"; btnDespesa.classList.add("tipo-active"); btnReceita.classList.remove("tipo-active"); }
 
@@ -491,7 +531,6 @@ fMes.onchange = aplicarFiltros;
 carregarCategorias();
 listar();
 </script>
-
 
 </body>
 </html>
