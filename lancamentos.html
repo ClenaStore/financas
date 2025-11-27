@@ -30,6 +30,7 @@ body{
   background:var(--bg);
   padding:22px;
   color:#1a1a1a;
+  overflow:hidden; /* <<< impede rolagem da página */
 }
 
 /* ======================== TÍTULO ======================= */
@@ -46,7 +47,7 @@ h1{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
   gap:20px;
-  margin-bottom:25px;
+  margin-bottom:20px;
 }
 
 .card{
@@ -104,14 +105,20 @@ select,input[type=month]{
   width:170px;
 }
 
+/* ======================== ÁREA DA TABELA ======================= */
+.table-container{
+  background:white;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow-y:auto;
+  max-height:65vh; /* <<< altura fixa com scroll */
+  padding-bottom:10px;
+}
+
 /* ======================== TABELA ======================= */
 table{
   width:100%;
   border-collapse:collapse;
-  background:white;
-  border-radius:var(--radius);
-  overflow:hidden;
-  box-shadow:var(--shadow);
 }
 
 th{
@@ -119,6 +126,9 @@ th{
   color:white;
   padding:12px;
   text-align:left;
+  position:sticky;
+  top:0;
+  z-index:10;
 }
 td{
   padding:12px;
@@ -258,7 +268,8 @@ td{
   <input type="month" id="fMes">
 </div>
 
-<!-- TABELA -->
+<!-- TABELA COM ROLAGEM -->
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -273,6 +284,7 @@ td{
 </thead>
 <tbody id="lista"></tbody>
 </table>
+</div>
 
 <!-- MODAL -->
 <div id="modal-bg">
