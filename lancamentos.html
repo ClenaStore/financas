@@ -23,6 +23,7 @@
   --transition:.2s ease;
 }
 
+/* ======================== BASE ======================= */
 body{
   margin:0;
   font-family:'Inter', sans-serif;
@@ -65,6 +66,11 @@ h1{
   margin-top:10px;
   font-size:26px;
   font-weight:700;
+}
+
+/* CARD SALDO → cor automática */
+#cardSaldo{
+  transition:0.2s;
 }
 
 /* ======================== BOTÃO NOVO ======================= */
@@ -131,7 +137,6 @@ td{
 .st-recebido{ background:var(--green); }
 .st-pago{ background:var(--green); }
 .st-vencido{ background:var(--red); }
-.st-prox{ background:var(--dourado); }
 
 /* ======================== MODAL ======================= */
 #modal-bg{
@@ -153,6 +158,7 @@ td{
   animation:pop .25s ease;
   box-shadow:0 12px 35px rgba(0,0,0,.35);
 }
+
 @keyframes pop{
   from{ transform:scale(.85); opacity:.4; }
   to{ transform:scale(1); opacity:1; }
@@ -185,26 +191,6 @@ td{
   background:var(--azul);
   color:white;
   font-weight:600;
-}
-
-.btn-salvar{
-  width:100%;
-  padding:14px;
-  background:var(--green);
-  color:white;
-  border:none;
-  border-radius:var(--radius-sm);
-  cursor:pointer;
-  font-size:16px;
-}
-.btn-cancelar{
-  width:100%;
-  padding:14px;
-  margin-top:8px;
-  background:var(--gray);
-  color:white;
-  border:none;
-  border-radius:var(--radius-sm);
 }
 
 /* ======================== LOADING ======================= */
@@ -242,6 +228,12 @@ td{
   <div class="card"><h3>A PAGAR</h3><div class="valor" id="vPagar">R$ 0,00</div></div>
   <div class="card"><h3>RECEBIDOS</h3><div class="valor" id="vRecebidos">R$ 0,00</div></div>
   <div class="card"><h3>PAGOS</h3><div class="valor" id="vPagos">R$ 0,00</div></div>
+
+  <!-- NOVO CARD: SALDO ATUAL -->
+  <div class="card" id="cardSaldo">
+    <h3>SALDO ATUAL</h3>
+    <div class="valor" id="vSaldo">R$ 0,00</div>
+  </div>
 </div>
 
 <!-- BOTÃO -->
@@ -433,10 +425,28 @@ function gerarDashboard(data){
     if(status==="PAGO") pagos += valor;
   });
 
-  vReceber.innerText = "R$ "+fm(aReceber);
-  vPagar.innerText = "R$ "+fm(aPagar);
-  vRecebidos.innerText = "R$ "+fm(recebidos);
-  vPagos.innerText = "R$ "+fm(pagos);
+  vReceber.innerText  = "R$ "+fm(aReceber);
+  vPagar.innerText    = "R$ "+fm(aPagar);
+  vRecebidos.innerText= "R$ "+fm(recebidos);
+  vPagos.innerText    = "R$ "+fm(pagos);
+
+  /* ================== SALDO ATUAL ================== */
+  let saldo = (aReceber + recebidos) - (aPagar + pagos);
+
+  vSaldo.innerText = "R$ " + fm(saldo);
+
+  /* COR DO CARD */
+  const card = document.getElementById("cardSaldo");
+
+  if(saldo > 0){
+    card.style.borderLeftColor = "var(--green)";
+  } 
+  else if(saldo < 0){
+    card.style.borderLeftColor = "var(--red)";
+  } 
+  else {
+    card.style.borderLeftColor = "var(--gray)";
+  }
 }
 
 /* ============================= MODAL ============================= */
@@ -448,14 +458,14 @@ function abrirModal(){
 
   mData.value = new Date().toISOString().split("T")[0];
   mTipo.value="";
-  btnReceita.classList.remove("tipo-active");
-  btnDespesa.classList.remove("tipo-active");
-
   mCat.value="";
   mSub.value="";
   mDesc.value="";
   mValor.value="";
   mStatus.value="PENDENTE";
+
+  btnReceita.classList.remove("tipo-active");
+  btnDespesa.classList.remove("tipo-active");
 }
 
 function fecharModal(){
@@ -472,13 +482,13 @@ function editar(id){
   document.getElementById("modal-bg").style.display="flex";
   tituloModal.innerText="Editar Lançamento";
 
-  mData.value = lanc[1];
-  mTipo.value = lanc[2];
-  mCat.value = lanc[3];
-  mSub.value = lanc[4];
-  mDesc.value = lanc[5];
+  mData.value  = lanc[1];
+  mTipo.value  = lanc[2];
+  mCat.value   = lanc[3];
+  mSub.value   = lanc[4];
+  mDesc.value  = lanc[5];
   mValor.value = String(lanc[6]).replace(".", ",");
-  mStatus.value = lanc[7] || "PENDENTE";
+  mStatus.value= lanc[7] || "PENDENTE";
 
   btnReceita.classList.toggle("tipo-active", lanc[2] === "Receita");
   btnDespesa.classList.toggle("tipo-active", lanc[2] === "Despesa");
@@ -507,11 +517,12 @@ async function salvar(){
   let url = "";
 
   if(EDIT_ID){
-    // EDITA
-    url = `${API}?action=updateLancamento&id=${EDIT_ID}&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}&status=${status}`;
+    url = `${API}?action=editLancamento&id=${EDIT_ID}&campos=${encodeURIComponent(JSON.stringify({
+      data:data, tipo:tipo, categoria:cat, subcategoria:sub,
+      descricao:desc, valor:val, status:status
+    }))}`;
   } 
   else {
-    // CRIA
     url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}&status=${status}`;
   }
 
