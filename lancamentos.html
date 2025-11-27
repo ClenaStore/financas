@@ -320,25 +320,26 @@ td{
 </div>
 
 <script>
+/* ============================= CONFIG API ============================= */
 const API = "https://script.google.com/macros/s/AKfycbwj6b0Lpxcl6ELlX5SYO1ZKHmyphG7c4lyHUUVtmeBBuyJtWeyxV23hGl9bU8evYxDBJw/exec";
 
 let DATA_ORIGINAL = []; 
 let EDIT_ID = null;
 
-function load(v){ document.getElementById("loading").style.display = v ? "flex" : "none"; }
+/* ============================= LOADING ============================= */
+function load(v){ 
+  document.getElementById("loading").style.display = v ? "flex" : "none"; 
+}
 
-/* FORMATAR DATA */
+/* ============================= FORMATADORES ============================= */
 function fd(d){
   const dt = new Date(d);
   return dt.toLocaleDateString("pt-BR");
 }
 
-/* FORMATAR MOEDA */
 function fm(v){
   return Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
 }
-
-const lista = document.getElementById("lista");
 
 /* ============================= CARREGAR CATEGORIAS ============================= */
 async function carregarCategorias(){
@@ -349,7 +350,7 @@ async function carregarCategorias(){
   listaSub.innerHTML = [...new Set(dados.map(l=>l[3]))].map(s=>`<option value="${s}">`).join("");
 }
 
-/* ============================= LISTAR GERAL ============================= */
+/* ============================= LISTAR LANÇAMENTOS ============================= */
 async function listar(){
   load(true);
 
@@ -363,9 +364,9 @@ async function listar(){
 
 /* ============================= APLICAR FILTROS ============================= */
 function aplicarFiltros(){
-  let tipoF = fTipo.value;
+  let tipoF   = fTipo.value;
   let statusF = fStatus.value;
-  let mesF = fMes.value;
+  let mesF    = fMes.value;
 
   let dados = [...DATA_ORIGINAL];
 
@@ -375,8 +376,7 @@ function aplicarFiltros(){
 
   if(statusF){
     if(statusF === "VENCIDO"){
-      const hoje = new Date();
-      dados = dados.filter(l => new Date(l[1]) < hoje && (l[7] === "PENDENTE" || !l[7]));
+      dados = dados.filter(l => new Date(l[1]) < new Date() && (l[7] === "PENDENTE" || !l[7]));
     } else {
       dados = dados.filter(l => (l[7] || "PENDENTE") === statusF);
     }
@@ -427,10 +427,10 @@ function gerarDashboard(data){
     const valor = Number(l[6]);
     const status = l[7] || "PENDENTE";
 
-    if(tipo=="Receita" && status=="PENDENTE") aReceber += valor;
-    if(tipo=="Despesa" && status=="PENDENTE") aPagar += valor;
-    if(status=="RECEBIDO") recebidos += valor;
-    if(status=="PAGO") pagos += valor;
+    if(tipo==="Receita" && status==="PENDENTE") aReceber += valor;
+    if(tipo==="Despesa" && status==="PENDENTE") aPagar += valor;
+    if(status==="RECEBIDO") recebidos += valor;
+    if(status==="PAGO") pagos += valor;
   });
 
   vReceber.innerText = "R$ "+fm(aReceber);
@@ -458,8 +458,8 @@ function abrirModal(){
   mStatus.value="PENDENTE";
 }
 
-function fecharModal(){ 
-  document.getElementById("modal-bg").style.display="none"; 
+function fecharModal(){
+  document.getElementById("modal-bg").style.display="none";
 }
 
 /* ============================= EDITAR ============================= */
@@ -474,37 +474,44 @@ function editar(id){
 
   mData.value = lanc[1];
   mTipo.value = lanc[2];
-
-  if(lanc[2] === "Receita"){
-    btnReceita.classList.add("tipo-active");
-    btnDespesa.classList.remove("tipo-active");
-  } else {
-    btnDespesa.classList.add("tipo-active");
-    btnReceita.classList.remove("tipo-active");
-  }
-
   mCat.value = lanc[3];
   mSub.value = lanc[4];
   mDesc.value = lanc[5];
-  mValor.value = lanc[6];
+  mValor.value = String(lanc[6]).replace(".", ",");
   mStatus.value = lanc[7] || "PENDENTE";
+
+  btnReceita.classList.toggle("tipo-active", lanc[2] === "Receita");
+  btnDespesa.classList.toggle("tipo-active", lanc[2] === "Despesa");
+}
+
+/* ============================= EXCLUIR ============================= */
+async function excluir(id){
+  if(!confirm("Deseja realmente excluir este lançamento?")) return;
+
+  load(true);
+  await fetch(`${API}?action=deleteLancamento&id=${id}`);
+  await listar();
+  load(false);
 }
 
 /* ============================= SALVAR ============================= */
 async function salvar(){
-  let data=mData.value;
-  let tipo=mTipo.value;
-  let cat=mCat.value;
-  let sub=mSub.value;
-  let desc=mDesc.value;
-  let val=mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
-  let status=mStatus.value;
+  let data   = mData.value;
+  let tipo   = mTipo.value;
+  let cat    = mCat.value;
+  let sub    = mSub.value;
+  let desc   = mDesc.value;
+  let val    = mValor.value.replace("R$","").replace(".","").replace(",",".").trim();
+  let status = mStatus.value;
 
   let url = "";
 
   if(EDIT_ID){
+    // EDITA
     url = `${API}?action=updateLancamento&id=${EDIT_ID}&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}&status=${status}`;
-  } else {
+  } 
+  else {
+    // CRIA
     url = `${API}?action=createLancamento&data=${data}&tipo=${tipo}&categoria=${cat}&subcategoria=${sub}&descricao=${desc}&valor=${val}&status=${status}`;
   }
 
@@ -518,11 +525,20 @@ async function salvar(){
   EDIT_ID = null;
 }
 
-/* ============================= RECEITA/DESPESA ============================= */
-btnReceita.onclick=()=>{ mTipo.value="Receita"; btnReceita.classList.add("tipo-active"); btnDespesa.classList.remove("tipo-active"); }
-btnDespesa.onclick=()=>{ mTipo.value="Despesa"; btnDespesa.classList.add("tipo-active"); btnReceita.classList.remove("tipo-active"); }
+/* ============================= BOTÕES RECEITA / DESPESA ============================= */
+btnReceita.onclick = () => {
+  mTipo.value="Receita";
+  btnReceita.classList.add("tipo-active");
+  btnDespesa.classList.remove("tipo-active");
+};
 
-/* ============================= EVENTOS DOS FILTROS ============================= */
+btnDespesa.onclick = () => {
+  mTipo.value="Despesa";
+  btnDespesa.classList.add("tipo-active");
+  btnReceita.classList.remove("tipo-active");
+};
+
+/* ============================= FILTROS ============================= */
 fTipo.onchange = aplicarFiltros;
 fStatus.onchange = aplicarFiltros;
 fMes.onchange = aplicarFiltros;
